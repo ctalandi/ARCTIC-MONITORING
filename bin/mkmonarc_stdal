@@ -1,0 +1,127 @@
+#!/bin/ksh
+## =====================================================================
+##     ***  script  mkmeans  ***
+##  This script is used to install MOY_PROD tools in CTL/CDF of a given
+##  CONFIG-CASE of a DRAKKAR run.
+## =====================================================================
+## History : 1.0  !  2010    J.M. Molines      Original code
+## History : 1.0  !  2020    C. Talandier      Very light to be able to use it outside the DCM env.
+## ----------------------------------------------------------------------
+##  DMONTOOLS_2.0 , MEOM 2012
+##  $Id: mkmeans 637 2015-12-03 11:12:28Z molines $
+##  Copyright (c) 2012, J.-M. Molines
+##  Software governed by the CeCILL licence (Licence/DMONTOOLSCeCILL.txt)
+## ----------------------------------------------------------------------
+#
+### The path to this script must be in your directory
+usage() {   echo 'usage : mkmonarc CONFIG CASE PDIR'
+            echo '  '
+            echo '   Action :'
+            echo '      Install all MONARC tools into the PDIR directory for '
+            echo '      the CONFIG-CASE configuration. Create missing directory '
+            echo '      if necessary.'
+            echo '         After installation, some scripts requires customization for'
+            echo '      choice, sub dir path etc... ( config_monarc.ksh )'
+  exit 1   ; }
+
+     
+### browse command line and look for the used syntax. Issue message error and usage  if necessary
+if [ $#  = 3 ] ; then
+  CONFIG=$1
+  CASE=$2
+  PDIR=$3
+#elif [ $# = 1 ] ; then
+#   if [ $1 = '-a' ] ; then
+#     tmp=$(pwd) 
+#     if [ $(basename $tmp) != 'CTL' ] ; then
+#      echo ' you must be in a CTL dir when using the -a option'
+#      usage
+#     else
+#      CONFCASE=$( basename  $(dirname $tmp) )
+#      CONFIG=${CONFCASE%-*}
+#      CASE=${CONFCASE#*-}
+#    fi
+#   else
+#    echo "$1 is not a valid option"
+#    usage
+#   fi
+else
+  usage
+fi
+
+echo
+echo Create several directory to install the ${CONFIG}-${CASE} monitoring
+echo
+
+# Check for the environment variables  PDIR 
+if [ ! $PDIR ] ; then 
+   echo Environment variable : PDIR not set ... do it before running this script.
+   exit 1
+fi
+
+# find the DMONTOOLS directory 
+SRCDIR=`pwd | sed -e "s/\/bin//" `
+
+# Create directories on $PDIR (production)
+###############################
+
+chkdir() { if [ ! -d $1 ] ; then mkdir -p $1 ; else echo $1 exists ; fi ; }
+
+chkdir $PDIR
+cd $PDIR
+echo CREATING on $PDIR '(PDIR)'
+echo '================================='
+
+chkdir ${CONFIG}-MONARC/${CONFIG}-${CASE}/SECTIONS/JOBS-OUT
+chkdir ${CONFIG}-MONARC/${CONFIG}-${CASE}/MOORINGS/JOBS-OUT
+chkdir ${CONFIG}-MONARC/${CONFIG}-${CASE}/MAPS/JOBS-OUT
+chkdir ${CONFIG}-MONARC/${CONFIG}-${CASE}/INTQUANT/JOBS-OUT
+
+# Copy files for monitoring
+###############################
+
+P_CDF_DIR=$PDIR/${CONFIG}-MONARC/${CONFIG}-${CASE}
+
+HOSTNAME=`hostname`
+
+if [ $HOSTNAME == 'datarmor0' ] || [ $HOSTNAME == 'datarmor1' ]  || [ $HOSTNAME == 'datarmor2' ]  || [ $HOSTNAME == 'datarmor3' ]  ; then 
+	short_name='datarmor'
+else
+	short_name='occigen'
+fi
+
+cp $SRCDIR/RUN_monarc.ksh   $P_CDF_DIR/.
+chmod 750 $P_CDF_DIR/RUN_monarc.ksh
+cp $SRCDIR/JHEAD_${short_name}.bash $P_CDF_DIR/.
+
+cp $SRCDIR/CREG_intquant_func.py    $P_CDF_DIR/INTQUANT/.
+cp $SRCDIR/CREG_intquant.py         $P_CDF_DIR/INTQUANT/.
+cp $SRCDIR/job_intquant.ksh         $P_CDF_DIR/INTQUANT/.
+
+cp $SRCDIR/CREG_maps_func.py        $P_CDF_DIR/MAPS/.
+cp $SRCDIR/CREG_maps_cont.py        $P_CDF_DIR/MAPS/.
+cp $SRCDIR/CREG_maps_geog.py        $P_CDF_DIR/MAPS/.
+cp $SRCDIR/CREG_maps.py             $P_CDF_DIR/MAPS/.
+cp $SRCDIR/job_maps.ksh             $P_CDF_DIR/MAPS/.
+
+cp $SRCDIR/CREG_moorings_func.py    $P_CDF_DIR/MOORINGS/.
+cp $SRCDIR/CREG_moorings_cont.py    $P_CDF_DIR/MOORINGS/.
+cp $SRCDIR/CREG_moorings.py         $P_CDF_DIR/MOORINGS/.
+cp $SRCDIR/job_moorings.ksh         $P_CDF_DIR/MOORINGS/.
+
+cp $SRCDIR/CREG_sections_func.py    $P_CDF_DIR/SECTIONS/.
+cp $SRCDIR/CREG_sections.py         $P_CDF_DIR/SECTIONS/.
+cp $SRCDIR/job_sections.ksh         $P_CDF_DIR/SECTIONS/.
+
+
+# save existing config_monarc.ksh for reference
+if [ -f $P_CDF_DIR/config_monarc.ksh ] ; then 
+  mv $P_CDF_DIR/config_monarc.ksh $P_CDF_DIR/config_monarc.ksh.$$ 
+  echo Existing config_monarc.ksh renamed $P_CDF_DIR/config_monarc.ksh.$$
+fi
+
+cat $SRCDIR/config_monarc.ksh | sed -e "s/<CONFIG>/${CONFIG}/" -e "s/<CASE>/${CASE}/" \
+    -e "s/<MACHINE>/$short_name/" -e "s;<INITDIR>;${P_CDF_DIR};" > $P_CDF_DIR/config_monarc.ksh
+
+
+echo "install for ${CONFIG}-${CASE} done "
