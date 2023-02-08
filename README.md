@@ -1,5 +1,5 @@
 # ARCTIC-MONITORING
-This is a set of Python scripts to assess ocean/sea-ice numerical simulations over the Arctic relying on the **[NEMO](https://www.nemo-ocean.eu)** numerical platform. Diagnostics and plots are done over and around the Arctic basin. It aims at producing maps, sections, vertical profiles along moorings and integrated quantities such as sea-ice volume, area, extend, freshwater content as well among others.<br>
+This is a set of Python scripts to assess ocean/sea-ice numerical simulations over the Arctic relying on the **[NEMO](https://www.nemo-ocean.eu)** numerical platform. Diagnostics and plots are done over and around the Arctic basin. It aims at producing maps, sections, vertical profiles along moorings and integrated quantities such as sea-ice volume, area, extend, freshwater content as well among others using either monthly or annual means only (depending on the final plot).<br>
 Few sections, moorings and boxes are shown in the following figure over and through which few diagnostics are computed and then compared to few available in-situ or satellite observations.
 <p align="center"> <img src="./figs/MONARC_ARC-GEOLOC.png" width="600" height="500"> </p>
 
