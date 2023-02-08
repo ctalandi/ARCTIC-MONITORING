@@ -1,11 +1,12 @@
 # ARCTIC-MONITORING
-This is a set of Python scripts to assess ocean/sea-ice numerical simulations over the Arctic. Diagnostics and plots are done over and around the Arctic basin. Few sections, moorings and boxe are shown on the following figure where and through which few diagnostics are computed and compare to few available inferred in-situ or satellite observations.
-<center> <img src="./figs/MONARC_ARC-GEOLOC.png" width="600" height="500"></center>
+This is a set of Python scripts to assess ocean/sea-ice numerical simulations over the Arctic relying on the **[NEMO](https://www.nemo-ocean.eu)** numerical platform. Diagnostics and plots are done over and around the Arctic basin. It aims at producing maps, sections, vertical profiles along moorings and integrated quantities such as sea-ice volume, area, extend, freshwater content as well among others.<br>
+Few sections, moorings and boxes are shown in the following figure over and through which few diagnostics are computed and then compared to few available in-situ or satellite observations.
+<p align="center"> <img src="./figs/MONARC_ARC-GEOLOC.png" width="600" height="500"> </p>
+
+**CAUTION: It has been originaly developped in order to run in only few specific computing system. If it is installed on a new architecture, few modifictions will be required to make it running properly; these modifications are not documented yet hereafter. Finally, for convenience, the monitoring relies on a hardcoded specific model data filenames as paths structure as well that would require potential deep changes.**
+
 
 In the following, basic information are listed to be able to get and to run the Arctic monitoring.<br>
-
-**<font color="red">CAUTION:</font> It has been originaly developped in order to run in only few specific computing system. If it is installed on a new architecture, few modifictions will be required to make it running properly; these modifications are not documented yet hereafter. Finally, for convenience, the monitoring relies on a hardcoded specific model data filenames as paths structure as well that would require potential deep changes.** 
-
 
 1 - EXTRACTION:<br> 
 2 - INSTALLATION:<br>
