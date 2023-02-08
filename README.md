@@ -1,5 +1,5 @@
 # ARCTIC-MONITORING
-Python scripts to assess ocean/sea-ice numerical simulations over the Arctic. Diagnostics and plots are done over and around the Arctic basin. Few sections and moorings locations are shown on the following figure.
+This is a set of Python scripts to assess ocean/sea-ice numerical simulations over the Arctic. Diagnostics and plots are done over and around the Arctic basin. Few sections, moorings and boxe are shown on the following figure where and through which few diagnostics are computed and compare to few available inferred in-situ or satellite observations.
  ![The Arctic location of diags](./figs/MONARC_ARC-GEOLOC.png)
 
 In the following, basic information are listed to be able to get and to run the Arctic monitoring.<br>
