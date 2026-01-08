@@ -261,7 +261,7 @@ if [ ${DOMOORINGS} -eq 1 ]  ; then
                     -e "s/XXEYEAXX/${C_YEAR}/" \
                     -e "s/XXCASEXX/${CASE}/" \
 	            -e "s;XXINITDIRXX;${INITDIR};" \
-	            -e "s/XXTIMEXX/55/" ../JHEAD_${MACHINE}.bash > ${WPDIR}/MONARC/MOORINGS/tmp_head_moor
+	            -e "s/XXTIMEXX/55/" ../JHEAD_${MACHINE}_MOOR.bash > ${WPDIR}/MONARC/MOORINGS/tmp_head_moor
 
                 cat ${WPDIR}/MONARC/MOORINGS/tmp_head_moor ${WPDIR}/MONARC/MOORINGS/tmp_job_moor > ${WPDIR}/MONARC/MOORINGS/job_${CASE}_MOOR_y${C_YEAR}${C_YEAR}.tmp
 	
@@ -342,7 +342,7 @@ if [ ${DOSECTIONS} -eq 1 ]  ; then
                    -e "s/XXEYEAXX/${C_YEAR}/" \
                    -e "s/XXCASEXX/${CASE}/" \
 	           -e "s;XXINITDIRXX;${INITDIR};" \
-	           -e "s/XXTIMEXX/40/" ../JHEAD_${MACHINE}.bash > ${WPDIR}/MONARC/SECTIONS/tmp_head_sections
+	           -e "s/XXTIMEXX/40/" ../JHEAD_${MACHINE}_SECS.bash > ${WPDIR}/MONARC/SECTIONS/tmp_head_sections
 
                cat ${WPDIR}/MONARC/SECTIONS/tmp_head_sections ${WPDIR}/MONARC/SECTIONS/tmp_job_sections > ${WPDIR}/MONARC/SECTIONS/tmp_job_${CASE}_sections_y${C_YEAR}${C_YEAR}
 	
