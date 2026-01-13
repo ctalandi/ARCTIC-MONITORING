@@ -63,8 +63,8 @@ locpath=grid_dir
 locfile=CONFCASE+'_mask.nc'
 if chkfile(locpath+locfile,zstop=True,zscript=sys.argv[0]) :
 	fieldmask=Dataset(locpath+locfile)
-	lon = fieldmask.variables['nav_lon']
-	lat = fieldmask.variables['nav_lat']
+	lon = npy.squeeze(fieldmask.variables['glamt'])
+	lat = npy.squeeze(fieldmask.variables['gphit'])
 	tmask = npy.squeeze(fieldmask.variables['tmask'])
 	vmask = npy.squeeze(fieldmask.variables['vmask'])
 
@@ -813,7 +813,7 @@ for selsec in XXSECPLOTXX:
 	PLOT_SEC(326,lon2D,-z2D,Kdata_read_mean[:,iis:iie+1],zcont,znorm,zcol,zisol,data_type='W',zgrid='gridW',zstrait=strait,zfig=fig)
 
 	plt.tight_layout(w_pad=4.)
-	plt.savefig(CONFIG+'-'+CASE+'_SECTION_'+strait['name']+'_VTS_y'+str(climyear)+'.pdf')
+	plt.savefig(CONFIG+'-'+CASE+'_SECTION_'+strait['name']+'_VTS_y'+str(climyear)+'.png',dpi=300)
 
         if NCDF_OUT:
 		# FWC field 
