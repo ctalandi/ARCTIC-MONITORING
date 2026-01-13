@@ -55,8 +55,8 @@ locpath=grid_dir
 locfile=CONFCASE+'_mesh_hgr.nc'
 if chkfile(locpath+locfile,zstop=True,zscript=sys.argv[0]) :
 	fieldhmesh=Dataset(locpath+locfile)
-	lon = fieldhmesh.variables['nav_lon']
-	lat = fieldhmesh.variables['nav_lat']
+	lon = npy.squeeze(fieldhmesh.variables['glamt'])
+	lat = npy.squeeze(fieldhmesh.variables['gphit'])
 	e1t= npy.squeeze(fieldhmesh.variables['e1t'])
 	e2t= npy.squeeze(fieldhmesh.variables['e2t'])
 
@@ -203,7 +203,7 @@ if lgTS_ye-lgTS_ys+1 > 1 :
 	file_name=CONFCASE+file_ext
 
 	plt.tight_layout()
-        plt.savefig(DIR_FIG_OUT+file_name+'.pdf')
+        plt.savefig(DIR_FIG_OUT+file_name+'.png',dpi=300)
 
 
 ####################################################################################################################
@@ -236,7 +236,7 @@ if do_Kprofile :
         pfile_ext='_TemSaliProfile'+cumul_box+'_y'+str(s_year)+'_z0-500'
         file_name=CONFIG+'-'+CASE+pfile_ext
 	plt.tight_layout()
-        plt.savefig(DIR_FIG_OUT+file_name+'.pdf')
+        plt.savefig(DIR_FIG_OUT+file_name+'.png',dpi=300)
 
 
 

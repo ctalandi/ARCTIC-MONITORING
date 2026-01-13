@@ -14,12 +14,15 @@ def DEF_INFO_VAR(zgtype,zMyvar):
 	D_sig0={'name':'rhop_sig0','units':'kg m-3' ,'longname':'potential density','shortname':'sig0','minval':26.5,'maxval':28.0}
 	D_Kz={'name':'votkeavt','units':'m2 s-1' ,'longname':'Vertical diffusivity','shortname':'Kz','minval':-7.5,'maxval':.0}
 	D_W={'name':'vovecrtz','units':'m s-1' ,'longname':'Vertical velocity','shortname':'W','minval':-1.,'maxval':1.}
+	D_Umod={'name':'speed','units':'m s-1' ,'longname':'Velocity module','shortname':'Vel','minval':0.,'maxval':5.}
 	
 	if zgtype == "gridT" :
 	        if zMyvar == 'rhop_sig0' or zMyvar == 'vosigma0' :
 			zAll_var=[D_sig0]
 		else:
 			zAll_var=[D_temp,D_sali]
+	elif zgtype == "gridU":
+		zAll_var=[D_Umod]
 	elif zgtype == "gridW":
 		zAll_var=[D_Kz,D_W]
 
@@ -223,7 +226,8 @@ def DEF_MOOR_BOX(CONFIG,box2sel):
 	
 		# Define a BRAVO-B box or point
 		bx_BRA_B={'name':'BRAVO box','imin':174,'imax':174,'jmin':170,'jmax':170,'depthlim':(-2000.,0.),'box':'BRA-B',
-			  'templim':(3.,9.,0.2),'sallim':(34.70,34.9,0.05),
+			  'templim':(2.,4.,0.1),'sallim':(34.60,35.0,0.05),
+			  #'templim':(3.,9.,0.2),'sallim':(34.70,34.9,0.05),
 			  'Wlim':(-5.,5.,1.),'Kzlim':(-7.,-5.,0.25),'Sig0lim':(26.5,27.8,0.1)
 			 }
 		#./cdffindij -52.3 -52.3 56.45 56.45 -c CREG025.L75_coordinates.nc
@@ -233,7 +237,8 @@ def DEF_MOOR_BOX(CONFIG,box2sel):
 	
 		# Define a GIN-B box or point (Close to FRAM strait)
 		bx_GIN_B={'name':'GIN seas box','imin':355,'imax':355,'jmin':310,'jmax':310,'depthlim':(-1000.,0.),'box':'GIN-B',
-			  'templim':(-2.,8.5,0.5),'sallim':(34.7,34.95,0.025),
+			  'templim':(0.,5.0,0.5),'sallim':(34.7,35.10,0.05),
+			  #'templim':(-2.,8.5,0.5),'sallim':(34.7,34.95,0.025),
 			  'Wlim':(-5.,5.,1.),'Kzlim':(-6.,-3.,0.25),'Sig0lim':(26.5,28.5,0.05)
 			 }
 		#./cdfwhereij 355 355 310 310 -c CREG025.L75_coordinates.nc
@@ -300,7 +305,7 @@ def DEF_ZPROFILE(zCONFIG,zCASE,zclimyear,zhsct_lev,Red_My_varinit,box,zplt,zgtyp
         
         nvar=0
         for var in DEF_INFO_VAR('gridT','votemper') :
-		print ' Vertical profile for', var['name']
+		print ' Vertical profile for', var['name'], box['box'] 
         	
         	ax=plt.subplot(zfram+nvar)
         	if var['name'] == "votemper":
@@ -314,6 +319,22 @@ def DEF_ZPROFILE(zCONFIG,zCASE,zclimyear,zhsct_lev,Red_My_varinit,box,zplt,zgtyp
         			plt.yticks(-100.*npy.arange(11),size=7)
 			elif box['box'] == 'EUR-B':
         			plt.axis([-2.,2.,-2000.,0.])
+        			plt.yticks(-200.*npy.arange(11),size=7)
+			elif box['box'] == 'GIN-B':
+				print box['box'], ' set axis Ok'
+        			plt.axis([-2.,6.,-1000.,0.])
+        			plt.yticks(-100.*npy.arange(11),size=7)
+			elif box['box'] == 'BRA-B':
+				print box['box'], ' set axis Ok'
+        			plt.axis([0.,5.,-1000.,0.])
+        			plt.yticks(-100.*npy.arange(11),size=7)
+			elif box['box'] == 'MIK-B':
+				print box['box'], ' set axis Ok'
+        			plt.axis([-2.,8.,-1000.,0.])
+        			plt.yticks(-100.*npy.arange(11),size=7)
+			elif box['box'] == 'ALP-B':
+				print box['box'], ' set axis Ok'
+        			plt.axis([2.,8.,-2000.,0.])
         			plt.yticks(-200.*npy.arange(11),size=7)
 
         		plt.xticks(size=7)
@@ -331,6 +352,22 @@ def DEF_ZPROFILE(zCONFIG,zCASE,zclimyear,zhsct_lev,Red_My_varinit,box,zplt,zgtyp
         			plt.yticks(-100.*npy.arange(11),size=7)
 			elif box['box'] == 'EUR-B':
         			plt.axis([28.,35.,-2000.,0.])
+        			plt.yticks(-200.*npy.arange(11),size=7)
+			elif box['box'] == 'GIN-B':
+				print box['box'], ' set axis Ok'
+        			plt.axis([34.8,35.2,-1000.,0.])
+        			plt.yticks(-100.*npy.arange(11),size=7)
+			elif box['box'] == 'BRA-B':
+				print box['box'], ' set axis Ok'
+        			plt.axis([34.,35.,-1000.,0.])
+        			plt.yticks(-100.*npy.arange(11),size=7)
+			elif box['box'] == 'MIK-B':
+				print box['box'], ' set axis Ok'
+        			plt.axis([34.8,35.4,-1000.,0.])
+        			plt.yticks(-100.*npy.arange(11),size=7)
+			elif box['box'] == 'ALP-B':
+				print box['box'], ' set axis Ok'
+        			plt.axis([34.8,35.2,-2000.,0.])
         			plt.yticks(-200.*npy.arange(11),size=7)
 
         		plt.xticks(size=7)
@@ -358,10 +395,10 @@ def DEF_ZPROFILE(zCONFIG,zCASE,zclimyear,zhsct_lev,Red_My_varinit,box,zplt,zgtyp
         			B_mooring = sio.loadmat(locpath+locfile,squeeze_me=True)
 			else:
         			B_mooring = npy.zeros(mean_z.shape)
-        		if nvar == 0:
-        			plt.plot(B_mooring['TB_mean'],-1.*B_mooring['Zint'],'g', linewidth=0.7, label='Obs')
+        		if nvar == 0 :
+        			if box['box'] == 'ARC-B' : plt.plot(B_mooring['TB_mean'],-1.*B_mooring['Zint'],'g', linewidth=0.7, label='Obs')
         		else:
-        			plt.plot(B_mooring['SB_mean'],-1.*B_mooring['Zint'],'g', linewidth=0.7, label='Obs')
+        			if box['box'] == 'ARC-B' : plt.plot(B_mooring['SB_mean'],-1.*B_mooring['Zint'],'g', linewidth=0.7, label='Obs')
         	plt.grid(True,linestyle='--',color='grey',alpha=0.7)
         
         	if var['name'] == "vosaline" :
@@ -488,7 +525,7 @@ def DEF_ZTIME(zCONFIG,zCASE,lgTS_ys,lgTS_ye,box,z,z2dt,hsct_lev,zgtype=None,zMyv
 		# FWC field 
 		#######################
 		cmd_ddate="date"  ;  get_output = subprocess.check_output(cmd_ddate)
-                nc_f = './NETCDF/'+zCONFIG+'-'+zCASE+'_MOOR-'+box['box']+'_y'+str(lgTS_ys)+'LASTy.nc'
+                nc_f = './NETCDF/'+zCONFIG+'-'+zCASE+'_MOOR-'+box['box']+'_y'+str(lgts_year)+'LASTy.nc'
                 w_nc_fid = Dataset(nc_f, 'w', format='NETCDF4')
                 w_nc_fid.description = "Diagnostics have been calculated using the Arctic monitoring tool "
 		w_nc_fid.date=get_output.decode("utf-8")
