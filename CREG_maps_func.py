@@ -310,7 +310,7 @@ def AWTmax_maps( zlon, zlat, zMy_var1, zMy_var1S, zdepth, zMyvar, zCONFIG, zCASE
 	
 	plt.tight_layout()
 	
-	plt.savefig(zCONFCASE+zfile_ext+'y'+zclimyear+'.pdf')
+	plt.savefig(zCONFCASE+zfile_ext+'y'+zclimyear+'.png',dpi=300)
 
 	savefile=True
         if savefile:
@@ -375,7 +375,8 @@ def FWC_maps( zlon, zlat, zMy_var1S, zMy_varSinit, zMy_var1ssh, zCONFIG, zCASE, 
 
 	# FWC calculation over the year
 	###########################################
-	Sref=34.80 
+	Sref=34.80*1.004715
+	#Sref=34.80 
 	 
 	print '			FWC calculation & plot '
 
@@ -482,7 +483,7 @@ def FWC_maps( zlon, zlat, zMy_var1S, zMy_varSinit, zMy_var1ssh, zCONFIG, zCASE, 
 
 	zfile_ext='_FWCSSHClim_'
 	#plt.tight_layout()
-	plt.savefig(zCONFIG+'-'+zCASE+zfile_ext+'y'+zclimyear+'.pdf')
+	plt.savefig(zCONFIG+'-'+zCASE+zfile_ext+'y'+zclimyear+'.png',dpi=300)
 
 
 	savefile=True
@@ -501,19 +502,19 @@ def FWC_maps( zlon, zlat, zMy_var1S, zMy_varSinit, zMy_var1ssh, zCONFIG, zCASE, 
                 #w_nc_fid.createDimension('time_counter', None)
 
                 w_nc_var = w_nc_fid.createVariable('fwc_mod', 'f4', ('y','x'))
-                w_nc_var.long_name='Model FWC calculated using a salinity reference value Sref=31.8'
+                w_nc_var.long_name='Model FWC calculated using a salinity reference value Sref='+str(Sref)
                 w_nc_var.units="m"
 		fwc2D=npy.ma.masked_where(ztmask[0,:,:] == 0, fwc2D)
                 w_nc_fid.variables['fwc_mod'][:,:] = fwc2D
 
                 w_nc_var = w_nc_fid.createVariable('fwc_init', 'f4', ('y','x'))
-                w_nc_var.long_name='Model Initial state FWC calculated using a salinity reference value Sref=31.8'
+                w_nc_var.long_name='Model Initial state FWC calculated using a salinity reference value Sref='+str(Sref)
                 w_nc_var.units="m"
 		fwc2D_init=npy.ma.masked_where(ztmask[0,:,:] == 0, fwc2D_init)
                 w_nc_fid.variables['fwc_init'][:,:] = fwc2D_init
 
                 w_nc_var = w_nc_fid.createVariable('fwc_obs', 'f4', ('yobs','xobs'))
-                w_nc_var.long_name='Obs. FWC calculated using a salinity reference value Sref=31.8 '+ \
+                w_nc_var.long_name='Obs. FWC calculated using a salinity reference value Sref=34.8 '+ \
 				   ' from Proshutinsky et al. (GRL2018). Considered period: '+obsper
                 w_nc_var.units="m"
                 w_nc_fid.variables['fwc_obs'][:,:] = mean_FWCObs
@@ -645,7 +646,7 @@ def Arc_plot(lon,lat,tab,contours,limits,myticks=None,name=None,zmy_cblab=None,z
 	if myticks is None:
 		cbar = plt.colorbar(C,format='%.2f',orientation='vertical',shrink=0.8)
 	else:
-		if zvar == 'votemper' or zvar == 'vosaline' or zvar == 'sivolu' :
+		if zvar == 'votemper' or zvar == 'vosaline' or zvar == 'sivolu' or zvar == 'sobarstf' :
 			cbar = plt.colorbar(C,format='%.2f',orientation='vertical',shrink=0.8,drawedges=True)
 		elif zvar == 'MLTSS' :
 			cbar = plt.colorbar(C,ticks=myticks,format='%.0f',orientation='vertical',shrink=0.8,drawedges=True)
@@ -668,7 +669,8 @@ def Arc_Bat(ztype='isol1000') :
 		fieldbat=Dataset(locpath+locfile)
 		lon  = npy.squeeze(fieldbat.variables['nav_lon'])
 		lat  = npy.squeeze(fieldbat.variables['nav_lat'])
-		My_var = npy.squeeze(fieldbat.variables['Bathymetry'])
+		My_var = npy.squeeze(fieldbat.variables['bathy_meter'])
+		#My_var = npy.squeeze(fieldbat.variables['Bathymetry'])
 	
 	spval = 0.
 	My_var= npy.ma.masked_where(My_var <= spval,My_var)
@@ -810,14 +812,14 @@ def ICE_THICK_OBS(zconfig='CREG025.L75',t_year=1959):
 
 	locpath='./DATA/'
 	if zconfig == 'CREG025.L75' : 
-		locfile='PIOMAS_icethic_interpCREG025.L75_1-12_1979-2018.nc'
+		locfile='PIOMAS_icethic_interpCREG025.L75_1-12_1979-2020.nc'
 	elif zconfig == 'CREG12.L75' :
-		locfile='PIOMAS_icethic_interpCREG12.L75_1-12_1979-2018.nc'
+		locfile='PIOMAS_icethic_interpCREG12.L75_1-12_1979-2020.nc'
 	if chkfile(locpath+locfile,zstop=True) :
 		field=Dataset(locpath+locfile)
 		ICE_thick_init = npy.squeeze(field.variables['icethic'])
 
-	if t_year >= 1979 and t_year <= 2018 :
+	if t_year >= 1979 and t_year <= 2020 :
 		s_ind=(t_year-1979)*12
 		mean_ICE_thick=ICE_thick_init[s_ind:s_ind+12,:,:].copy()
 	else:
@@ -1027,7 +1029,8 @@ def Atl_Bat(ztype='isol1000', zarea=None) :
 		fieldbat=Dataset(locpath+locfile)
 		lon  = npy.squeeze(fieldbat.variables['nav_lon'])
 		lat  = npy.squeeze(fieldbat.variables['nav_lat'])
-		My_var = npy.squeeze(fieldbat.variables['Bathymetry'])
+		My_var = npy.squeeze(fieldbat.variables['bathy_meter'])
+		#My_var = npy.squeeze(fieldbat.variables['Bathymetry'])
 	
 	spval = 0.
 	My_var= npy.ma.masked_where(My_var <= spval,My_var)

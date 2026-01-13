@@ -99,10 +99,10 @@ def SET_ARC_CNT(zCASE,zclimyear,seas,zMyvar,zslev=0,zplot_obs=0,zdiff=0):
 	   
 	   zfile_ext='_PSIClim_'
 	   ztitle=' mean PSI over \n'+zclimyear
-	   vmin=-5. ; vmax=5. ; vint=1.
+	   vmin=-5. ; vmax=5. ; vint=.25
 	   contours=npy.arange(vmin,vmax+vint,vint)  # optional contours
 	   limits=[vmin,vmax,vint]                        # limits for eke
-	   myticks=npy.arange(vmin,vmax+vint,vint)   # optional colorbar ticks (None)
+	   myticks=npy.arange(vmin,vmax+vint,2.*vint)   # optional colorbar ticks (None)
 
 	######### EKE #########
 	if zMyvar == 'voeke' :
@@ -138,7 +138,8 @@ def SET_ARC_CNT(zCASE,zclimyear,seas,zMyvar,zslev=0,zplot_obs=0,zdiff=0):
 	   	zfile_ext='_TSDiffClim_z'+zslev+'m_'
 	   	ztitle=zCASE +' mean Temp diff with init. state over '+zclimyear+'\n @ depth '+zslev+' m'
 	   	vmin=-3. ; vmax=3. ; vint=0.5
-	   	my_cmap=plt.cm.get_cmap('coolwarm')
+	   	my_cmap=plt.cm.get_cmap('RdBu_r')
+	   	#my_cmap=plt.cm.get_cmap('coolwarm')
 	   else:
 	   	zfile_ext='_TClim_z'+zslev+'m_'
 	   	ztitle=zCASE +' mean Temp over'+zclimyear+'\n @ depth '+zslev+' m'
@@ -157,8 +158,8 @@ def SET_ARC_CNT(zCASE,zclimyear,seas,zMyvar,zslev=0,zplot_obs=0,zdiff=0):
 	   	zfile_ext='_TSDiffClim_z'+zslev+'m_'
 	   	ztitle=zCASE +' mean Sal diff with init. state over '+zclimyear+'\n @ depth '+zslev+' m'
 	   	vmin=-4. ; vmax=4. ; vint=0.5
-           	if zslev == '97' : vmin=-2. ; vmax=2. ; vint=0.5
-	   	my_cmap=plt.cm.get_cmap('coolwarm')
+           	if zslev == '97' or zslev == '199' : vmin=-2. ; vmax=2. ; vint=0.5
+	   	my_cmap=plt.cm.get_cmap('RdBu_r')
 	   else:
 	   	zfile_ext='_SClim_z'+zslev+'m_'
 	   	ztitle=zCASE +' mean Sal over'+zclimyear+'\n @ depth '+zslev+' m'

@@ -59,8 +59,9 @@ locpath=grid_dir
 locfile=CONFCASE+'_mask.nc'
 if chkfile(locpath+locfile,zstop=True,zscript=sys.argv[0]) :
 	fieldmask=Dataset(locpath+locfile)
-	lon = npy.array(fieldmask.variables['nav_lon'])
-	lat = npy.array(fieldmask.variables['nav_lat'])
+	lon = npy.squeeze(npy.array(fieldmask.variables['glamt']))
+	lat = npy.squeeze(npy.array(fieldmask.variables['gphit']))
+	
 	tmask = npy.squeeze(fieldmask.variables['tmask'])
 	fmask = npy.squeeze(fieldmask.variables['fmask'])
 
@@ -190,7 +191,7 @@ while c_year <= e_year:
 			My_var1frld_SeasS=npy.ma.masked_where((amask2Dtime == 0),My_var1frld_SeasS).squeeze()
 
 	#########################################################################################################################################
-	if MLD_maps or MTS_maps:
+	if MLD_maps or MTS_maps or ATL_maps :
 
 		zlocfilem3=CONFCASE+'_y'+str(c_year)+'m03.'+xiosfreq+'_gridT.nc'
 		zlocfilem9=CONFCASE+'_y'+str(c_year)+'m09.'+xiosfreq+'_gridT.nc'
@@ -386,8 +387,8 @@ if ICE_maps :
 		locfile='CREG025.L75_mask.nc'
 		if chkfile(locpath+locfile,zstop=True,zscript=sys.argv[0]) :
 			fieldmask=Dataset(locpath+locfile)
-			lon = npy.array(fieldmask.variables['nav_lon'])
-			lat = npy.array(fieldmask.variables['nav_lat'])
+			lon = npy.array(fieldmask.variables['glamt'])
+			lat = npy.array(fieldmask.variables['gphit'])
 			zmask= npy.squeeze(fieldmask.variables['tmask'])
 	else: 
 		zmask = tmask.copy()
@@ -408,7 +409,7 @@ if ICE_maps :
 
 	zfile_ext='_ICEClim_'
         plt.tight_layout()
-	plt.savefig(CONFIG+'-'+CASE+zfile_ext+'y'+climyear+'.pdf')
+	plt.savefig(CONFIG+'-'+CASE+zfile_ext+'y'+climyear+'.png',dpi=300)
 
         if NCDF_OUT:
 		# ICE fields
@@ -507,7 +508,7 @@ if MLD_maps :
 
 	zfile_ext='_MLDClim_'
         plt.tight_layout()
-	plt.savefig(CONFIG+'-'+CASE+zfile_ext+'y'+climyear+'.pdf')
+	plt.savefig(CONFIG+'-'+CASE+zfile_ext+'y'+climyear+'.png',dpi=300)
 
         if NCDF_OUT:
 		# MLD fields
@@ -586,7 +587,7 @@ if DYN_maps :
 
 	zfile_ext='_DYNClim_'
         plt.tight_layout()
-	plt.savefig(CONFIG+'-'+CASE+zfile_ext+'y'+climyear+'.pdf')
+	plt.savefig(CONFIG+'-'+CASE+zfile_ext+'y'+climyear+'.png',dpi=300)
 
         if NCDF_OUT:
 		# DYN fields
@@ -666,127 +667,158 @@ if TSD_maps :
 
 	zfile_ext='_TSDIffClim_@'+str(int(z[0]))+'m@'+str(int(z[23]))+'m_'
         plt.tight_layout()
-	plt.savefig(CONFIG+'-'+CASE+zfile_ext+'y'+climyear+'.pdf')
+	plt.savefig(CONFIG+'-'+CASE+zfile_ext+'y'+climyear+'.png',dpi=300)
+
+	plt.clf()
+	num_fram=220
+	# ~200m temperature
+	zMyvar='votemper'   ; fram=num_fram+2
+	CREG_maps_func.simple_maps( lon, lat, CONFIG, CASE, npy.squeeze(My_var1T[30,:,:]-My_varTinit[30,:,:]), zMyvar, climyear, slev=str(int(z[30])), zfram=fram, ano=1 )
+	# ~200m  salinity
+	zMyvar='vosaline'   ; fram=num_fram+4
+	CREG_maps_func.simple_maps( lon, lat, CONFIG, CASE, npy.squeeze(My_var1S[30,:,:]-My_varSinit[30,:,:]), zMyvar, climyear, slev=str(int(z[30])), zfram=fram, ano=1 )
+
+	zfile_ext='_TSDIffClim_@'+str(int(z[0]))+'m@'+str(int(z[30]))+'m_'
+        plt.tight_layout()
+	plt.savefig(CONFIG+'-'+CASE+zfile_ext+'y'+climyear+'.png',dpi=300)
+
+	plt.clf()
+	num_fram=220
+	# ~200m temperature
+	zMyvar='votemper'   ; fram=num_fram+2
+	CREG_maps_func.simple_maps( lon, lat, CONFIG, CASE, npy.squeeze(My_var1T[34,:,:]-My_varTinit[34,:,:]), zMyvar, climyear, slev=str(int(z[34])), zfram=fram, ano=1 )
+	# ~200m  salinity
+	zMyvar='vosaline'   ; fram=num_fram+4
+	CREG_maps_func.simple_maps( lon, lat, CONFIG, CASE, npy.squeeze(My_var1S[34,:,:]-My_varSinit[34,:,:]), zMyvar, climyear, slev=str(int(z[34])), zfram=fram, ano=1 )
+
+	zfile_ext='_TSDIffClim_@'+str(int(z[0]))+'m@'+str(int(z[34]))+'m_'
+        plt.tight_layout()
+	plt.savefig(CONFIG+'-'+CASE+zfile_ext+'y'+climyear+'.png',dpi=300)
+
 
 
 # To plot ATL variables
 if ATL_maps : 
 	# MLD IN THE LABRADOR SEA IN MARCH
 	###################################
+	plt.figure()
+	num_fram=110
+	# March mean MLD
+	zMyvar='mldr10_1'   ; fram=num_fram+1
+	my_cblab=r'MLD (m)'   ;   my_cmap=plt.cm.get_cmap('Blues')
+	ztitle=CASE +' mean MLD01 over \n'+climyear+'  m03'
+	vmin=0. ; vmax=2400. ; vint=100.   ;   contours=[0.,100.,200.,400.,800.,1200.,1600.,2000.,2400.]
+	limits=[vmin,vmax,vint]  ;              myticks=[0.,100.,200.,400.,800.,1200.,1600.,2000.,2400.]
+
+	plt.subplot(fram)
+	zoutmap=CREG_maps_func.Atl_Bat(ztype='isol1000',zarea='labsea')
+        My_var1SeasM.shape
+	CREG_maps_func.Atl_plot(lon, lat, My_var1SeasM, contours, limits, myticks, name=ztitle, zmy_cblab=my_cblab, zmy_cmap=my_cmap, zvar=zMyvar, zarea='labsea')
+
+	zfile_ext='_LAB_MLDClimm03_'
+        plt.tight_layout()
+	plt.savefig(CONFIG+'-'+CASE+zfile_ext+'y'+climyear+'.png',dpi=300)
+
+	##	# Plot the Time-serie for MLD at a specific location K1 mooring in the Labrador Sea and in Irminger Sea
+	##	# After Schott et al. DSRI2009 56.33N, -52.40W
+	##	plt.clf()
 	##	plt.figure()
+	##	i_K1=173   ;   j_K1=168   # CREG025.L75 C-type indices
+	##	#i_K1=518   ;   j_K1=502   # CREG12.L75 C-type indices
+	##	ax=plt.subplot(211)
+	##	# In Lab. Sea
+	##	plt.plot(time_axis,-1.*npy.squeeze(Mdata_read[:,j_K1:j_K1+1,i_K1:i_K1+1]),linewidth=0.8, color='k', label='Lab Sea K1')
+	##	# Plot obs. MLD in March
+	##	year_obs=npy.arange(1995,2006,1)+0.20547945   ; mld_obs=[-2300.,-1300.,-1400.,-1000.,-1000.,-1100.,-1100.,-1200.,-1400.,-700.,-1300.]
+	##	plt.scatter(year_obs,mld_obs)
+
+	##	# In Irm. Sea
+	##	i_K1=232   ;   j_K1=192   # CREG025.L75 C-type indices geo loc   60.88N  -36.99W
+	##	#i_K1=697   ;   j_K1=577   # CREG12.L75 C-type indices geo loc   60.88N  -36.99W
+	##	plt.plot(time_axis,-1.*npy.squeeze(Mdata_read[:,j_K1:j_K1+1,i_K1:i_K1+1]),linewidth=0.8, color='g', label='Irm Sea ')
+        ##	plt.title(CASE+' MLD 0.01 in Lab. & Irm. Seas \n '+str(s_year)+str(e_year),size=9)
+        ##	plt.ylabel('Mean depth \n'+r'(m)', size=7)
+        ##	plt.ylim([-2500.,0.])
+        ##	plt.xticks(newlocsx,newlabelsx,size=5)
+        ##	plt.setp(ax.get_xticklabels(),rotation=90)
+        ##	plt.yticks(size=6)
+        ##	plt.grid(True, linewidth=0.7,linestyle='--',alpha=0.7,color='grey')
+	##	plt.legend(loc='lower center',ncol=2)
+	##	leg = plt.gca().get_legend()
+	##	ltext = leg.get_texts()
+	##	plt.setp(ltext, fontsize=5.)
+        ##	
+	##	zfile_ext='_LAB-IRM_MLDClim_LGTS_'
+	##	plt.savefig(CONFIG+'-'+CASE+zfile_ext+'y'+climyear+'.png',dpi=300)
+
+	##	# Add an artificial mooring within the deepest convection area 
+	##	# -54W 58N
+	##	#  dl_dis=    1.634 km
+	##	#      507       507       541       541
+	##	# -54.0272  -54.0272   57.9970   57.9970
+	##	plt.clf()
+	##	plt.figure()
+	##	i_K1=169   ;   j_K1=181   # CREG025.L75 C-type indices
+	##	#i_K1=506   ;   j_K1=540   # CREG12.L75 C-type indices
+	##	ax=plt.subplot(211)
+	##	# In Lab. Sea
+	##	plt.plot(time_axis,-1.*npy.squeeze(Mdata_read[:,j_K1:j_K1+1,i_K1:i_K1+1]),linewidth=0.8, color='k', label='Lab Sea DeepConv')
+	##	# Plot obs. MLD in March
+	##	year_obs=npy.arange(1995,2006,1)+0.20547945   ; mld_obs=[-2300.,-1300.,-1400.,-1000.,-1000.,-1100.,-1100.,-1200.,-1400.,-700.,-1300.]
+	##	plt.scatter(year_obs,mld_obs)
+        ##	plt.title(CASE+' MLD 0.01 in Lab. @ -54W,58N \n '+str(s_year)+str(e_year),size=9)
+        ##	plt.ylabel('Mean depth \n'+r'(m)', size=7)
+        ##	plt.ylim([-3500.,0.])
+        ##	plt.xticks(newlocsx,newlabelsx,size=5)
+        ##	plt.setp(ax.get_xticklabels(),rotation=90)
+        ##	plt.yticks(size=6)
+        ##	plt.grid(True, linewidth=0.7,linestyle='--',alpha=0.7,color='grey')
+	##	plt.legend(loc='lower center',ncol=2)
+	##	leg = plt.gca().get_legend()
+	##	ltext = leg.get_texts()
+	##	plt.setp(ltext, fontsize=5.)
+
+	##	zfile_ext='_LABM52W58N-MLDClim_LGTS_'
+	##	plt.savefig(CONFIG+'-'+CASE+zfile_ext+'y'+climyear+'.png',dpi=300)
+
+
+	##	plt.clf()
+	##	plt.figure()
+	##	# MLD IN THE IRMINGER SEA IN MARCH
+	##	###################################
 	##	num_fram=110
 	##	# March mean MLD
 	##	zMyvar='mldr10_1'   ; fram=num_fram+1
 	##	my_cblab=r'MLD (m)'   ;   my_cmap=plt.cm.get_cmap('Blues')
 	##	ztitle=CASE +' mean MLD01 over \n'+climyear+'  m03'
-	##	vmin=0. ; vmax=2400. ; vint=100.   ;   contours=[0.,100.,200.,400.,800.,1200.,1600.,2000.,2400.]
-	##	limits=[vmin,vmax,vint]  ;              myticks=[0.,100.,200.,400.,800.,1200.,1600.,2000.,2400.]
-
+	##	vmin=0. ; vmax=1600. ; vint=100.   ;   contours=[0.,100.,200.,400.,600.,800.,1000.,1200.,1600.]
+	##	limits=[vmin,vmax,vint]  ;              myticks=[0.,100.,200.,400.,600.,800.,1000.,1200.,1600.]
 	##	plt.subplot(fram)
-	##	zoutmap=CREG_maps_func.Atl_Bat(ztype='isol1000',zarea='labsea')
-	##	CREG_maps_func.Atl_plot(lon, lat, My_var1SeasM, contours, limits, myticks, name=ztitle, zmy_cblab=my_cblab, zmy_cmap=my_cmap, zvar=zMyvar, zarea='labsea')
+	##	zoutmap=CREG_maps_func.Atl_Bat(ztype='isol1000',zarea='irmsea')
+	##	CREG_maps_func.Atl_plot(lon, lat, My_var1SeasM, contours, limits, myticks, name=ztitle, zmy_cblab=my_cblab, zmy_cmap=my_cmap, zvar=zMyvar, zarea='irmsea')
 
-	##	zfile_ext='_LAB_MLDClimm03_'
+	##	zfile_ext='_IRM_MLDClimm03_'
         ##	plt.tight_layout()
-	##	plt.savefig(CONFIG+'-'+CASE+zfile_ext+'y'+climyear+'.pdf')
+	##	plt.savefig(CONFIG+'-'+CASE+zfile_ext+'y'+climyear+'.png',dpi=300)
 
-	# Plot the Time-serie for MLD at a specific location K1 mooring in the Labrador Sea and in Irminger Sea
-	# After Schott et al. DSRI2009 56.33N, -52.40W
-	plt.clf()
-	plt.figure()
-	i_K1=518   ;   j_K1=502   # CREG12.L75 C-type indices
-	ax=plt.subplot(211)
-	# In Lab. Sea
-	plt.plot(time_axis,-1.*npy.squeeze(Mdata_read[:,j_K1:j_K1+1,i_K1:i_K1+1]),linewidth=0.8, color='k', label='Lab Sea K1')
-	# Plot obs. MLD in March
-	year_obs=npy.arange(1995,2006,1)+0.20547945   ; mld_obs=[-2300.,-1300.,-1400.,-1000.,-1000.,-1100.,-1100.,-1200.,-1400.,-700.,-1300.]
-	plt.scatter(year_obs,mld_obs)
+	##	plt.clf()
+	##	plt.figure()
+	##	# MLD IN THE GIN SEAS IN MARCH
+	##	###################################
+	##	num_fram=110
+	##	# March mean MLD
+	##	zMyvar='mldr10_1'   ; fram=num_fram+1
+	##	my_cblab=r'MLD (m)'   ;   my_cmap=plt.cm.get_cmap('Blues')
+	##	ztitle=CASE +' mean MLD01 over \n'+climyear+'  m03'
+	##	vmin=0. ; vmax=1600. ; vint=100.   ;   contours=[0.,100.,200.,400.,600.,800.,1000.,1200.,1600.]
+	##	limits=[vmin,vmax,vint]  ;              myticks=[0.,100.,200.,400.,600.,800.,1000.,1200.,1600.]
+	##	plt.subplot(fram)
+	##	zoutmap=CREG_maps_func.Atl_Bat(ztype='isol1000',zarea='ginsea')
+	##	CREG_maps_func.Atl_plot(lon, lat, My_var1SeasM, contours, limits, myticks, name=ztitle, zmy_cblab=my_cblab, zmy_cmap=my_cmap, zvar=zMyvar, zarea='ginsea')
 
-	# In Irm. Sea
-	i_K1=697   ;   j_K1=577   # CREG12.L75 C-type indices
-	plt.plot(time_axis,-1.*npy.squeeze(Mdata_read[:,j_K1:j_K1+1,i_K1:i_K1+1]),linewidth=0.8, color='g', label='Irm Sea ')
-        plt.title(CASE+' MLD 0.01 in Lab. & Irm. Seas \n '+str(s_year)+str(e_year),size=9)
-        plt.ylabel('Mean depth \n'+r'(m)', size=7)
-        plt.ylim([-2500.,0.])
-        plt.xticks(newlocsx,newlabelsx,size=5)
-        plt.setp(ax.get_xticklabels(),rotation=90)
-        plt.yticks(size=6)
-        plt.grid(True, linewidth=0.7,linestyle='--',alpha=0.7,color='grey')
-	plt.legend(loc='lower center',ncol=2)
-	leg = plt.gca().get_legend()
-	ltext = leg.get_texts()
-	plt.setp(ltext, fontsize=5.)
-        
-	zfile_ext='_LAB-IRM_MLDClim_LGTS_'
-	plt.savefig(CONFIG+'-'+CASE+zfile_ext+'y'+climyear+'.pdf')
-
-	# Add an artificial mooring within the deepest convection area 
-	# -54W 58N
-	#  dl_dis=    1.634 km
-	#      507       507       541       541
-	# -54.0272  -54.0272   57.9970   57.9970
-	plt.clf()
-	plt.figure()
-	i_K1=506   ;   j_K1=540   # CREG12.L75 C-type indices
-	ax=plt.subplot(211)
-	# In Lab. Sea
-	plt.plot(time_axis,-1.*npy.squeeze(Mdata_read[:,j_K1:j_K1+1,i_K1:i_K1+1]),linewidth=0.8, color='k', label='Lab Sea DeepConv')
-	# Plot obs. MLD in March
-	year_obs=npy.arange(1995,2006,1)+0.20547945   ; mld_obs=[-2300.,-1300.,-1400.,-1000.,-1000.,-1100.,-1100.,-1200.,-1400.,-700.,-1300.]
-	plt.scatter(year_obs,mld_obs)
-        plt.title(CASE+' MLD 0.01 in Lab. @ -54W,58N \n '+str(s_year)+str(e_year),size=9)
-        plt.ylabel('Mean depth \n'+r'(m)', size=7)
-        plt.ylim([-3500.,0.])
-        plt.xticks(newlocsx,newlabelsx,size=5)
-        plt.setp(ax.get_xticklabels(),rotation=90)
-        plt.yticks(size=6)
-        plt.grid(True, linewidth=0.7,linestyle='--',alpha=0.7,color='grey')
-	plt.legend(loc='lower center',ncol=2)
-	leg = plt.gca().get_legend()
-	ltext = leg.get_texts()
-	plt.setp(ltext, fontsize=5.)
-
-	zfile_ext='_LABM52W58N-MLDClim_LGTS_'
-	plt.savefig(CONFIG+'-'+CASE+zfile_ext+'y'+climyear+'.pdf')
-
-
-	###	plt.clf()
-	###	plt.figure()
-	###	# MLD IN THE IRMINGER SEA IN MARCH
-	###	###################################
-	###	num_fram=110
-	###	# March mean MLD
-	###	zMyvar='mldr10_1'   ; fram=num_fram+1
-	###	my_cblab=r'MLD (m)'   ;   my_cmap=plt.cm.get_cmap('Blues')
-	###	ztitle=CASE +' mean MLD01 over \n'+climyear+'  m03'
-	###	vmin=0. ; vmax=1600. ; vint=100.   ;   contours=[0.,100.,200.,400.,600.,800.,1000.,1200.,1600.]
-	###	limits=[vmin,vmax,vint]  ;              myticks=[0.,100.,200.,400.,600.,800.,1000.,1200.,1600.]
-	###	plt.subplot(fram)
-	###	zoutmap=CREG_maps_func.Atl_Bat(ztype='isol1000',zarea='irmsea')
-	###	CREG_maps_func.Atl_plot(lon, lat, My_var1SeasM, contours, limits, myticks, name=ztitle, zmy_cblab=my_cblab, zmy_cmap=my_cmap, zvar=zMyvar, zarea='irmsea')
-
-	###	zfile_ext='_IRM_MLDClimm03_'
-        ###	plt.tight_layout()
-	###	plt.savefig(CONFIG+'-'+CASE+zfile_ext+'y'+climyear+'.pdf')
-
-	###	plt.clf()
-	###	plt.figure()
-	###	# MLD IN THE GIN SEAS IN MARCH
-	###	###################################
-	###	num_fram=110
-	###	# March mean MLD
-	###	zMyvar='mldr10_1'   ; fram=num_fram+1
-	###	my_cblab=r'MLD (m)'   ;   my_cmap=plt.cm.get_cmap('Blues')
-	###	ztitle=CASE +' mean MLD01 over \n'+climyear+'  m03'
-	###	vmin=0. ; vmax=1600. ; vint=100.   ;   contours=[0.,100.,200.,400.,600.,800.,1000.,1200.,1600.]
-	###	limits=[vmin,vmax,vint]  ;              myticks=[0.,100.,200.,400.,600.,800.,1000.,1200.,1600.]
-	###	plt.subplot(fram)
-	###	zoutmap=CREG_maps_func.Atl_Bat(ztype='isol1000',zarea='ginsea')
-	###	CREG_maps_func.Atl_plot(lon, lat, My_var1SeasM, contours, limits, myticks, name=ztitle, zmy_cblab=my_cblab, zmy_cmap=my_cmap, zvar=zMyvar, zarea='ginsea')
-
-	###	zfile_ext='_GIN_MLDClimm03_'
-        ###	plt.tight_layout()
-	###	plt.savefig(CONFIG+'-'+CASE+zfile_ext+'y'+climyear+'.pdf')
+	##	zfile_ext='_GIN_MLDClimm03_'
+        ##	plt.tight_layout()
+	##	plt.savefig(CONFIG+'-'+CASE+zfile_ext+'y'+climyear+'.png',dpi=300)
 
 	# PLOT ISOTHERME 17 Deg off CAPE HATTERAS
 	#########################################
@@ -866,7 +898,7 @@ if MOC_maps :
 
 		zfile_ext='_AAMOCClim_'
         	#plt.tight_layout()
-		plt.savefig(CONFIG+'-'+CASE+zfile_ext+'y'+climyear+'.pdf')
+		plt.savefig(CONFIG+'-'+CASE+zfile_ext+'y'+climyear+'.png',dpi=300)
 
 
 	if plt_AMOCTS :
@@ -906,4 +938,4 @@ if MOC_maps :
 
 		zfile_ext='_MaxAAMOCz_'+zlat+'_TiSe_'
         	#plt.tight_layout()
-		plt.savefig(CONFIG+'-'+CASE+zfile_ext+'y'+climyear+'.pdf')
+		plt.savefig(CONFIG+'-'+CASE+zfile_ext+'y'+climyear+'.png',dpi=300)
