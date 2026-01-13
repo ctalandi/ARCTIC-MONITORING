@@ -62,6 +62,7 @@ DOINTQUANT=1
 # MTS keyword for mean temperature & salinity in the ML in March and September
 
 MAPS='AWT FWC ICE MLD DYN MTS'
+#MAPS='AWT FWC ICE MLD DYN TSD MTS MOC'
 
 # Compute a mean over a period spanning given years in argument
 MKCLIM=0
@@ -86,6 +87,7 @@ MKSECPLOT=[FramS,Beauf,Kara]
 # Select the mooring [which is currently a grid point NOT a BOX]
 # Two moorings by default: EURA within the Eurasian basin & ARCB within the Beaufort Gyre
 BOX="['ARCB','EURA']"
+#BOX="['ARCB','EURA','GINB','MIKB','BRAB','ALPB']"
 
 #####################################################################################
 #############################################
