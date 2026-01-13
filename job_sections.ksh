@@ -92,7 +92,7 @@ pwd
 ls -lrt 
 
 mv *LGTS*.pdf ${INITDIR}/INTQUANT/FIGS-${CONFIG}/${CONFIG}-${CASE}/.
-mv ${CONFCASE}*y${S_Y}*.pdf ${OUTFIGS}/.
+mv ${CONFCASE}*y${S_Y}*.png ${CONFCASE}*y${S_Y}*.pdf ${OUTFIGS}/.
 
 mv ./NETCDF/${CONFCASE}*.nc ${OUTNCDF}/.
 

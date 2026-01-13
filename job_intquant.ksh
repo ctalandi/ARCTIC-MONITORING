@@ -51,7 +51,7 @@ if [ $getfiles -eq 1 ] ; then
 	       file_base=${CONFCASE}_y${cy}m*
 	       ln -sf  ${DATA_DIR}/${XIOS}/$cy/${file_base}_gridT.nc .
 	       ln -sf  ${DATA_DIR}/${XIOS}/$cy/${file_base}_icemod.nc .
-	       ln -sf  ${DATA_DIR}/${XIOS}/$cy/${file_base}_flxT.nc .
+	       ln -sf  ${DATA_DIR}/${XIOS}/$cy/${CONFCASE}_y${cy}.${XIOS}_SurOceCurl.nc .
                cd ../
                chkdir 1m   ;  cd 1m
 	       # Yearly files 
@@ -67,7 +67,8 @@ if [ $getfiles -eq 1 ] ; then
 
 	# Get In-situ data
 	if [ ${CONFIG} == 'CREG025.L75' ] ; then 
-		ln -sf ${OBS_DIR}/ICE/PIOMAS_icevol_maskedBeringSea_interpCREG025.L75_1-12_1979-2018.nc .
+		ln -sf ${OBS_DIR}/ICE/PIOMAS_icevol_maskedBeringSea_interpCREG025.L75_1-12_1979-2020.nc .
+		#ln -sf ${OBS_DIR}/ICE/PIOMAS_icevol_maskedBeringSea_interpCREG025.L75_1-12_1979-2018.nc .
 	elif [ ${CONFIG} == 'CREG12.L75' ] ; then
 		ln -sf ${OBS_DIR}/ICE/PIOMAS_icevol_maskedBeringSea_interpCREG12.L75_1-12_1979-2018.nc .
         fi
@@ -76,6 +77,7 @@ if [ $getfiles -eq 1 ] ; then
         ln -sf ${OBS_DIR}/OCEAN/FRAM_inflow.mat .
         ln -sf ${OBS_DIR}/ICE/ice_drift_BG_1979-2011.mat .
         ln -sf ${OBS_DIR}/OCEAN/BeaufortGyreFWC-Obs-Proshutinsky_GRL2018_y2003-2017.nc .
+        ln -sf ${OBS_DIR}/OCEAN/ArcticEkmanPumping_MonthlyMean.nc .
 
 	# link the bathymetry file
 	ln -sf ${GRID_DIR}/${BATH_FILE} Bathymetry.nc 

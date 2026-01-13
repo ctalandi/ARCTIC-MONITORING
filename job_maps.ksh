@@ -65,6 +65,7 @@ if [ $getfiles -eq 1 ] ; then
 	            ln -sf  ${ZDATA_DIR}/${XIOS}/$cy/${file_base}_icemod.nc .
 	            ln -sf  ${ZDATA_DIR}/${XIOS}/$cy/${file_base}_PSI.nc .
 	            ln -sf  ${ZDATA_DIR}/${XIOS}/$cy/${file_base}_EKE.nc .
+	            ln -sf  ${ZDATA_DIR}/${XIOS}/$cy/${file_base}_MOC.nc .
                     cd ../
                     chkdir 1m  ;  cd 1m
 	            # Yearly files 
@@ -91,7 +92,8 @@ if [ $getfiles -eq 1 ] ; then
 
         ln -sf ${OBS_DIR}/ICE/NSIDC-0051_92585_monthly.nc
 	if  [ ${CONFIG} == 'CREG025.L75'   ]  ; then 
-        	ln -sf ${OBS_DIR}/ICE/PIOMAS_icethic_interpCREG025.L75_1-12_1979-2018.nc
+        	ln -sf ${OBS_DIR}/ICE/PIOMAS_icethic_interpCREG025.L75_1-12_1979-2020.nc
+        	#ln -sf ${OBS_DIR}/ICE/PIOMAS_icethic_interpCREG025.L75_1-12_1979-2018.nc
 	elif [ ${CONFIG} == 'CREG12.L75'   ]  ; then
         	ln -sf ${OBS_DIR}/ICE/PIOMAS_icethic_interpCREG12.L75_1-12_1979-2018.nc
 	fi
@@ -130,7 +132,8 @@ fi
 
 for ZMAPS in `echo ${MAPS} ` ; do
     ./CREG_maps_y${S_Y}${E_Y}_${ZMAPS}.py 
-    mv ${CONFCASE}*${ZMAPS}*${S_Y}*.pdf ${CONFCASE}*${ZMAPS}*${S_Y}*.png ${OUTFIGS}/.
+    mv ${CONFCASE}*${ZMAPS}*${S_Y}*.pdf ${CONFCASE}*${ZMAPS}*${S_Y}*.png ${CONFCASE}*LAB*LGTS* ${OUTFIGS}/.
+    mv ${CONFCASE}*???_MLDClimm03* ${OUTFIGS}/.
 done
 
 mv ./NETCDF/${CONFCASE}*.nc ${OUTNCDF}/.

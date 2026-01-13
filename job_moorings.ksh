@@ -61,6 +61,7 @@ if [ $getfiles -eq 1 ] ; then
 
         chkdir DATA  ;  cd DATA
         ln -sf ${OBS_DIR}/OCEAN/TimeMean_profiles_moorings.mat .
+        ln -sf ${OBS_DIR}/OCEAN/Mean_profiles_BGOSmoorings.nc .
 	cd ../
 	
 	# Get all necessary grid files
@@ -77,7 +78,7 @@ fi
     
 ls -lrt 
 
-mv ${CONFCASE}*${S_Y}*.pdf ${CONFCASE}*LASTy.pdf ${OUTFIGS}/.
+mv *.png  ${CONFCASE}*${S_Y}*.pdf ${CONFCASE}*LASTy.pdf ${OUTFIGS}/.
 
 mv ./NETCDF/${CONFCASE}*.nc ${OUTNCDF}/.
 
