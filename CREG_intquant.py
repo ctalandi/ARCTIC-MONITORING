@@ -44,8 +44,8 @@ var_sali={'name':"vosaline",'units':u"psu" ,'_FillValue': 0.,'fext':"S",'igrd':1
 var_crty={'name':"vomecrty",'units':u"m/s" ,'_FillValue': 0.,'fext':"V",'igrd':3 ,'ze3':"e3v_0",'gdep':"gdepv",'long_name':"Meridional velocity"}
 var_hthi={'name':"sivolu"  ,'units':u"m"   ,'_FillValue': 0.,'fext':"I",'igrd':1 ,'ze3':"e3t_0",'gdep':"gdept",'long_name':"Ice thickness "}
 var_Wcur={'name':"socurl"  ,'units':u"m/s" ,'_FillValue': 0.,'fext':"Xi",'igrd':1 ,'ze3':"e3f_0",'gdep':"gdepw",'long_name':"Surface ocean stress curl "}
-var_ISfx={'name':"sfx"     ,'units':u"kg/m2/s" ,'_FillValue': 0.,'fext':"sfx",'igrd':1 ,'ze3':"e3t_0",'gdep':"gdept",'long_name':"Surface ice salt flux "}
-var_IVfx={'name':"fmmflx"  ,'units':u"kg/m2/s" ,'_FillValue': 0.,'fext':"fmmflx",'igrd':1 ,'ze3':"e3t_0",'gdep':"gdept",'long_name':"Surface ice mass flux"}
+var_ISfx={'name':"sfxice"  ,'units':u"kg/m2/s" ,'_FillValue': 0.,'fext':"sfxice",'igrd':1 ,'ze3':"e3t_0",'gdep':"gdept",'long_name':"Surface ice salt flux "}
+var_IVfx={'name':"vfxice"  ,'units':u"kg/m2/s" ,'_FillValue': 0.,'fext':"vfxice",'igrd':1 ,'ze3':"e3t_0",'gdep':"gdept",'long_name':"Surface ice mass flux"}
 MassSaltFLX=False
 
 ########################################
@@ -151,7 +151,7 @@ if chkfile(locpath+locfile) :
 	field = Dataset(locpath+locfile)
 	Scurldata_read[:,:,:] = npy.squeeze(field.variables[infield['name']])
 	Scurldata_read[:,:,:] = npy.where( npy.abs(Scurldata_read) > 1e10 , 0., Scurldata_read )
-	Scurldata_read[:,:,:] = npy.where( npy.isnan(Scurldata_read) , 0., Scurldata_read )
+	#Scurldata_read[:,:,:] = npy.where( npy.isnan(Scurldata_read) , 0., Scurldata_read )
 	Scurldata_read[:,:,:] = npy.where( fmask[0,:,:] < 1. , 0., Scurldata_read )
 
 if MassSaltFLX: 
@@ -166,7 +166,7 @@ if MassSaltFLX:
 	while cur_month <= 11 :
 		str_month='m0'+str(cur_month+1) if cur_month <= 8 else 'm'+str(cur_month+1)
 	        locpath=data_dir+'/'+str(s_year)+'/'+xiosfreq+'/'
-	        locfile=CONFIG+'-'+CASE+'_y'+str(year)+str_month+'.'+xiosfreq+'_flxT.nc'
+	        locfile=CONFIG+'-'+CASE+'_y'+str(year)+str_month+'.'+xiosfreq+'_icemod.nc'
 		if chkfile(locpath+locfile) :
 			field = Dataset(locpath+locfile)
 			SFXdata_read[cur_month,:,:] = npy.squeeze(field.variables[infield['name']])
@@ -189,7 +189,7 @@ if MassSaltFLX:
 	while cur_month <= 11 :
 		str_month='m0'+str(cur_month+1) if cur_month <= 8 else 'm'+str(cur_month+1)
 	        locpath=data_dir+'/'+str(s_year)+'/'+xiosfreq+'/'
-	        locfile=CONFIG+'-'+CASE+'_y'+str(year)+str_month+'.'+xiosfreq+'_flxT.nc'
+	        locfile=CONFIG+'-'+CASE+'_y'+str(year)+str_month+'.'+xiosfreq+'_icemod.nc'
 		if chkfile(locpath+locfile) :
 			field = Dataset(locpath+locfile)
 			VFXdata_read[cur_month,:,:] = npy.squeeze(field.variables[infield['name']])
@@ -213,7 +213,8 @@ print
 
 plt.clf()
 
-Sref=34.80 
+Sref=34.80*1.004715
+#Sref=34.80 
 ze33D=ze3[:,:,:]*tmask[:,:,:]
 ze33D=npy.ma.masked_where( tmask[:,:,:] == 0., ze33D )
 fwc2D = npy.zeros((time_dim,lon.shape[0],lon.shape[1]))
