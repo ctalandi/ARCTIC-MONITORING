@@ -109,12 +109,12 @@ case $MACHINE in
     WORKDIR=$SCRATCH
     USER=`whoami`
     REMOTE_USER=`whoami`
-    DATA_DIR=/home/datawork-lops-drakkarcom/SIMULATION-OUTPUTS/FREDY/CONFIGS/${CONFIG}/${CONFIG}-${CASE}-MEAN/       # input directory (main experiment)
+    DATA_DIR=/scale/project/drakkarcom/SIMULATION-OUTPUTS/FREDY/CONFIGS/${CONFIG}/${CONFIG}-${CASE}-MEAN/       # input directory (main experiment)
     GRID_DIR=$WORKDIR/${CONFIG}/${CONFIG}-I/                  					  # grid directory
-    DATA_DIR2=/home/datawork-lops-drakkarcom/SIMULATION-OUTPUTS/FREDY/CONFIGS/${CONFIG}/${CONFIG}-${CASE2}-MEAN/     # input directory (2nd experiment)
+    DATA_DIR2=/scale/project/drakkarcom/SIMULATION-OUTPUTS/FREDY/CONFIGS/${CONFIG}/${CONFIG}-${CASE2}-MEAN/     # input directory (2nd experiment)
     WPDIR=$WORKDIR/WRUN_${CONFIG}/${CONFIG}-${CASE}/CTL/CDF   					  # Working Pdir for templates scripts
     DMONTOOLS=$HOME/DEV/DMONTOOLS                             					  # DMONTOOLS location
-    OBS_DIR=/home/datawork-lops-drakkarcom/DATA-REFERENCE/FOR-MONITORING/    			  # observations directory 
+    OBS_DIR=/scale/project/drakkarcom/DATA-REFERENCE/FOR-MONITORING/    			  # observations directory 
     BATCH=qsub 
 
     ;;
