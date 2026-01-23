@@ -1,6 +1,6 @@
 #!/bin/bash 
 XXDEPENDENCYXX
-#PBS -l mem=20g
+#PBS -l mem=8g
 #PBS -l walltime=00:XXTIMEXX:00
 #PBS -N XXSPTYPEXX_XXCASEXX_XXSYEAXX_XXEYEAXX
 #PBS -e XXINITDIRXX/XXPTYPEXX/JOBS-OUT/job_out_XXCASEXX_XXSYEAXX_XXEYEAXX.e
@@ -15,10 +15,13 @@ cd $PBS_O_WORKDIR
 #echo $HOST
 #pbsnodes $HOST
 
+export MODULEPATH="$MODULEPATH:/home1/datahome/ctalandi/modules::.:"
+
 source /usr/share/Modules/3.2.10/init/bash
 module purge
-module load   NETCDF/4.3.3.1-mpt-intel2016
-module load   nco/4.6.4_gcc-6.3.0
-module load   vacumm/3.4.0
 module list
+
+source /appli/anaconda/versions/miniforge3-24.11.3-0/etc/profile.d/conda.sh
+which conda 
+conda activate My-JupDask-2025-10
 
