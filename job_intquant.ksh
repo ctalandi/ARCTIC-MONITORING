@@ -99,7 +99,7 @@ pwd
 
 ls -lrt 
 
-mv ${CONFCASE}*y${S_Y}*.pdf CREG*LGTS*.pdf ${OUTFIGS}/.
+mv ${CONFCASE}*y${S_Y}*.png CREG*LGTS*.png ${OUTFIGS}/.
 
 mv ./NETCDF/${CONFCASE}*.nc ${OUTNCDF}/.
 
