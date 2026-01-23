@@ -11,6 +11,7 @@ import sys
 from checkfile import *
 from CREG_intquant_func import *
 import subprocess
+import xarray as xr
 
 #rcParams['text.usetex']=True
 rcParams['font.family']='serif'
@@ -32,10 +33,10 @@ DIR_FIG_OUT='./'
 # Infos concernant les climatologies sur la periode de la simulation
 climyear=str(s_year)+str(e_year)
 
-print 
-print '                              Configuration :' , CONFCASE
-print '                              Period        :' , str(s_year),' - ',str(e_year)
-print 
+print() 
+print("				     Configuration :" + CONFCASE)
+print("				     Period	   :" + str(s_year)+" - "+str(e_year))
+print()
 
 
 #####################################################################
@@ -57,9 +58,13 @@ MassSaltFLX=False
 locpath=grid_dir
 locfile=CONFCASE+'_mask.nc'
 if chkfile(locpath+locfile,zstop=True,zscript=sys.argv[0]) :
-	fieldmask=Dataset(locpath+locfile)
-	tmask = npy.squeeze(fieldmask.variables['tmask'])
-	fmask = npy.squeeze(fieldmask.variables['fmask'])
+	#fieldmask=Dataset(locpath+locfile)
+	#tmask = npy.squeeze(fieldmask.variables['tmask'])
+	#fmask = npy.squeeze(fieldmask.variables['fmask'])
+	ds_grd=xr.open_dataset(locpath+locfile)
+	tmask = ds_grd['tmask'].isel(time_counter=0)
+	fmask = ds_grd['fmask'].isel(time_counter=0)
+	ds_grd
 
 locfile=CONFCASE+'_coordinates.nc'
 if chkfile(locpath+locfile,zstop=True,zscript=sys.argv[0]) :
@@ -97,9 +102,9 @@ time_dim=(e_year-s_year+1)*12
 # Read input  data 
 ########################################
 infield=var_sali
-print "                                            "
-print "                                        >>>>>>>>>  The curent variable processed is :        ", infield['fext']
-print "                                            "
+print("						   ")
+print("					       >>>>>>>>>  The curent variable processed is :	    "+ infield['fext'])
+print("						   ")
 Ar_size=(time_dim,tmask.shape[0],lon.shape[0],lon.shape[1])
 Sdata_read=npy.zeros(Ar_size)
 year=s_year
@@ -113,9 +118,9 @@ while cur_month <= 11 :
         	Sdata_read[cur_month,:,:,:] = npy.squeeze(field.variables[infield['name']])
 	cur_month = cur_month + 1 
 
-print "                                            "
-print "                                        >>>>>>>>>  The curent variable processed is :        at_i(:,:)", 
-print "                                            "
+print("						   ")
+print("					       >>>>>>>>>  The curent variable processed is :	    at_i(:,:)"	)
+print("						   ")
 Ar_size=(time_dim,lon.shape[0],lon.shape[1])
 Ifrdata_read=npy.zeros(Ar_size)
 Ivedata_read=npy.zeros(Ar_size)
@@ -138,9 +143,9 @@ while cur_month <= 11 :
 	cur_month = cur_month + 1 
 
 infield=var_Wcur
-print "                                            "
-print "                                        >>>>>>>>>  The curent variable processed is :        ", infield['fext']
-print "                                            "
+print("						   ")
+print("					       >>>>>>>>>  The curent variable processed is :	    "+ infield['fext'])
+print("						   ")
 Ar_size=(time_dim,lon.shape[0],lon.shape[1])
 Scurldata_read=npy.zeros(Ar_size)
 year=s_year
@@ -156,9 +161,9 @@ if chkfile(locpath+locfile) :
 
 if MassSaltFLX: 
 	infield=var_ISfx
-	print "                                            "
-	print "                                        >>>>>>>>>  The curent variable processed is :        ", infield['fext']
-	print "                                            "
+	print("						   ")
+	print("					       >>>>>>>>>  The curent variable processed is :	    "+ infield['fext'])
+	print("						   ")
 	Ar_size=(time_dim,lon.shape[0],lon.shape[1])
 	SFXdata_read=npy.zeros(Ar_size)
 	year=s_year
@@ -179,9 +184,9 @@ if MassSaltFLX:
 	SFXdata_read = npy.where( tmask[0,:,:] < 1. , 0., SFXdata_read )
 	
 	infield=var_IVfx
-	print "                                            "
-	print "                                        >>>>>>>>>  The curent variable processed is :        ", infield['fext']
-	print "                                            "
+	print("						   ")
+	print("					       >>>>>>>>>  The curent variable processed is :	    "+ infield['fext'])
+	print("						   ")
 	Ar_size=(time_dim,lon.shape[0],lon.shape[1])
 	VFXdata_read=npy.zeros(Ar_size)
 	year=s_year
@@ -207,9 +212,9 @@ if MassSaltFLX:
 ##################################  FWC, ICE VOLUME & CONCENTRATION etc ...Diags ###############################
 ################################################################################################################
 ################################################################################################################
-print 
-print '			FWC, ICE VOLUME, AREA, EXTENSION, DRIFT , WIND STRESS MODULE Diags'
-print 
+print()
+print("			FWC, ICE VOLUME, AREA, EXTENSION, DRIFT , WIND STRESS MODULE Diags")
+print()
 
 plt.clf()
 
@@ -233,8 +238,8 @@ for ti in set(npy.arange(12)) :
         fwc2D[ti,:,:] = fwc2D[ti,:,:] + ( Sref - Sdata_read[ti,jk,:,:] ) / Sref * ze33D_msk[jk,:,:] 
 
     if dbg:
-    	print 'ze33Dtime_msk[ti,0:kdbg,jdbg,idbg]',ze33Dtime_msk[ti,0:kdbg,jdbg,idbg], Sdata_read[ti,0:kdbg,jdbg,idbg]
-    	print 'fwc2D[ti,jdbg,idbg]',fwc2D[ti,jdbg,idbg]
+       print("ze33Dtime_msk[ti,0:kdbg,jdbg,idbg]:"+str(ze33Dtime_msk[ti,0:kdbg,jdbg,idbg])+"  "+str( Sdata_read[ti,0:kdbg,jdbg,idbg]))
+       print("fwc2D[ti,jdbg,idbg]:"+str(fwc2D[ti,jdbg,idbg]))
 
 tmask2Dtime=npy.tile(tmask[0,:,:],((e_year-s_year+1)*12,1,1))
 fwc2D=npy.ma.masked_where((tmask2Dtime == 0),fwc2D)
@@ -319,13 +324,13 @@ npy.save(data_dir+'/DATA/'+CONFIG+'-'+CASE+'_BIGFWCTS_y'+str(s_year),npy.array(B
 ################################################################################################################
 
 if lgTS_ye-lgTS_ys+1 > 1 :
-	print
-	print " 			##################################################################  " 
-	print " 			##################################################################  " 
-	print " 			######### PLOT DIAGS LONG TIME-SERIES WITHIN BEAUFORT GYRE #######  " 
-	print " 			##################################################################  " 
-	print " 			##################################################################  " 
-	print
+	print()
+	print("				##################################################################  " )
+	print("				##################################################################  " ) 
+	print("				######### PLOT DIAGS LONG TIME-SERIES WITHIN BEAUFORT GYRE #######  " ) 
+	print("				##################################################################  " ) 
+	print("				##################################################################  " ) 
+	print()
 
 	lgtstime_dim=(lgTS_ye-lgTS_ys+1)*12
 
@@ -336,8 +341,8 @@ if lgTS_ye-lgTS_ys+1 > 1 :
 	################################
 	lgts_year=lgTS_ys    ;    t_months=(npy.arange(12)*30.+15.)/365.   ;   start = 1
 	while  lgts_year <= lgTS_ye  :
-		print 
-		print " 			>>>>   Read year:", lgts_year
+		print ()
+		print("				>>>>   Read year:"+str(lgts_year))
 
 		# Read FWC & Sea-ice extent
         	locpath=data_dir+'/DATA/'
@@ -435,7 +440,7 @@ if lgTS_ye-lgTS_ys+1 > 1 :
 	ekman_newlocsx=npy.array(npy.append(newlocsx,npy.unique(newlabelsx_ekman)),'f')
 	ekman_newlabelsx=npy.array(npy.append(newlabelsx,npy.unique(newlabelsx_ekman)),'i')
 	
-	print('new obs time',newlocsx_ekman )
+	print("new obs time"+str(newlocsx_ekman) )
 	
 	lgtsclimyear=str(lgTS_ys)+str(lgTS_ye)
 
@@ -518,7 +523,7 @@ if lgTS_ye-lgTS_ys+1 > 1 :
 	plt.setp(ltext, fontsize=5.)
 	plt.tight_layout()
 	
-	plt.savefig(CONFIG+'-'+CASE+'_ICEVolExtDrift-LGTS_y'+str(lgTS_ys)+'LASTy.pdf')
+	plt.savefig(CONFIG+'-'+CASE+'_ICEVolExtDrift-LGTS_y'+str(lgTS_ys)+'LASTy.png',dpi=400)
 	
 	# Plot the mean FWC & Ice drift 
 	###############################
@@ -570,7 +575,7 @@ if lgTS_ye-lgTS_ys+1 > 1 :
 
 
 	plt.tight_layout()
-	plt.savefig(CONFIG+'-'+CASE+'_FWC-WEK-LGTS_y'+str(lgTS_ys)+'LASTy.pdf',dpi=400)
+	plt.savefig(CONFIG+'-'+CASE+'_FWC-WEK-LGTS_y'+str(lgTS_ys)+'LASTy.png',dpi=400)
 
 	if MassSaltFLX :
 		# Ice salt/mass flux in the CRF box 
@@ -602,7 +607,7 @@ if lgTS_ye-lgTS_ys+1 > 1 :
 		ax.legend(loc='upper left',ncol=2)
 
 		plt.tight_layout()
-		plt.savefig(CONFIG+'-'+CASE+'_SVFX-LGTS_y'+str(lgTS_ys)+'LASTy.pdf',dpi=400)
+		plt.savefig(CONFIG+'-'+CASE+'_SVFX-LGTS_y'+str(lgTS_ys)+'LASTy.png',dpi=400)
 
         if NCDF_OUT:
 		# FWC field 
