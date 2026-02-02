@@ -4,20 +4,20 @@
 ### in docs directory
 
 ##########################################################################
-###                                                                    ###
-###                          This is PyRaf (colormaps)                 ###
-###                                                                    ###
+###								       ###
+###			     This is PyRaf (colormaps)		       ###
+###								       ###
 ##########################################################################
 ### IMPORT the packages
 
 try:
 	from matplotlib import pylab as plt
 except:
-	print 'matplotlib is not available on your machine'
-        print 'check python path or install this package' ; exit()
+	print('  matplotlib is not available on your machine')
+	print('  check python path or install this package') ; exit()
 
 #########################################################
-###         colormaps (adapted from chart/coupe)      ###
+###	    colormaps (adapted from chart/coupe)      ###
 #########################################################
 
 def gen_pal_Testu():
@@ -266,7 +266,7 @@ def gen_pal_blue2red3():
 	return pal_blue2red3
 
 def gen_pal_ferretblue2red():
-        pal = ( ( 0.0000, 0.2000, 1.0000 ),
+	pal = ( ( 0.0000, 0.2000, 1.0000 ),
 	( 0.0000, 0.3137, 1.0000 ),
 	( 0.0000, 0.4353, 1.0000 ),
 	( 0.0000, 0.5529, 1.0000 ),
@@ -288,7 +288,7 @@ def gen_pal_ferretblue2red():
 	return pal_ferretblue2red
 
 def gen_pal_noaa_blue2white():
-        pal = ( ( 0.0000, 0.0275, 0.5294 ),
+	pal = ( ( 0.0000, 0.0275, 0.5294 ),
 	( 0.0000, 0.3725, 0.8235 ),
 	( 0.0000, 0.3961, 0.8510 ),
 	( 0.0000, 0.4392, 0.8745 ),

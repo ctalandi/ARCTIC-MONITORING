@@ -4,9 +4,9 @@
 ### in docs directory
 
 ##########################################################################
-###                                                                    ###
-###                          This is PyRaf (Plots)                     ###
-###                                                                    ###
+###								       ###
+###			     This is PyRaf (Plots)		       ###
+###								       ###
 ##########################################################################
 ### IMPORT the packages
 
@@ -15,10 +15,10 @@ import PyRaf_colormaps
 
 # Numpy
 try:
-        import numpy as npy
+	import numpy as npy
 except:
-        print 'numpy is not available on your machine'
-	print 'check python path or install this package' ; exit()
+	print('  numpy is not available on your machine')
+	print('  check python path or install this package') ; exit()
 
 # Matplotlib
 try:
@@ -28,16 +28,16 @@ try:
 	from matplotlib import rc
 	from matplotlib import rcParams
 except:
-	print 'matplotlib is not available on your machine'
-        print 'check python path or install this package' ; exit()
+	print('  matplotlib is not available on your machine')
+	print('  check python path or install this package') ; exit()
 
 # Basemap
 try:
 #	from mpl_toolkits.basemap import Basemap
 	from mpl_toolkits.basemap import Basemap, shiftgrid, addcyclic
 except:
-	print 'Basemap is not available on your machine'
-	print 'check python path or install this package' ; exit()
+	print('  Basemap is not available on your machine')
+	print('  check python path or install this package') ; exit()
 
 
 #######################################################
@@ -59,7 +59,7 @@ def nemo_global_plot(lon,lat,tab,contours,limits,myticks=None,name=None,filename
 	ax  = fig.add_subplot(111)
 	# background
 	m = Basemap(projection='cyl',llcrnrlat=-89,urcrnrlat=89,\
-	            llcrnrlon=-180,urcrnrlon=180,resolution='c')
+		    llcrnrlon=-180,urcrnrlon=180,resolution='c')
 	m.drawcoastlines()
 	m.fillcontinents(color='grey',lake_color='white')
 	# contour filled
@@ -75,7 +75,7 @@ def nemo_global_plot(lon,lat,tab,contours,limits,myticks=None,name=None,filename
 	#cbar = plt.colorbar(C,format='%.2f',orientation='horizontal',shrink=0.8,ticks=myticks)
 	plt.clim(limits[0],limits[1])
 	if len(limits) > 2:
-        	plt.clim(limits[2],limits[3])
+		plt.clim(limits[2],limits[3])
 	# contour (optional)
 	if len(contours) > 0:
 		CS2 = m.contour(lon, lat, tab, contours, colors='k')
@@ -115,8 +115,8 @@ def nemo_Arc_plot(lon,lat,tab,contours,limits,myticks=None,name=None,zmy_cblab=N
 	# background
 	m = Basemap(projection='npstere',boundinglat=65,lon_0=-60, resolution='i')
 	#m = Basemap(width=12000000,height=8000000, \
-	#            resolution='i',projection='laea',\
-	#            lat_ts=70,lat_0=60,lon_0=-45.)
+	#	     resolution='i',projection='laea',\
+	#	     lat_ts=70,lat_0=60,lon_0=-45.)
 
 	#m.drawcoastlines(linewidth=0.25)
 	if zvar != 'Bathy' :
@@ -134,29 +134,29 @@ def nemo_Arc_plot(lon,lat,tab,contours,limits,myticks=None,name=None,zmy_cblab=N
 
 	X,Y = m(lon,lat)
 	C = m.contourf(X,Y,tab,contours,cmap=pal,norm=norm,extend='both')
-        if zvar == 'vosaline':
-                CS2 = m.contour(X,Y,tab,linewidths=1.,levels=[34.8], colors='g',alpha=0.6)
+	if zvar == 'vosaline':
+		CS2 = m.contour(X,Y,tab,linewidths=1.,levels=[34.8], colors='g',alpha=0.6)
 		plt.clabel(CS2, CS2.levels, inline=True, fmt='%.1f', fontsize=8, colors='g')
-        if zvar == 'votemper':
-                CS2 = m.contour(X,Y,tab,linewidths=1.,levels=[3.], colors='m',alpha=0.8)
+	if zvar == 'votemper':
+		CS2 = m.contour(X,Y,tab,linewidths=1.,levels=[3.], colors='m',alpha=0.8)
 		plt.clabel(CS2, CS2.levels, inline=True, fmt='%.0f', fontsize=8, colors='m')
-                CS3 = m.contour(X,Y,tab,linewidths=1.,levels=[0.], colors='w',alpha=0.8)
+		CS3 = m.contour(X,Y,tab,linewidths=1.,levels=[0.], colors='w',alpha=0.8)
 		plt.clabel(CS3, CS3.levels, inline=True, fmt='%.0f', fontsize=8, colors='w')
 
 	############################################################################################################
 	############################################################################################################
 	moorplot=1
 	if moorplot == 1 :
-        	bx_ARCB={'name':'B' ,'lon_min':-150.,'lon_max':-150.,'lat_min':78.,'lat_max':78.}
+		bx_ARCB={'name':'B' ,'lon_min':-150.,'lon_max':-150.,'lat_min':78.,'lat_max':78.}
 		bx_ARCM={'name':'M1','lon_min': 125.,'lon_max': 125.,'lat_min':78.,'lat_max':78.}
 
 		All_box=[bx_ARCB,bx_ARCM]
 		for box in All_box:
-        		lats = [box['lat_min'],box['lat_max']]
-        		lons = [box['lon_min'],box['lon_max']]
-        		x,y = m(lons,lats)
-        		m.scatter(x,y,6,marker='o', color='w')
-        		#m.plot(x,y,linewidth=2, color='g')
+			lats = [box['lat_min'],box['lat_max']]
+			lons = [box['lon_min'],box['lon_max']]
+			x,y = m(lons,lats)
+			m.scatter(x,y,6,marker='o', color='w')
+			#m.plot(x,y,linewidth=2, color='g')
 	############################################################################################################
 	############################################################################################################
 
@@ -213,9 +213,9 @@ def nemo_atl_plot(lon,lat,tab,contours,limits,myticks=None,name=None,filename='t
 	#ax  = fig.add_subplot(111)
 	# background
 	m = Basemap(projection='cyl',llcrnrlat=20,urcrnrlat=80,\
-	            llcrnrlon=-90,urcrnrlon=0,resolution='c')
+		    llcrnrlon=-90,urcrnrlon=0,resolution='c')
 	#m = Basemap(projection='cyl',llcrnrlat=-60,urcrnrlat=-20,\
-	#            llcrnrlon=-180,urcrnrlon=180,resolution='c')
+	#	     llcrnrlon=-180,urcrnrlon=180,resolution='c')
 	m.drawcoastlines(linewidth=0.25)
 	m.fillcontinents(color='grey',lake_color='white')
 	# contour filled
@@ -231,8 +231,8 @@ def nemo_atl_plot(lon,lat,tab,contours,limits,myticks=None,name=None,filename='t
 	X,Y = m(lon,lat)
 	#C = m.contourf(X,Y,tab,contours,cmap=pal,norm=norm)
 	C = m.contourf(lon,lat,tab,25,cmap=pal,norm=norm)
-        ## usefull for bathymetry contours #CC =m.contour(lon,lat,tab,colors='k',linewidths=.5,levels=[1000.,2000.,3000.,4000.])
-        ## usefull for bathymetry contours #plt.clabel(CC,fontsize=7,fmt='%5.1f')
+	## usefull for bathymetry contours #CC =m.contour(lon,lat,tab,colors='k',linewidths=.5,levels=[1000.,2000.,3000.,4000.])
+	## usefull for bathymetry contours #plt.clabel(CC,fontsize=7,fmt='%5.1f')
 	# colorbar	
 	#if myticks is None:
 	#	cbar = plt.colorbar(C,format='%.2f',orientation='vertical',shrink=0.8)
@@ -240,7 +240,7 @@ def nemo_atl_plot(lon,lat,tab,contours,limits,myticks=None,name=None,filename='t
 	#	cbar = plt.colorbar(C,format='%.2f',orientation='vertical',shrink=0.8,ticks=myticks)
 	plt.clim(limits[0],limits[1])
 	if len(limits) > 2:
-        	plt.clim(limits[2],limits[3])
+		plt.clim(limits[2],limits[3])
 	# contour (optional)
 	if len(contours) > 0:
 		CS2 = m.contour(X, Y, tab, contours, colors='k',linewidths=0.3 )
@@ -296,21 +296,21 @@ def nemo_Atl_Bat_plot(lon,lat,tab,contours,limits,myticks=None,name=None,area=No
 	elif type == 'ar7zE':
 		# To plot the isopycne depth over Labrador sea erna_SigiDepth.py script
 		m = Basemap(width=400000,height=600000,lat_1=59.,lat_2=62,lon_0=-49,lat_0=61.0,projection='aea',resolution='c')
-        elif type == 'arc':
-            # To plot the isopycne depth over Labrador sea erna_SigiDepth.py script
-            m = Basemap(projection='npstere',boundinglat=65,lon_0=-60, resolution='i')
+	elif type == 'arc':
+	    # To plot the isopycne depth over Labrador sea erna_SigiDepth.py script
+	    m = Basemap(projection='npstere',boundinglat=65,lon_0=-60, resolution='i')
 	elif type == 'rrex':
 		# To plot the isopycne depth over Labrador sea erna_SigiDepth.py script
 		m = Basemap(width=9000000,height=8000000,lat_1=20.,lat_2=80.,lon_0=-35,lat_0=50.0,projection='aea',resolution='c')
 	elif type == 'atln':
 		# To plot the North Atlantic 
 		m = Basemap(width=6000000,height=5500000,lat_1=25.,lat_2=75.,\
-                            lon_0=-50,lat_0=50,projection='aea',resolution='i')
+			    lon_0=-50,lat_0=50,projection='aea',resolution='i')
 	else:
 	    m = Basemap(projection='cyl',llcrnrlat=area['latmin'],urcrnrlat=area['latmax'],\
-	                llcrnrlon=area['lonmin'],urcrnrlon=area['lonmax'],resolution='c')
+			llcrnrlon=area['lonmin'],urcrnrlon=area['lonmax'],resolution='c')
 	#use this one for erna_VMOD.py m = Basemap(projection='cyl',llcrnrlat=area['latmin'],urcrnrlat=area['latmax'],\
-	#use this one for erna_VMOD.py             llcrnrlon=area['lonmin'],urcrnrlon=area['lonmax'],resolution='c')
+	#use this one for erna_VMOD.py		   llcrnrlon=area['lonmin'],urcrnrlon=area['lonmax'],resolution='c')
 	#m.drawcoastlines(linewidth=0.25)
 	#m.fillcontinents(color='grey',lake_color='white')
 	# contour filled
@@ -326,7 +326,7 @@ def nemo_Atl_Bat_plot(lon,lat,tab,contours,limits,myticks=None,name=None,area=No
 	############################################################################################################
 	secplot=0
 	if secplot == 1 :
-        	bx_FISS={'name':'FIS','lon_min':-51.6,'lon_max':-49.,'lat_min':52.7,'lat_max':53.7}
+		bx_FISS={'name':'FIS','lon_min':-51.6,'lon_max':-49.,'lat_min':52.7,'lat_max':53.7}
 		bx_AR7S={'name':'AR7','lon_min':-55.5,'lon_max':-48.,'lat_min':53.4,'lat_max':61. }
 		bx_GRES={'name':'GRE','lon_min':-44. ,'lon_max':-44.,'lat_min':55. ,'lat_max':60. }
 		bx_IRMS={'name':'IRM','lon_min':-38. ,'lon_max':-32.,'lat_min':66. ,'lat_max':63. }
@@ -340,10 +340,10 @@ def nemo_Atl_Bat_plot(lon,lat,tab,contours,limits,myticks=None,name=None,area=No
 		All_box=[bx_FISS,bx_AR7S,bx_GRES,bx_IRMS,bx_DSOS,bx_SCHS,bx_LIWS]
 		#All_box=[bx_FISS]
 		for box in All_box:
-        		lats = [box['lat_min'],box['lat_max']]
-        		lons = [box['lon_min'],box['lon_max']]
-        		x,y = m(lons,lats)
-        		m.plot(x,y,linewidth=2, color='r')
+			lats = [box['lat_min'],box['lat_max']]
+			lons = [box['lon_min'],box['lon_max']]
+			x,y = m(lons,lats)
+			m.plot(x,y,linewidth=2, color='r')
 	############################################################################################################
 	############################################################################################################
 
@@ -354,7 +354,7 @@ def nemo_Atl_Bat_plot(lon,lat,tab,contours,limits,myticks=None,name=None,area=No
 	#	cbar = plt.colorbar(C,format='%.2f',orientation='vertical',shrink=0.8,ticks=myticks)
 	#plt.clim(limits[0],limits[1])
 	if len(limits) > 2:
-        	plt.clim(limits[2],limits[3])
+		plt.clim(limits[2],limits[3])
 	# contour (optional)
 	if type == 'spec1': 
 	   z_col='k'
@@ -364,10 +364,10 @@ def nemo_Atl_Bat_plot(lon,lat,tab,contours,limits,myticks=None,name=None,area=No
 		#CS2 = m.contour(X, Y, tab, linewidths=0.6,levels=[500.,1500.,2500.,3000.,3100.], colors='k')
 		CS2 = m.contour(X, Y, tab, linewidths=1.2,levels=[1500.,2500.,3000.], colors='b', alpha=0.5 )
 		plt.clabel(CS2, CS2.levels, inline=True, fmt='%.1f', fontsize=7)
-        elif type == 'arc' or type == 'atln' :
-                CS2 = m.contour(X, Y, tab, linewidths=0.5,levels=contours, colors='k')
-                #CS2 = m.contour(X, Y, tab, linewidths=0.5,levels=contours, colors='k',alpha=0.5)
-                plt.clabel(CS2, CS2.levels, inline=True, fmt='%.0f', fontsize=4)
+	elif type == 'arc' or type == 'atln' :
+		CS2 = m.contour(X, Y, tab, linewidths=0.5,levels=contours, colors='k')
+		#CS2 = m.contour(X, Y, tab, linewidths=0.5,levels=contours, colors='k',alpha=0.5)
+		plt.clabel(CS2, CS2.levels, inline=True, fmt='%.0f', fontsize=4)
 	else:
 		CS2 = m.contour(X, Y, tab, myticks, colors=z_col,linewidths=0.6 , alpha=0.7)
 		#CS2 = m.contour(X, Y, tab, myticks, colors=z_col,linewidths=1.3 )
@@ -380,10 +380,10 @@ def nemo_Atl_Bat_plot(lon,lat,tab,contours,limits,myticks=None,name=None,area=No
 	xspace=5. ; yspace=5.
 	my_size=9
 	if type == 'spec1':
-	  	m.drawmeridians(npy.arange(area['lonmin'],area['lonmax']+xspace,xspace),labels=[False,False,False,True],size=my_size,color='grey',alpha=0.70)
+		m.drawmeridians(npy.arange(area['lonmin'],area['lonmax']+xspace,xspace),labels=[False,False,False,True],size=my_size,color='grey',alpha=0.70)
 	
 	if type == 'spec1':
-	  	m.drawparallels(npy.arange(area['latmin'],area['latmax']+yspace,yspace),labels=[True,False,False,False],size=my_size,color='grey',alpha=0.70)
+		m.drawparallels(npy.arange(area['latmin'],area['latmax']+yspace,yspace),labels=[True,False,False,False],size=my_size,color='grey',alpha=0.70)
 	#plt.title(name,fontsize=10)
 	return m
 
@@ -399,10 +399,10 @@ def nemo_Atl_MLD_plot(lon,lat,tab,tab2,contours,limits,myticks=None,name=None,zm
 	#
 	tab=PyRaf.limit_range(tab,limits[0],limits[1])
 	if type == 'spec1':
-	        if vartype == 'DENS':
+		if vartype == 'DENS':
 		    # To plot the isopycne depth over GIN seas erna_SigiDepth.py script
 		    m = Basemap(width=3000000,height=2500000,lat_1=60.,lat_2=90,lon_0=-5,lat_0=70,projection='aea',resolution='c')
-	        else:
+		else:
 		    m = Basemap(width=2300000,height=2000000,lat_1=50.,lat_2=70,lon_0=-45,lat_0=60,projection='aea',resolution='c')
 		    #m = Basemap(width=4000000,height=3500000,lat_1=50.,lat_2=80,lon_0=-30,lat_0=65,projection='aea',resolution='c')
 		    type=None
@@ -418,10 +418,10 @@ def nemo_Atl_MLD_plot(lon,lat,tab,tab2,contours,limits,myticks=None,name=None,zm
 	elif type == 'atln':
 		# To plot the North Atlantic 
 		m = Basemap(width=6000000,height=5500000,lat_1=25.,lat_2=75.,\
-                            lon_0=-50,lat_0=50,projection='aea',resolution='i')
+			    lon_0=-50,lat_0=50,projection='aea',resolution='i')
 	else:
 		m = Basemap(projection='cyl',llcrnrlat=area['latmin'],urcrnrlat=area['latmax'],\
-		            llcrnrlon=area['lonmin'],urcrnrlon=area['lonmax'],resolution='c')
+			    llcrnrlon=area['lonmin'],urcrnrlon=area['lonmax'],resolution='c')
 
 	#m.drawcoastlines(linewidth=0.25)
 	m.fillcontinents(color='grey',lake_color='white')
@@ -430,8 +430,8 @@ def nemo_Atl_MLD_plot(lon,lat,tab,tab2,contours,limits,myticks=None,name=None,zm
 	norm = mpl.colors.Normalize(vmin=limits[0], vmax=limits[1])
 
 	if zmy_cmap != None :
-                pal = zmy_cmap
-        else:
+		pal = zmy_cmap
+	else:
 		if vartype == 'VMOD' or  vartype == 'SSH' or vartype == 'SST' or vartype == 'SSS' or vartype == 'DENS': pal = plt.cm.get_cmap('RdBu_r')
 		if vartype == 'EKE' or vartype == 'MLD': pal = plt.cm.get_cmap('Blues')
 		if vartype == 'EKE' or vartype == 'MLD': pal = plt.cm.get_cmap('YlOrRd')
@@ -453,7 +453,7 @@ def nemo_Atl_MLD_plot(lon,lat,tab,tab2,contours,limits,myticks=None,name=None,zm
 	if boxtoplot == 1:
 		lon  = PyRaf.readfull('/gpfs5r/workgpfs/rech/ost/rost832/PRE-POST/WORK/PSI/1_FER-BCTFE04_y1990_PSI.nc','nav_lon')
 		lat  = PyRaf.readfull('/gpfs5r/workgpfs/rech/ost/rost832/PRE-POST/WORK/PSI/1_FER-BCTFE04_y1990_PSI.nc','nav_lat')
-        	bx_LABS={'name':'Labrador box','imin':466,'imax':472,'jmin':388,'jmax':399}
+		bx_LABS={'name':'Labrador box','imin':466,'imax':472,'jmin':388,'jmax':399}
 		bx_IRMw={'name':'West Irminger box','imin':495,'imax':501,'jmin':392,'jmax':400}
 		bx_IRMe={'name':'East Irminger box','imin':510,'imax':517,'jmin':395,'jmax':402}
 		bx_GINS={'name':'GIN box','imin':548,'imax':553,'jmin':444,'jmax':455}
@@ -464,19 +464,19 @@ def nemo_Atl_MLD_plot(lon,lat,tab,tab2,contours,limits,myticks=None,name=None,zm
 		All_box=[bx_LABC,bx_FARB,bx_WGCB]
 		#All_box=[bx_LABS,bx_IRMw,bx_IRMe,bx_GINS]
 		for box in All_box:
-        		lats = [lat[box['jmin'],box['imin']], lat[box['jmin'],box['imax']], lat[box['jmax'],box['imax']], lat[box['jmax'],box['imin']] ]
-        		lons = [lon[box['jmin'],box['imin']], lon[box['jmin'],box['imax']], lon[box['jmax'],box['imax']], lon[box['jmax'],box['imin']] ]
-        		x,y = m(lons,lats)
-        		# plot filled circles at the locations of the cities.
+			lats = [lat[box['jmin'],box['imin']], lat[box['jmin'],box['imax']], lat[box['jmax'],box['imax']], lat[box['jmax'],box['imin']] ]
+			lons = [lon[box['jmin'],box['imin']], lon[box['jmin'],box['imax']], lon[box['jmax'],box['imax']], lon[box['jmax'],box['imin']] ]
+			x,y = m(lons,lats)
+			# plot filled circles at the locations of the cities.
 			if box['name'] == 'West Irminger box' or box['name'] == 'East Irminger box':
 				m.plot(x,y,'go')
 			else:
-        			m.plot(x,y,linewidth=2,color='r')
+				m.plot(x,y,linewidth=2,color='r')
 				# pour la section west de la box
-        			lats = [lat[box['jmin'],box['imin']], lat[box['jmax'],box['imin']] ]
-        			lons = [lon[box['jmin'],box['imin']], lon[box['jmax'],box['imin']] ]
-        			x,y = m(lons,lats)
-        			m.plot(x,y,linewidth=2,color='r')
+				lats = [lat[box['jmin'],box['imin']], lat[box['jmax'],box['imin']] ]
+				lons = [lon[box['jmin'],box['imin']], lon[box['jmax'],box['imin']] ]
+				x,y = m(lons,lats)
+				m.plot(x,y,linewidth=2,color='r')
 	############################################################################################################
 	############################################################################################################
 	############################################################################################################
@@ -487,10 +487,10 @@ def nemo_Atl_MLD_plot(lon,lat,tab,tab2,contours,limits,myticks=None,name=None,zm
 		bx_AR7S={'name':'AR7','lon_min':-55.5,'lon_max':-48.,'lat_min':53.4,'lat_max':61. }
 		All_box=[bx_AR7S]
 		for box in All_box:
-        		lats = [box['lat_min'],box['lat_max']]
-        		lons = [box['lon_min'],box['lon_max']]
-        		x,y = m(lons,lats)
-        		m.plot(x,y,linewidth=1.5, color='green')
+			lats = [box['lat_min'],box['lat_max']]
+			lons = [box['lon_min'],box['lon_max']]
+			x,y = m(lons,lats)
+			m.plot(x,y,linewidth=1.5, color='green')
 	############################################################################################################
 
 
@@ -501,7 +501,7 @@ def nemo_Atl_MLD_plot(lon,lat,tab,tab2,contours,limits,myticks=None,name=None,zm
 	# The following line to be used with MLD only
 	if len(contours) > 0 and isocont == 1:
 	#if len(contours) > 0 :
-	   	if vartype == 'voeke': 
+		if vartype == 'voeke': 
 		   my_fsize=6
 		   mycol='k'
 		   mywid1=0.7
@@ -562,7 +562,7 @@ def nemo_Atl_MLD_plot(lon,lat,tab,tab2,contours,limits,myticks=None,name=None,zm
 		if myticks is None:
 			cbar = plt.colorbar(C,format='%.2f',orientation='vertical',shrink=0.8)
 		else:
-		   	if type == 'spec1':
+			if type == 'spec1':
 				posx=0.67  ; posy=0.25
 			elif type == 'spec2':
 				posx=0.89  ; posy=0.25
@@ -609,7 +609,7 @@ def nemo_Atl_SSTS_plot(lon,lat,tab,tab2,contours,limits,myticks=None,name=None,a
 		#m = Basemap(width=4000000,height=3500000,lat_1=50.,lat_2=80,lon_0=-30,lat_0=65,projection='aea',resolution='c')
 	else:
 		m = Basemap(projection='cyl',llcrnrlat=area['latmin'],urcrnrlat=area['latmax'],\
-		            llcrnrlon=area['lonmin'],urcrnrlon=area['lonmax'],resolution='c')
+			    llcrnrlon=area['lonmin'],urcrnrlon=area['lonmax'],resolution='c')
 	m.drawcoastlines(linewidth=0.25)
 	m.fillcontinents(color='grey',lake_color='white')
 	# contour filled
@@ -645,17 +645,17 @@ def nemo_Atl_SSTS_plot(lon,lat,tab,tab2,contours,limits,myticks=None,name=None,a
 		#All_box=[bx_LABS,bx_IRMw,bx_IRMe,bx_GINS]
 		All_box=[bx_LABS,bx_IRMw,bx_IRMe]
 		for box in All_box:
-        		lats = [lat[box['jmin'],box['imin']], lat[box['jmin'],box['imax']], lat[box['jmax'],box['imax']], lat[box['jmax'],box['imin']], lat[box['jmin'],box['imin']]]
-        		lons = [lon[box['jmin'],box['imin']], lon[box['jmin'],box['imax']], lon[box['jmax'],box['imax']], lon[box['jmax'],box['imin']], lon[box['jmin'],box['imin']]]
-        		x,y = m(lons,lats)
-        		# plot filled circles at the locations of the cities.
+			lats = [lat[box['jmin'],box['imin']], lat[box['jmin'],box['imax']], lat[box['jmax'],box['imax']], lat[box['jmax'],box['imin']], lat[box['jmin'],box['imin']]]
+			lons = [lon[box['jmin'],box['imin']], lon[box['jmin'],box['imax']], lon[box['jmax'],box['imax']], lon[box['jmax'],box['imin']], lon[box['jmin'],box['imin']]]
+			x,y = m(lons,lats)
+			# plot filled circles at the locations of the cities.
 			if False:
 			#if box['name'] == 'West Irminger box' or box['name'] == 'East Irminger box':
 				m.plot(x,y,'go')
 			else:
-        			m.plot(x,y,linewidth=2, color='k')
-        			#m.plot(x,y,linewidth=2, color='g', markerfacecolor='b')
-        			#m.plot(x,y,'ro')
+				m.plot(x,y,linewidth=2, color='k')
+				#m.plot(x,y,linewidth=2, color='g', markerfacecolor='b')
+				#m.plot(x,y,'ro')
 	############################################################################################################
 	############################################################################################################
 	############################################################################################################
@@ -665,17 +665,17 @@ def nemo_Atl_SSTS_plot(lon,lat,tab,tab2,contours,limits,myticks=None,name=None,a
 		z_lon  = PyRaf.readfull('/Users/ctalandi/TOOLS/My_PYTHON/DATA-EXT/ERNA/GRID/ERNA-BCTGSP3/1_ERNA-BCTGSP3_mesh_hgr.nc','glamt')
 		z_lat  = PyRaf.readfull('/Users/ctalandi/TOOLS/My_PYTHON/DATA-EXT/ERNA/GRID/ERNA-BCTGSP3/1_ERNA-BCTGSP3_mesh_hgr.nc','gphit')
 		lons = z_lon[0,:]   ; lats = z_lat[0,:]
-        	x,y = m(lons,lats)
-        	m.plot(x,y,linewidth=2, color='k')
+		x,y = m(lons,lats)
+		m.plot(x,y,linewidth=2, color='k')
 		lons = z_lon[:,0]   ; lats = z_lat[:,0]
-        	x,y = m(lons,lats)
-        	m.plot(x,y,linewidth=2, color='k')
+		x,y = m(lons,lats)
+		m.plot(x,y,linewidth=2, color='k')
 		lons = z_lon[z_lon.shape[0]-1,:]   ; lats = z_lat[z_lon.shape[0]-1,:]
-        	x,y = m(lons,lats)
-        	m.plot(x,y,linewidth=2, color='k')
+		x,y = m(lons,lats)
+		m.plot(x,y,linewidth=2, color='k')
 		lons = z_lon[:,z_lon.shape[1]-1]   ; lats = z_lat[:,z_lon.shape[1]-1]
-        	x,y = m(lons,lats)
-        	m.plot(x,y,linewidth=2, color='k')
+		x,y = m(lons,lats)
+		m.plot(x,y,linewidth=2, color='k')
 	############################################################################################################
 	############################################################################################################
 
@@ -694,10 +694,10 @@ def nemo_Atl_SSTS_plot(lon,lat,tab,tab2,contours,limits,myticks=None,name=None,a
 		#All_box=[bx_FRAM1,bx_FRAM2]
 		#All_box=[bx_FISS]
 		for box in All_box:
-        		lats = [box['lat_min'],box['lat_max']]
-        		lons = [box['lon_min'],box['lon_max']]
-        		x,y = m(lons,lats)
-        		m.plot(x,y,linewidth=2, color='r')
+			lats = [box['lat_min'],box['lat_max']]
+			lons = [box['lon_min'],box['lon_max']]
+			x,y = m(lons,lats)
+			m.plot(x,y,linewidth=2, color='r')
 	############################################################################################################
 	############################################################################################################
 
@@ -705,10 +705,10 @@ def nemo_Atl_SSTS_plot(lon,lat,tab,tab2,contours,limits,myticks=None,name=None,a
 	#C = m.contourf(lon,lat,tab,25,cmap=pal,norm=norm)
 	plt.clim(limits[0],limits[1])
 	if len(limits) > 2:
-        	plt.clim(limits[2],limits[3])
+		plt.clim(limits[2],limits[3])
 	# contour (optional)
 	if len(contours) > 0 and isocont == 1:
-	   	if vartype == 'EKE': 
+		if vartype == 'EKE': 
 		   my_fsize=7
 		   mycol='k'
 		   mywid1=0.4
@@ -732,8 +732,8 @@ def nemo_Atl_SSTS_plot(lon,lat,tab,tab2,contours,limits,myticks=None,name=None,a
 		#plt.clabel(CS2, CS2.levels, inline=True, fmt='%.1f', fontsize=my_fsize)
 	plt.grid(True)
 	###   if vartype == 'icethick' or vartype == 'SST' or vartype == 'SSS':
-	###   	m.contour(X, Y, tab_ref, linewidths=1.,levels=[0.05,0.05], colors='m' )
-	###   	m.contour(X, Y, tab_sec, linewidths=1.,levels=[0.05,0.05], colors='g' )
+	###	m.contour(X, Y, tab_ref, linewidths=1.,levels=[0.05,0.05], colors='m' )
+	###	m.contour(X, Y, tab_sec, linewidths=1.,levels=[0.05,0.05], colors='g' )
 	if vartype == 'sobotsig0':
 		CS4=m.contour(X, Y, tab    , linewidths=1.,levels=[27.8,27.8], colors='y' )
 		plt.clabel(CS4, [27.8], inline=True, fmt='%.1f', fontsize=9)
@@ -743,17 +743,17 @@ def nemo_Atl_SSTS_plot(lon,lat,tab,tab2,contours,limits,myticks=None,name=None,a
 	# x axis
 	locs, labels = plt.xticks()
 	if type == 'spec1' or vartype =='SSH' or vartype == 'EKE' or vartype == 'SST' or vartype == 'SSS' or vartype == 'MLD' or vartype == 'sobotsig0':
-	   	if vartype == 'EKE': 
+		if vartype == 'EKE': 
 		   my_fsize=9
 		else:
 		   my_fsize=6
-	   	if vartype == 'MLD': 
+		if vartype == 'MLD': 
 		   int_lon=10.
 		else:
 		   int_lon=10.
 		m.drawmeridians(npy.arange(-180.,181.,int_lon),labels=[False,False,False,True],size=my_fsize,color='grey',alpha=0.70)
-     	else:
-        	lon_grid=npy.arange(area['lonmin'],area['lonmax']+5.,5., dtype=float)
+	else:
+		lon_grid=npy.arange(area['lonmin'],area['lonmax']+5.,5., dtype=float)
 		newlocs   = npy.array(lon_grid,'f')
 		newlabels = npy.array(lon_grid,'i')
 		plt.xticks(newlocs,newlabels,size=8)
@@ -762,7 +762,7 @@ def nemo_Atl_SSTS_plot(lon,lat,tab,tab2,contours,limits,myticks=None,name=None,a
 	# y axis
 	locsY,labelsy = plt.yticks()
 	if type == 'spec1' or vartype =='SSH' or vartype == 'EKE' or vartype == 'SST' or vartype == 'SSS' or vartype == 'MLD' or vartype == 'sobotsig0':
-	   	if vartype == 'EKE': 
+		if vartype == 'EKE': 
 		   my_fsize=9
 		else:
 		   my_fsize=6
@@ -776,9 +776,9 @@ def nemo_Atl_SSTS_plot(lon,lat,tab,tab2,contours,limits,myticks=None,name=None,a
 		    m.drawparallels(npy.arange(-80.,81.,5.),labels=[False,True,False,False],size=my_fsize,color='grey',alpha=0.70)
 		if vartype == 'SSH':
 		    m.drawparallels(npy.arange(-80.,81.,5.),labels=[False,True,False,False],size=my_fsize,color='grey',alpha=0.70)
-     	else:
-        	lat_grid=npy.arange(area['latmin'],area['latmax']+2.,2., dtype=float)
-        	#lat_grid=npy.arange(area['latmin'],area['latmax']+5.,5., dtype=float)
+	else:
+		lat_grid=npy.arange(area['latmin'],area['latmax']+2.,2., dtype=float)
+		#lat_grid=npy.arange(area['latmin'],area['latmax']+5.,5., dtype=float)
 		newlocsy   = npy.array(lat_grid,'f')
 		newlabelsy = npy.array(lat_grid,'i')
 		plt.yticks(newlocsy,newlabelsy,size=8)
@@ -791,14 +791,14 @@ def nemo_Atl_SSTS_plot(lon,lat,tab,tab2,contours,limits,myticks=None,name=None,a
 		if myticks is None:
 			cbar = plt.colorbar(C,format='%.2f',orientation='vertical',shrink=0.8)
 		else:
-		   	if zuniq == 1 :
+			if zuniq == 1 :
 			   if type=='spec1':
-		        	posx=0.35  ; posy=0.05
+				posx=0.35  ; posy=0.05
 			   else:
-		        	posx=0.35  ; posy=0.10
+				posx=0.35  ; posy=0.10
 			else:
-		        	#if vartype == 'SST':  posx=0.35  ; posy=0.05
-		        	if vartype == 'SST':  posx=0.15  ; posy=0.50
+				#if vartype == 'SST':  posx=0.35  ; posy=0.05
+				if vartype == 'SST':  posx=0.15  ; posy=0.50
 				#if vartype == 'SSS':  posx=0.35  ; posy=0.05
 				if vartype == 'SSS':  posx=0.56  ; posy=0.50
 				#posx=0.35  ; posy=0.05
@@ -807,8 +807,8 @@ def nemo_Atl_SSTS_plot(lon,lat,tab,tab2,contours,limits,myticks=None,name=None,a
 			cl = plt.getp(cb.ax, 'xmajorticklabels')
 			plt.setp(cl, fontsize=8)
 			#cb=plt.colorbar(C,cax,format='%.1f',orientation='vertical',shrink=0.8,ticks=myticks)
-		        if vartype == 'SST':  cb.set_label(r'SST ($^\circ$C)',fontsize=7)
-		        if vartype == 'SSS':  cb.set_label(r'SSS (PSU)',fontsize=7)
+			if vartype == 'SST':  cb.set_label(r'SST ($^\circ$C)',fontsize=7)
+			if vartype == 'SSS':  cb.set_label(r'SSS (PSU)',fontsize=7)
 			cb.ax.set_yticklabels(myticks,fontsize=7)
 			#cbar = plt.colorbar(C,orientation='vertical',shrink=0.8,ticks=myticks)
 			#cbar = plt.colorbar(C,format='%.1f',orientation='vertical',shrink=0.8,ticks=myticks)
@@ -832,7 +832,7 @@ def nemo_Atl_Rdef_plot(lon,lat,tab,contours,limits,myticks=None,name=None,area=N
 		#m = Basemap(width=4000000,height=3500000,lat_1=50.,lat_2=80,lon_0=-30,lat_0=65,projection='aea',resolution='c')
 	else:
 		m = Basemap(projection='cyl',llcrnrlat=area['latmin'],urcrnrlat=area['latmax'],\
-		            llcrnrlon=area['lonmin'],urcrnrlon=area['lonmax'],resolution='c')
+			    llcrnrlon=area['lonmin'],urcrnrlon=area['lonmax'],resolution='c')
 	m.drawcoastlines(linewidth=0.25)
 	m.fillcontinents(color='grey',lake_color='white')
 	# contour filled
@@ -853,20 +853,20 @@ def nemo_Atl_Rdef_plot(lon,lat,tab,contours,limits,myticks=None,name=None,area=N
 	if boxtoplot == 1:
 		lon  = PyRaf.readfull('/Users/ctalandi/TOOLS/My_PYTHON/DATA-EXT/ERNA/ERNA-BCTGSP3-MEAN/1990/ERNA-BCTGSP3_y1990_somxl030.nc','nav_lon')
 		lat  = PyRaf.readfull('/Users/ctalandi/TOOLS/My_PYTHON/DATA-EXT/ERNA/ERNA-BCTGSP3-MEAN/1990/ERNA-BCTGSP3_y1990_somxl030.nc','nav_lat')
-        	bx_LABS={'name':'Labrador box','imin':466,'imax':472,'jmin':388,'jmax':399}
+		bx_LABS={'name':'Labrador box','imin':466,'imax':472,'jmin':388,'jmax':399}
 		bx_IRMw={'name':'West Irminger box','imin':495,'imax':501,'jmin':392,'jmax':400}
 		bx_IRMe={'name':'East Irminger box','imin':510,'imax':517,'jmin':395,'jmax':402}
 		bx_GINS={'name':'GIN box','imin':548,'imax':553,'jmin':444,'jmax':455}
 		All_box=[bx_LABS,bx_IRMw,bx_IRMe,bx_GINS]
 		for box in All_box:
-        		lats = [lat[box['jmin'],box['imin']], lat[box['jmin'],box['imax']], lat[box['jmax'],box['imax']], lat[box['jmax'],box['imin']] ]
-        		lons = [lon[box['jmin'],box['imin']], lon[box['jmin'],box['imax']], lon[box['jmax'],box['imax']], lon[box['jmax'],box['imin']] ]
-        		x,y = m(lons,lats)
-        		# plot filled circles at the locations of the cities.
+			lats = [lat[box['jmin'],box['imin']], lat[box['jmin'],box['imax']], lat[box['jmax'],box['imax']], lat[box['jmax'],box['imin']] ]
+			lons = [lon[box['jmin'],box['imin']], lon[box['jmin'],box['imax']], lon[box['jmax'],box['imax']], lon[box['jmax'],box['imin']] ]
+			x,y = m(lons,lats)
+			# plot filled circles at the locations of the cities.
 			if box['name'] == 'West Irminger box' or box['name'] == 'East Irminger box':
 				m.plot(x,y,'go')
 			else:
-        			m.plot(x,y,'ro')
+				m.plot(x,y,'ro')
 	############################################################################################################
 	############################################################################################################
 
@@ -874,7 +874,7 @@ def nemo_Atl_Rdef_plot(lon,lat,tab,contours,limits,myticks=None,name=None,area=N
 	#C = m.contourf(lon,lat,tab,25,cmap=pal,norm=norm)
 	plt.clim(limits[0],limits[1])
 	if len(limits) > 2:
-        	plt.clim(limits[2],limits[3])
+		plt.clim(limits[2],limits[3])
 	# contour (optional)
 	if len(contours) > 0 and isocont == 1:
 		my_fsize=8
@@ -909,7 +909,7 @@ def nemo_Atl_Rdef_plot(lon,lat,tab,contours,limits,myticks=None,name=None,area=N
 			if isocont == 1:
 				cb=plt.colorbar(C,cax,format='%.1f',orientation='vertical')
 			else:
-			        vmin=limits[0] ; vmax=limits[1] ; vint=10.
+				vmin=limits[0] ; vmax=limits[1] ; vint=10.
 				cb=plt.colorbar(C,cax,format='%.1f',orientation='vertical',ticks=npy.arange(vmin,vmax+vint,vint))
 				#cb=plt.colorbar(C,cax,format='%.1f',orientation='vertical',ticks=myticks)
 			cb.set_label(r'Rdef (km)',fontsize=9)
@@ -935,7 +935,7 @@ def nemo_Atl_VMOD_plot(lon,lat,tab,tabU,tabV,tabUup,tabVup,contours,limits,mytic
 		#m = Basemap(width=4000000,height=3500000,lat_1=50.,lat_2=80,lon_0=-30,lat_0=65,projection='aea',resolution='c')
 	else:
 		m = Basemap(projection='cyl',llcrnrlat=area['latmin'],urcrnrlat=area['latmax'],\
-		            llcrnrlon=area['lonmin'],urcrnrlon=area['lonmax'],resolution='c')
+			    llcrnrlon=area['lonmin'],urcrnrlon=area['lonmax'],resolution='c')
 	m.drawcoastlines(linewidth=0.25)
 	m.fillcontinents(color='grey',lake_color='white')
 	# contour filled
@@ -966,20 +966,20 @@ def nemo_Atl_VMOD_plot(lon,lat,tab,tabU,tabV,tabUup,tabVup,contours,limits,mytic
 	if boxtoplot == 1:
 		lon  = PyRaf.readfull('/Users/ctalandi/TOOLS/My_PYTHON/DATA-EXT/ERNA/ERNA-BCTGSP3-MEAN/1990/ERNA-BCTGSP3_y1990_somxl030.nc','nav_lon')
 		lat  = PyRaf.readfull('/Users/ctalandi/TOOLS/My_PYTHON/DATA-EXT/ERNA/ERNA-BCTGSP3-MEAN/1990/ERNA-BCTGSP3_y1990_somxl030.nc','nav_lat')
-        	bx_LABS={'name':'Labrador box','imin':466,'imax':472,'jmin':388,'jmax':399}
+		bx_LABS={'name':'Labrador box','imin':466,'imax':472,'jmin':388,'jmax':399}
 		bx_IRMw={'name':'West Irminger box','imin':495,'imax':501,'jmin':392,'jmax':400}
 		bx_IRMe={'name':'East Irminger box','imin':510,'imax':517,'jmin':395,'jmax':402}
 		bx_GINS={'name':'GIN box','imin':548,'imax':553,'jmin':444,'jmax':455}
 		All_box=[bx_LABS,bx_IRMw,bx_IRMe,bx_GINS]
 		for box in All_box:
-        		lats = [lat[box['jmin'],box['imin']], lat[box['jmin'],box['imax']], lat[box['jmax'],box['imax']], lat[box['jmax'],box['imin']] ]
-        		lons = [lon[box['jmin'],box['imin']], lon[box['jmin'],box['imax']], lon[box['jmax'],box['imax']], lon[box['jmax'],box['imin']] ]
-        		x,y = m(lons,lats)
-        		# plot filled circles at the locations of the cities.
+			lats = [lat[box['jmin'],box['imin']], lat[box['jmin'],box['imax']], lat[box['jmax'],box['imax']], lat[box['jmax'],box['imin']] ]
+			lons = [lon[box['jmin'],box['imin']], lon[box['jmin'],box['imax']], lon[box['jmax'],box['imax']], lon[box['jmax'],box['imin']] ]
+			x,y = m(lons,lats)
+			# plot filled circles at the locations of the cities.
 			if box['name'] == 'West Irminger box' or box['name'] == 'East Irminger box':
 				m.plot(x,y,'go')
 			else:
-        			m.plot(x,y,'ro')
+				m.plot(x,y,'ro')
 	############################################################################################################
 	############################################################################################################
 
@@ -987,11 +987,11 @@ def nemo_Atl_VMOD_plot(lon,lat,tab,tabU,tabV,tabUup,tabVup,contours,limits,mytic
 	#C = m.contourf(lon,lat,tab,25,cmap=pal,norm=norm)
 	plt.clim(limits[0],limits[1])
 	if len(limits) > 2:
-        	plt.clim(limits[2],limits[3])
+		plt.clim(limits[2],limits[3])
 	# contour (optional)
 	if len(contours) > 0 and vartype != 'VMOD':
 	#if len(contours) > 0 and isocont ==1:
-	   	if vartype == 'EKE': 
+		if vartype == 'EKE': 
 		   my_fsize=7
 		   mycol='k'
 		   mywid1=0.4
@@ -1016,17 +1016,17 @@ def nemo_Atl_VMOD_plot(lon,lat,tab,tabU,tabV,tabUup,tabVup,contours,limits,mytic
 	# x axis
 	locs, labels = plt.xticks()
 	if type == 'spec1' or vartype =='VMOD' or vartype == 'EKE' or vartype == 'SST' or vartype == 'SSS' or vartype == 'MLD':
-	   	if vartype == 'EKE': 
+		if vartype == 'EKE': 
 		   my_fsize=9
 		else:
 		   my_fsize=7
-	   	if vartype == 'MLD': 
+		if vartype == 'MLD': 
 		   int_lon=10.
 		else:
 		   int_lon=10.
 		m.drawmeridians(npy.arange(-180.,181.,int_lon),labels=[False,False,False,True],size=my_fsize,color='grey',alpha=0.70)
-     	else:
-        	lon_grid=npy.arange(area['lonmin'],area['lonmax']+5.,5., dtype=float)
+	else:
+		lon_grid=npy.arange(area['lonmin'],area['lonmax']+5.,5., dtype=float)
 		newlocs   = npy.array(lon_grid,'f')
 		newlabels = npy.array(lon_grid,'i')
 		plt.xticks(newlocs,newlabels,size=8)
@@ -1035,17 +1035,17 @@ def nemo_Atl_VMOD_plot(lon,lat,tab,tabU,tabV,tabUup,tabVup,contours,limits,mytic
 	# y axis
 	locsY,labelsy = plt.yticks()
 	if type == 'spec1' or vartype =='VMOD' or vartype == 'EKE' or vartype == 'SST' or vartype == 'SSS' or vartype == 'MLD':
-	   	if vartype == 'EKE': 
+		if vartype == 'EKE': 
 		   my_fsize=9
 		else:
 		   my_fsize=7
 		if zloc == 'uleft' or zloc == 'lleft':
 		    m.drawparallels(npy.arange(-80.,81.,5.),labels=[True,False,False,False],size=my_fsize,color='grey',alpha=0.70)
-		if zloc == 'lright' or  zloc == 'uright'  :
+		if zloc == 'lright' or	zloc == 'uright'  :
 		    m.drawparallels(npy.arange(-80.,81.,5.),labels=[False,True,False,False],size=my_fsize,color='grey',alpha=0.70)
-     	else:
-        	lat_grid=npy.arange(area['latmin'],area['latmax']+2.,2., dtype=float)
-        	#lat_grid=npy.arange(area['latmin'],area['latmax']+5.,5., dtype=float)
+	else:
+		lat_grid=npy.arange(area['latmin'],area['latmax']+2.,2., dtype=float)
+		#lat_grid=npy.arange(area['latmin'],area['latmax']+5.,5., dtype=float)
 		newlocsy   = npy.array(lat_grid,'f')
 		newlabelsy = npy.array(lat_grid,'i')
 		plt.yticks(newlocsy,newlabelsy,size=8)
@@ -1058,38 +1058,38 @@ def nemo_Atl_VMOD_plot(lon,lat,tab,tabU,tabV,tabUup,tabVup,contours,limits,mytic
 		if myticks is None:
 			cbar = plt.colorbar(C,format='%.2f',orientation='vertical',shrink=0.8)
 		else:
-		   	####     old way if type == 'spec1':
-			####     old way 	posx=0.67  ; posy=0.25
-			####     old way elif type == 'spec2':
-			####     old way 	posx=0.89  ; posy=0.25
-			####     old way else:
-			####     old way 	posx=0.90  ; posy=0.25
-			####     old way 	#posx=0.80  ; posy=0.25
-			####     old way cax=plt.axes([posx,posy,0.02,0.55])
-			####     old way #cax=plt.axes([offx,0.15,offx+0.01,offy+0.5])
-			####     old way if isocont == 1:
-			####     old way 	cb=plt.colorbar(CS2,cax,format='%.1f',orientation='vertical')
-			####     old way else:
-			####     old way 	cb=plt.colorbar(C,cax,format='%.1f',orientation='vertical')
-			####     old way #cb=plt.colorbar(C,cax,format='%.1f',orientation='vertical',shrink=0.8,ticks=myticks)
-			####     old way cb.set_label(r'(1 x 10$^{-2}$ m s$^{-1}$)',fontsize=9)
+			####	 old way if type == 'spec1':
+			####	 old way	posx=0.67  ; posy=0.25
+			####	 old way elif type == 'spec2':
+			####	 old way	posx=0.89  ; posy=0.25
+			####	 old way else:
+			####	 old way	posx=0.90  ; posy=0.25
+			####	 old way	#posx=0.80  ; posy=0.25
+			####	 old way cax=plt.axes([posx,posy,0.02,0.55])
+			####	 old way #cax=plt.axes([offx,0.15,offx+0.01,offy+0.5])
+			####	 old way if isocont == 1:
+			####	 old way	cb=plt.colorbar(CS2,cax,format='%.1f',orientation='vertical')
+			####	 old way else:
+			####	 old way	cb=plt.colorbar(C,cax,format='%.1f',orientation='vertical')
+			####	 old way #cb=plt.colorbar(C,cax,format='%.1f',orientation='vertical',shrink=0.8,ticks=myticks)
+			####	 old way cb.set_label(r'(1 x 10$^{-2}$ m s$^{-1}$)',fontsize=9)
 			# horizontal
-		        #if zloc == 'lright':  posx=0.14  ; posy=0.50
+			#if zloc == 'lright':  posx=0.14  ; posy=0.50
 			#if zloc == 'uright':  posx=0.55  ; posy=0.50
 			#cax=plt.axes([posx,posy,0.33,0.02])
 			#cb=plt.colorbar(C,cax,format='%.2f',orientation='horizontal')
 			#cl = plt.getp(cb.ax, 'xmajorticklabels')
 			#plt.setp(cl, fontsize=8)
-		        #cb.set_label(r'velocity module (cm s$^{-1}$)',fontsize=7)
+			#cb.set_label(r'velocity module (cm s$^{-1}$)',fontsize=7)
 			#cb.ax.set_yticklabels(myticks,fontsize=7)
 			# vertical
-		        if zloc == 'uright':  posx=0.49  ; posy=0.54
+			if zloc == 'uright':  posx=0.49  ; posy=0.54
 			if zloc == 'lright':  posx=0.49  ; posy=0.14
 			cax=plt.axes([posx,posy,0.01,0.33])
 			cb=plt.colorbar(C,cax,format='%.0f',orientation='vertical')
 			cl = plt.getp(cb.ax, 'ymajorticklabels')
 			plt.setp(cl, fontsize=8)
-		        cb.set_label(r'velocity module (cm s$^{-1}$)',fontsize=7)
+			cb.set_label(r'velocity module (cm s$^{-1}$)',fontsize=7)
 			#cb.ax.set_yticklabels(myticks,fontsize=7)
 
 	return None
@@ -1110,7 +1110,7 @@ def nemo_Atl_BVS_plot(lon,lat,tab,contours,limits,myticks=None,name=None,area=No
 		#m = Basemap(width=4000000,height=3500000,lat_1=50.,lat_2=80,lon_0=-30,lat_0=65,projection='aea',resolution='c')
 	else:
 		m = Basemap(projection='cyl',llcrnrlat=area['latmin'],urcrnrlat=area['latmax'],\
-		            llcrnrlon=area['lonmin'],urcrnrlon=area['lonmax'],resolution='c')
+			    llcrnrlon=area['lonmin'],urcrnrlon=area['lonmax'],resolution='c')
 	m.drawcoastlines(linewidth=0.25)
 	m.fillcontinents(color='grey',lake_color='white')
 	# contour filled
@@ -1118,7 +1118,7 @@ def nemo_Atl_BVS_plot(lon,lat,tab,contours,limits,myticks=None,name=None,area=No
 	if len(limits) > 2:
 		norm = mpl.colors.Normalize(vmin=limits[2], vmax=limits[3])
 	#if vartype == 'BVS' or  vartype == 'WDIA' : pal=plt.cm.get_cmap('RdBu_r')
-	if vartype == 'BVS' or  vartype == 'WDIA' : pal=plt.cm.get_cmap('seismic')
+	if vartype == 'BVS' or	vartype == 'WDIA' : pal=plt.cm.get_cmap('seismic')
 
 	X,Y = m(lon,lat)
 	if isocont == 1: C = m.contourf(X,Y,tab,contours,cmap=pal,norm=norm,extend='both')
@@ -1129,20 +1129,20 @@ def nemo_Atl_BVS_plot(lon,lat,tab,contours,limits,myticks=None,name=None,area=No
 	if boxtoplot == 1:
 		lon  = PyRaf.readfull('/Users/ctalandi/TOOLS/My_PYTHON/DATA-EXT/ERNA/ERNA-BCTGSP3-MEAN/1990/ERNA-BCTGSP3_y1990_somxl030.nc','nav_lon')
 		lat  = PyRaf.readfull('/Users/ctalandi/TOOLS/My_PYTHON/DATA-EXT/ERNA/ERNA-BCTGSP3-MEAN/1990/ERNA-BCTGSP3_y1990_somxl030.nc','nav_lat')
-        	bx_LABS={'name':'Labrador box','imin':466,'imax':472,'jmin':388,'jmax':399}
+		bx_LABS={'name':'Labrador box','imin':466,'imax':472,'jmin':388,'jmax':399}
 		bx_IRMw={'name':'West Irminger box','imin':495,'imax':501,'jmin':392,'jmax':400}
 		bx_IRMe={'name':'East Irminger box','imin':510,'imax':517,'jmin':395,'jmax':402}
 		bx_GINS={'name':'GIN box','imin':548,'imax':553,'jmin':444,'jmax':455}
 		All_box=[bx_LABS,bx_IRMw,bx_IRMe,bx_GINS]
 		for box in All_box:
-        		lats = [lat[box['jmin'],box['imin']], lat[box['jmin'],box['imax']], lat[box['jmax'],box['imax']], lat[box['jmax'],box['imin']] ]
-        		lons = [lon[box['jmin'],box['imin']], lon[box['jmin'],box['imax']], lon[box['jmax'],box['imax']], lon[box['jmax'],box['imin']] ]
-        		x,y = m(lons,lats)
-        		# plot filled circles at the locations of the cities.
+			lats = [lat[box['jmin'],box['imin']], lat[box['jmin'],box['imax']], lat[box['jmax'],box['imax']], lat[box['jmax'],box['imin']] ]
+			lons = [lon[box['jmin'],box['imin']], lon[box['jmin'],box['imax']], lon[box['jmax'],box['imax']], lon[box['jmax'],box['imin']] ]
+			x,y = m(lons,lats)
+			# plot filled circles at the locations of the cities.
 			if box['name'] == 'West Irminger box' or box['name'] == 'East Irminger box':
 				m.plot(x,y,'go')
 			else:
-        			m.plot(x,y,'ro')
+				m.plot(x,y,'ro')
 	############################################################################################################
 	############################################################################################################
 
@@ -1150,11 +1150,11 @@ def nemo_Atl_BVS_plot(lon,lat,tab,contours,limits,myticks=None,name=None,area=No
 	#C = m.contourf(lon,lat,tab,25,cmap=pal,norm=norm)
 	plt.clim(limits[0],limits[1])
 	if len(limits) > 2:
-        	plt.clim(limits[2],limits[3])
+		plt.clim(limits[2],limits[3])
 	# contour (optional)
 	if len(contours) > 0 and vartype != 'BVS' and vartype != 'WDIA':
 	#if len(contours) > 0 and isocont ==1:
-	   	if vartype == 'EKE': 
+		if vartype == 'EKE': 
 		   my_fsize=7
 		   mycol='k'
 		   mywid1=0.4
@@ -1179,17 +1179,17 @@ def nemo_Atl_BVS_plot(lon,lat,tab,contours,limits,myticks=None,name=None,area=No
 	# x axis
 	locs, labels = plt.xticks()
 	if type == 'spec1' or vartype =='BVS' or vartype == 'EKE' or vartype == 'WDIA' :
-	   	if vartype == 'EKE': 
+		if vartype == 'EKE': 
 		   my_fsize=9
 		else:
 		   my_fsize=9
-	   	if vartype == 'MLD': 
+		if vartype == 'MLD': 
 		   int_lon=10.
 		else:
 		   int_lon=10.
 		m.drawmeridians(npy.arange(-180.,181.,int_lon),labels=[False,False,False,True],size=my_fsize,color='grey',alpha=0.70)
-     	else:
-        	lon_grid=npy.arange(area['lonmin'],area['lonmax']+5.,5., dtype=float)
+	else:
+		lon_grid=npy.arange(area['lonmin'],area['lonmax']+5.,5., dtype=float)
 		newlocs   = npy.array(lon_grid,'f')
 		newlabels = npy.array(lon_grid,'i')
 		plt.xticks(newlocs,newlabels,size=8)
@@ -1198,22 +1198,22 @@ def nemo_Atl_BVS_plot(lon,lat,tab,contours,limits,myticks=None,name=None,area=No
 	# y axis
 	locsY,labelsy = plt.yticks()
 	if type == 'spec1' or vartype =='BVS' or vartype == 'EKE' or vartype == 'WDIA' :
-	   	if vartype == 'EKE': 
+		if vartype == 'EKE': 
 		   my_fsize=9
 		else:
 		   my_fsize=9
 		m.drawparallels(npy.arange(-80.,81.,5.),labels=[True,False,False,False],size=my_fsize,color='grey',alpha=0.70)
-     	else:
-        	lat_grid=npy.arange(area['latmin'],area['latmax']+2.,2., dtype=float)
-        	#lat_grid=npy.arange(area['latmin'],area['latmax']+5.,5., dtype=float)
+	else:
+		lat_grid=npy.arange(area['latmin'],area['latmax']+2.,2., dtype=float)
+		#lat_grid=npy.arange(area['latmin'],area['latmax']+5.,5., dtype=float)
 		newlocsy   = npy.array(lat_grid,'f')
 		newlabelsy = npy.array(lat_grid,'i')
 		plt.yticks(newlocsy,newlabelsy,size=8)
 		plt.ylabel('Latitude',fontsize=10)	
 	# title
-        if vartype == 'WDIA':
+	if vartype == 'WDIA':
 	   plt.title(name,fontsize=9)
-        else:
+	else:
 	   plt.title(name,fontsize=12)
 
 	# colorbar	
@@ -1221,14 +1221,14 @@ def nemo_Atl_BVS_plot(lon,lat,tab,contours,limits,myticks=None,name=None,area=No
 		if myticks is None:
 			cbar = plt.colorbar(C,format='%.2f',orientation='vertical',shrink=0.8)
 		else:
-		   	if type == 'spec1':
+			if type == 'spec1':
 				posx=0.67  ; posy=0.25
 			elif type == 'spec2':
 				posx=0.89  ; posy=0.25
 			else:
-                                if vartype == 'WDIA' :
+				if vartype == 'WDIA' :
 				   posx=0.91  ; posy=0.25
-                                else:
+				else:
 				   posx=0.69  ; posy=0.25
 				   #posx=0.83  ; posy=0.25
 			cax=plt.axes([posx,posy,0.015,0.55])
@@ -1236,9 +1236,9 @@ def nemo_Atl_BVS_plot(lon,lat,tab,contours,limits,myticks=None,name=None,area=No
 			if isocont == 1 and vartype != 'BVS' and vartype != 'WDIA':
 				cb=plt.colorbar(CS2,cax,format='%.1f',orientation='vertical')
 			else:
-                                if vartype == 'WDIA' :
+				if vartype == 'WDIA' :
 				    cb=plt.colorbar(C,cax,format='%.0f',orientation='vertical')
-                                else:
+				else:
 				    cb=plt.colorbar(C,cax,format='%.1f',orientation='vertical')
 			#cb=plt.colorbar(C,cax,format='%.1f',orientation='vertical',shrink=0.8,ticks=myticks)
 			if vartype == 'BVS': cb.set_label(r'(1 x 10$^{-6} N m$^{-3}$)',fontsize=8)
@@ -1285,7 +1285,7 @@ def nemo_Atl_GS_plot(lon,lat,tab1,tab2,tab3,contours,limits,myticks=None,name=No
 	#C = m.contourf(X,Y,tab,contours,cmap=pal,norm=norm,extend='both')
 	#plt.clim(limits[0],limits[1])
 	#if len(limits) > 2:
-        #	plt.clim(limits[2],limits[3])
+	#	plt.clim(limits[2],limits[3])
 	# contour (optional)
 	CS1 = m.contour(X, Y, tab1, linewidths=0.8,levels=[17.,17.], colors='k' )
 	CS2 = m.contour(X, Y, tab2, linewidths=0.8,levels=[17.,17.], colors='r' )
@@ -1302,8 +1302,8 @@ def nemo_Atl_GS_plot(lon,lat,tab1,tab2,tab3,contours,limits,myticks=None,name=No
 	locs, labels = plt.xticks()
 	if type == 'spec1':
 		m.drawmeridians(npy.arange(-180.,181.,5.),labels=[False,False,False,True],size=6,alpha=0.7)
-     	else:
-        	lon_grid=npy.arange(area['lonmin'],area['lonmax']+5.,5., dtype=float)
+	else:
+		lon_grid=npy.arange(area['lonmin'],area['lonmax']+5.,5., dtype=float)
 		newlocs   = npy.array(lon_grid,'f')
 		newlabels = npy.array(lon_grid,'i')
 		plt.xticks(newlocs,newlabels,size=8)
@@ -1313,8 +1313,8 @@ def nemo_Atl_GS_plot(lon,lat,tab1,tab2,tab3,contours,limits,myticks=None,name=No
 	locsY,labelsy = plt.yticks()
 	if type == 'spec1':
 		m.drawparallels(npy.arange(-80.,81.,5.),labels=[True,False,False,False],size=6,alpha=0.7)
-     	else:
-        	lat_grid=npy.arange(area['latmin'],area['latmax']+5.,5., dtype=float)
+	else:
+		lat_grid=npy.arange(area['latmin'],area['latmax']+5.,5., dtype=float)
 		newlocsy   = npy.array(lat_grid,'f')
 		newlabelsy = npy.array(lat_grid,'i')
 		plt.yticks(newlocsy,newlabelsy,size=8)
@@ -1341,7 +1341,7 @@ def nemo_Atl_SSH_plot(lon,lat,tab,contours,limits,myticks=None,name=None,area=No
 		#m = Basemap(width=4000000,height=3500000,lat_1=50.,lat_2=80,lon_0=-30,lat_0=65,projection='aea',resolution='c')
 	else:
 		m = Basemap(projection='cyl',llcrnrlat=area['latmin'],urcrnrlat=area['latmax'],\
-		            llcrnrlon=area['lonmin'],urcrnrlon=area['lonmax'],resolution='c')
+			    llcrnrlon=area['lonmin'],urcrnrlon=area['lonmax'],resolution='c')
 	m.drawcoastlines(linewidth=0.25)
 	m.fillcontinents(color='grey',lake_color='white')
 	# contour filled
@@ -1363,20 +1363,20 @@ def nemo_Atl_SSH_plot(lon,lat,tab,contours,limits,myticks=None,name=None,area=No
 	if boxtoplot == 1:
 		lon  = PyRaf.readfull('/Users/ctalandi/TOOLS/My_PYTHON/DATA-EXT/ERNA/ERNA-BCTGSP3-MEAN/1990/ERNA-BCTGSP3_y1990_somxl030.nc','nav_lon')
 		lat  = PyRaf.readfull('/Users/ctalandi/TOOLS/My_PYTHON/DATA-EXT/ERNA/ERNA-BCTGSP3-MEAN/1990/ERNA-BCTGSP3_y1990_somxl030.nc','nav_lat')
-        	bx_LABS={'name':'Labrador box','imin':466,'imax':472,'jmin':388,'jmax':399}
+		bx_LABS={'name':'Labrador box','imin':466,'imax':472,'jmin':388,'jmax':399}
 		bx_IRMw={'name':'West Irminger box','imin':495,'imax':501,'jmin':392,'jmax':400}
 		bx_IRMe={'name':'East Irminger box','imin':510,'imax':517,'jmin':395,'jmax':402}
 		bx_GINS={'name':'GIN box','imin':548,'imax':553,'jmin':444,'jmax':455}
 		All_box=[bx_LABS,bx_IRMw,bx_IRMe,bx_GINS]
 		for box in All_box:
-        		lats = [lat[box['jmin'],box['imin']], lat[box['jmin'],box['imax']], lat[box['jmax'],box['imax']], lat[box['jmax'],box['imin']] ]
-        		lons = [lon[box['jmin'],box['imin']], lon[box['jmin'],box['imax']], lon[box['jmax'],box['imax']], lon[box['jmax'],box['imin']] ]
-        		x,y = m(lons,lats)
-        		# plot filled circles at the locations of the cities.
+			lats = [lat[box['jmin'],box['imin']], lat[box['jmin'],box['imax']], lat[box['jmax'],box['imax']], lat[box['jmax'],box['imin']] ]
+			lons = [lon[box['jmin'],box['imin']], lon[box['jmin'],box['imax']], lon[box['jmax'],box['imax']], lon[box['jmax'],box['imin']] ]
+			x,y = m(lons,lats)
+			# plot filled circles at the locations of the cities.
 			if box['name'] == 'West Irminger box' or box['name'] == 'East Irminger box':
 				m.plot(x,y,'go')
 			else:
-        			m.plot(x,y,'ro')
+				m.plot(x,y,'ro')
 	############################################################################################################
 	############################################################################################################
 
@@ -1384,10 +1384,10 @@ def nemo_Atl_SSH_plot(lon,lat,tab,contours,limits,myticks=None,name=None,area=No
 	#C = m.contourf(lon,lat,tab,25,cmap=pal,norm=norm)
 	plt.clim(limits[0],limits[1])
 	if len(limits) > 2:
-        	plt.clim(limits[2],limits[3])
+		plt.clim(limits[2],limits[3])
 	# contour (optional)
 	if len(contours) > 0 :
-	   	if vartype == 'EKE': 
+		if vartype == 'EKE': 
 		   my_fsize=7
 		else:
 		   my_fsize=6
@@ -1407,17 +1407,17 @@ def nemo_Atl_SSH_plot(lon,lat,tab,contours,limits,myticks=None,name=None,area=No
 	# x axis
 	locs, labels = plt.xticks()
 	if type == 'spec1' or vartype =='SSH' or vartype == 'EKE' or vartype == 'SST' or vartype == 'SSS' or vartype == 'MLD':
-	   	if vartype == 'EKE': 
+		if vartype == 'EKE': 
 		   my_fsize=9
 		else:
 		   my_fsize=6
-	   	if vartype == 'MLD': 
+		if vartype == 'MLD': 
 		   int_lon=10.
 		else:
 		   int_lon=10.
 		m.drawmeridians(npy.arange(-180.,181.,int_lon),labels=[False,False,False,True],size=my_fsize,color='grey',alpha=0.70)
-     	else:
-        	lon_grid=npy.arange(area['lonmin'],area['lonmax']+5.,5., dtype=float)
+	else:
+		lon_grid=npy.arange(area['lonmin'],area['lonmax']+5.,5., dtype=float)
 		newlocs   = npy.array(lon_grid,'f')
 		newlabels = npy.array(lon_grid,'i')
 		plt.xticks(newlocs,newlabels,size=8)
@@ -1426,14 +1426,14 @@ def nemo_Atl_SSH_plot(lon,lat,tab,contours,limits,myticks=None,name=None,area=No
 	# y axis
 	locsY,labelsy = plt.yticks()
 	if type == 'spec1' or vartype =='SSH' or vartype == 'EKE' or vartype == 'SST' or vartype == 'SSS' or vartype == 'MLD':
-	   	if vartype == 'EKE': 
+		if vartype == 'EKE': 
 		   my_fsize=9
 		else:
 		   my_fsize=6
 		m.drawparallels(npy.arange(-80.,81.,5.),labels=[True,False,False,False],size=my_fsize,color='grey',alpha=0.7)
-     	else:
-        	lat_grid=npy.arange(area['latmin'],area['latmax']+2.,2., dtype=float)
-        	#lat_grid=npy.arange(area['latmin'],area['latmax']+5.,5., dtype=float)
+	else:
+		lat_grid=npy.arange(area['latmin'],area['latmax']+2.,2., dtype=float)
+		#lat_grid=npy.arange(area['latmin'],area['latmax']+5.,5., dtype=float)
 		newlocsy   = npy.array(lat_grid,'f')
 		newlabelsy = npy.array(lat_grid,'i')
 		plt.yticks(newlocsy,newlabelsy,size=8)
@@ -1446,7 +1446,7 @@ def nemo_Atl_SSH_plot(lon,lat,tab,contours,limits,myticks=None,name=None,area=No
 		if myticks is None:
 			cbar = plt.colorbar(C,format='%.2f',orientation='vertical',shrink=0.8)
 		else:
-		   	if type == 'spec2':
+			if type == 'spec2':
 				posx=0.66  ; posy=0.23
 			else:
 				posx=0.80  ; posy=0.25
@@ -1454,7 +1454,7 @@ def nemo_Atl_SSH_plot(lon,lat,tab,contours,limits,myticks=None,name=None,area=No
 			if isocont == 1:
 				cb=plt.colorbar(CS2,cax,format='%.1f',orientation='vertical')
 			else:
-			        vmin=limits[0] ; vmax=limits[1] ; vint=10.
+				vmin=limits[0] ; vmax=limits[1] ; vint=10.
 				cb=plt.colorbar(C,cax,format='%.0f',orientation='vertical',ticks=npy.arange(vmin,vmax+vint,vint))
 				#cb=plt.colorbar(C,cax,format='%.1f',orientation='vertical',ticks=myticks)
 			cb.set_label(r'SSH (cm)',fontsize=7)
@@ -1485,9 +1485,9 @@ def nemo_Atl_std_plot(lon,lat,tab,std_tab,contours,limits,myticks=None,name=None
 	#ax  = fig.add_subplot(111)
 	# background
 	m = Basemap(projection='cyl',llcrnrlat=20,urcrnrlat=80,\
-	            llcrnrlon=-90,urcrnrlon=0,resolution='c')
+		    llcrnrlon=-90,urcrnrlon=0,resolution='c')
 	#m = Basemap(projection='cyl',llcrnrlat=-60,urcrnrlat=-20,\
-	#            llcrnrlon=-180,urcrnrlon=180,resolution='c')
+	#	     llcrnrlon=-180,urcrnrlon=180,resolution='c')
 	m.drawcoastlines(linewidth=0.25)
 	m.fillcontinents(color='grey',lake_color='white')
 	# contour filled
@@ -1509,16 +1509,16 @@ def nemo_Atl_std_plot(lon,lat,tab,std_tab,contours,limits,myticks=None,name=None
 	#	cbar = plt.colorbar(C,format='%.2f',orientation='vertical',shrink=0.8,ticks=myticks)
 	plt.clim(limits[0],limits[1])
 	if len(limits) > 2:
-        	plt.clim(limits[2],limits[3])
+		plt.clim(limits[2],limits[3])
 	# contour (optional)
 	if len(contours) > 0:
 		CS2 = m.contour(X, Y, tab, contours, colors='k',linewidths=0.3 )
 		#CS2 = m.contour(lon, lat, tab, contours, colors='k',linewidths=0.3 )
 		plt.clabel(CS2, CS2.levels, inline=True, fmt='%.1f', fontsize=6)
 
-        # Plot the standard deviation
-        CS = plt.contour(X,Y,std_tab,colors='c',linewidths=1.,levels=npy.arange(-10.,12.,1.))
-        plt.clabel(CS,fontsize=10,fmt='%2.1f')
+	# Plot the standard deviation
+	CS = plt.contour(X,Y,std_tab,colors='c',linewidths=1.,levels=npy.arange(-10.,12.,1.))
+	plt.clabel(CS,fontsize=10,fmt='%2.1f')
 
 	plt.grid(True)
 	#
@@ -1558,7 +1558,7 @@ def nemo_Atl_FLOzoom_plot(lon,lat,tab,contours,limits,myticks=None,name=None,fil
 	#ax  = fig.add_subplot(111)
 	# background
 	m = Basemap(projection='cyl',llcrnrlat=20,urcrnrlat=40,\
-	            llcrnrlon=-90,urcrnrlon=-70,resolution='c')
+		    llcrnrlon=-90,urcrnrlon=-70,resolution='c')
 	m.drawcoastlines(linewidth=0.25)
 	m.fillcontinents(color='grey',lake_color='white')
 	# contour filled
@@ -1581,7 +1581,7 @@ def nemo_Atl_FLOzoom_plot(lon,lat,tab,contours,limits,myticks=None,name=None,fil
 	#	cbar = plt.colorbar(C,format='%.2f',orientation='vertical',shrink=0.8,ticks=myticks)
 	plt.clim(limits[0],limits[1])
 	if len(limits) > 2:
-        	plt.clim(limits[2],limits[3])
+		plt.clim(limits[2],limits[3])
 	# contour (optional)
 	if len(contours) > 0:
 		CS2 = m.contour(X, Y, tab, contours, colors='k',linewidths=0.3 )
@@ -1626,7 +1626,7 @@ def nemo_midAtl_plot(lon,lat,tab,contours,limits,myticks=None,name=None,filename
 	#ax  = fig.add_subplot(111)
 	# background
 	m = Basemap(projection='cyl',llcrnrlat=40,urcrnrlat=50,\
-	            llcrnrlon=-30,urcrnrlon=-8,resolution='c')
+		    llcrnrlon=-30,urcrnrlon=-8,resolution='c')
 	m.drawcoastlines(linewidth=0.25)
 	m.fillcontinents(color='grey',lake_color='white')
 	# contour filled
@@ -1649,7 +1649,7 @@ def nemo_midAtl_plot(lon,lat,tab,contours,limits,myticks=None,name=None,filename
 	#	cbar = plt.colorbar(C,format='%.2f',orientation='vertical',shrink=0.8,ticks=myticks)
 	plt.clim(limits[0],limits[1])
 	if len(limits) > 2:
-        	plt.clim(limits[2],limits[3])
+		plt.clim(limits[2],limits[3])
 	# contour (optional)
 	if len(contours) > 0:
 		CS2 = m.contour(X, Y, tab, contours, colors='grey',linewidths=0.3 )
@@ -1693,7 +1693,7 @@ def nemo_global_diffplot(lon,lat,tab,contours,limits,myticks=None,name=None,file
 	ax  = fig.add_subplot(111)
 	# background
 	m = Basemap(projection='cyl',llcrnrlat=-89,urcrnrlat=89,\
-	            llcrnrlon=0,urcrnrlon=420,resolution='c')
+		    llcrnrlon=0,urcrnrlon=420,resolution='c')
 	m.drawcoastlines()
 	m.fillcontinents(color='grey',lake_color='white')
 	# contour filled
@@ -1709,7 +1709,7 @@ def nemo_global_diffplot(lon,lat,tab,contours,limits,myticks=None,name=None,file
 		cbar = plt.colorbar(C,format='%.2f',orientation='horizontal',shrink=0.8,ticks=myticks)
 	plt.clim(limits[0],limits[1])
 	if len(limits) > 2:
-        	plt.clim(limits[2],limits[3])
+		plt.clim(limits[2],limits[3])
 	# contour
 	if len(contours) > 0:
 		CS2 = m.contour(lon, lat, tab, contours, colors='k')
