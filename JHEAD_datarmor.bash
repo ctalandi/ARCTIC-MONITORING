@@ -18,8 +18,6 @@ cd $PBS_O_WORKDIR
 export MODULEPATH="$MODULEPATH:/home1/datahome/ctalandi/modules::.:"
 
 source /usr/share/Modules/3.2.10/init/bash
-module purge
-module list
 
 source /appli/anaconda/versions/miniforge3-24.11.3-0/etc/profile.d/conda.sh
 which conda 
