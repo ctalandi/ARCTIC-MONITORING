@@ -1,6 +1,5 @@
 import numpy as npy
 import scipy.io as sio
-from netCDF4 import Dataset
 from checkfile import *
 import xarray as xr
 from fsspec.implementations.local import LocalFileSystem
@@ -28,8 +27,8 @@ def READ_OBS_LGTS_DATA(CONFIG,lgTS_ys,lgTS_ye) :
         elif CONFIG == 'CREG12.L75' :
         	locfile = 'PIOMAS_icevol_maskedBeringSea_interpCREG12.L75_1-12_1979-2020.nc'
         if chkfile(locpath+locfile) :
-        	field = Dataset(locpath+locfile)
-        	LongTS_OBS_icevol = npy.squeeze(field.variables['icevol-BS'])
+		ds_fld = xr.open_dataset(locpath+locfile)
+        	LongTS_OBS_icevol = ds_fld['icevol-BS']
         else:
         	LongTS_OBS_icevol = npy.arange((2020-1979+1)*12)+npy.nan
         # Set the time axis for PIOMAS observations
@@ -49,9 +48,9 @@ def READ_OBS_LGTS_DATA(CONFIG,lgTS_ys,lgTS_ye) :
         locpath='./'
         locfile='NSIDC_ice_area_and_extent_maskBeringSea_fullPoleGap.nc'
         if chkfile(locpath+locfile) :
-                field = Dataset(locpath+locfile)
-                LongTS_OBS_iceext = npy.squeeze(field.variables['ice_extent'][2::])
-                LongTS_OBS_iceare = npy.squeeze(field.variables['ice_area'][2::])
+		ds_fld = xr.open_dataset(locpath+locfile)
+                LongTS_OBS_iceext = ds_fld['ice_extent'][2::]
+                LongTS_OBS_iceare = ds_fld['ice_area'][2::]
         else:
                 LongTS_OBS_iceext = npy.arange((2015-1979+1)*12)+npy.nan
                 LongTS_OBS_iceare = npy.arange((2015-1979+1)*12)+npy.nan
@@ -120,9 +119,9 @@ def READ_OBS_LGTS_CRFFWC(lgTS_ys,lgTS_ye) :
         locpath='./'
         locfile = 'BeaufortGyreFWC-Obs-Proshutinsky_GRL2018_y2003-2017.nc'
         if chkfile(locpath+locfile) :
-                field = Dataset(locpath+locfile)
-                LongTS_OBS_FWC = npy.squeeze(field.variables['CRFBGFWC_mean'])
-                time_axis_FWC = npy.squeeze(field.variables['time_obs'])
+		ds_fld = xr.open_dataset(locpath+locfile)
+                LongTS_OBS_FWC = ds_fld['CRFBGFWC_mean']
+                time_axis_FWC = ds_fld['time_obs']
         else:
                 LongTS_OBS_FWC = npy.arange((2017-2003+1))+npy.nan
                 time_axis_FWC = npy.arange((2017-2003+1))+npy.nan
@@ -137,7 +136,7 @@ def READ_OBS_LGTS_CRFEkm(lgTS_ys,lgTS_ye) :
         locpath='./'
         locfile = 'ArcticEkmanPumping_MonthlyMean.nc'
         if chkfile(locpath+locfile) :
-        	field = Dataset(locpath+locfile)
+		ds_fld = xr.open_dataset(locpath+locfile)
         	LongTS_OBS_Ekm = npy.squeeze(field.variables['weMooringMonth'])
         	time_axis_Ekm = npy.squeeze(field.variables['time'])
         else:
