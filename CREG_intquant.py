@@ -5,13 +5,12 @@ matplotlib.use('Agg')
 import numpy as npy
 import matplotlib.pylab as plt
 from matplotlib import rcParams
-from netCDF4 import Dataset
 import matplotlib as mpl
 import sys 
 from checkfile import *
 from CREG_intquant_func import *
-import subprocess
 import xarray as xr
+from datetime import datetime
 from fsspec.implementations.local import LocalFileSystem
 fs = LocalFileSystem()
 
@@ -177,6 +176,7 @@ if chkfile(locpath+locfile) :
    Scurldata_read = Scurldata_read * fmask[0,:,:]
 
 
+#------------------------------------------------------------------------------------------------------------------------
 ################################################################################################################
 ################################################################################################################
 ##################################  FWC, ICE VOLUME & CONCENTRATION etc ...Diags ###############################
@@ -293,9 +293,7 @@ BigFWC = npy.sum(fwc2D*areaARCTIC,axis=(1,2))
 npy.save(data_dir+'/DATA/'+CONFIG+'-'+CASE+'_BIGFWCTS_y'+str(s_year),npy.array(BigFWC))
 
 
-######################################################################################################
-######################################################################################################
-
+#------------------------------------------------------------------------------------------------------------------------
 ################################################################################################################
 ################################################################################################################
 #################################   Beaufort Gyre FWC, Ice thick & Drift Time Series  ##########################
@@ -317,7 +315,7 @@ if lgTS_ye-lgTS_ys+1 > 1 :
 	LongTS_VEICE= []   ; LongTS_HIICE=[]	  ; LongTS_BIGFWC= []  ; LongTS_WEkm=[] ;  LongTS_SFX= []   ; LongTS_VFX=[]	 
 
 	# Start to read all yearly files
-	################################
+	#######################################################################################################
 	lgts_year=lgTS_ys    ;	  t_months=(npy.arange(12)*30.+15.)/365.   ;   start = 1
 	while  lgts_year <= lgTS_ye  :
 		print ()
@@ -382,8 +380,8 @@ if lgTS_ye-lgTS_ys+1 > 1 :
 	# Read observations DATA from Gianluca et al. JPO2017
 	LongTS_OBS_CRFEkm, time_axis_CRFEkm = READ_OBS_LGTS_CRFEkm(lgTS_ys,lgTS_ye)
 
-	# Plot the FWC & Sea-ice time-series over SEVERAL YEARS
-	########################################################
+	# Set time axis properly 
+	#######################################################################################################
 	time_grid=npy.arange(lgTS_ys,2018.,1.,dtype=int)
 	newlocsx  = npy.array(time_grid,'f')
 	newlabelsx = npy.array(time_grid,'i')
@@ -423,6 +421,8 @@ if lgTS_ye-lgTS_ys+1 > 1 :
 	
 	lgtsclimyear=str(lgTS_ys)+str(lgTS_ye)
 
+	# Make plots 
+	#######################################################################################################
 	plt.clf()
 	xwind=410
 	
@@ -588,95 +588,65 @@ if lgTS_ye-lgTS_ys+1 > 1 :
 		plt.tight_layout()
 		plt.savefig(CONFIG+'-'+CASE+'_SVFX-LGTS_y'+str(lgTS_ys)+'LASTy.png',dpi=400)
 
+	# Output diagnostics into a Netcdf file
+	#######################################################################################################
 	if NCDF_OUT:
-		# FWC field 
-		#######################
-		cmd_ddate="date"  ;  get_output = subprocess.check_output(cmd_ddate)
-		nc_f = './NETCDF/'+CONFIG+'-'+CASE+'_ICEFWCWEK-LGTS_'+'y'+str(lgTS_ys)+'LASTy.nc'
-		w_nc_fid = Dataset(nc_f, 'w', format='NETCDF4')
-		w_nc_fid.description = "Diagnostics have been calculated using the Arctic monitoring tool "
-		w_nc_fid.date=get_output.decode("utf-8")
-		w_nc_fid.createDimension('time_axis_mod', time_axis.shape[0])
-		w_nc_fid.createDimension('time_axis_NSIDC', time_axis_NSIDC.shape[0])
-		w_nc_fid.createDimension('time_axis_PIO', time_axis_PIO.shape[0])
-		w_nc_fid.createDimension('time_axis_IABPobs', time_axis_obs.shape[0])
-		w_nc_fid.createDimension('time_axis_CRFFWCobs', time_axis_CRFFWC.shape[0])
-		#w_nc_fid.createDimension('time_counter', None)
+		ds_outTS = xr.Dataset()
+		# Define time axis
+		ds_outTS.coords['time_axis']           = (('time_axis')          , time_axis.astype('float32'))
+		ds_outTS.coords['time_axis_NSIDC']     = (('time_axis_NSIDC')    , time_axis_NSIDC.astype('float32'))
+		ds_outTS.coords['time_axis_PIO']       = (('time_axis_PIO')      , time_axis_PIO.astype('float32'))
+		ds_outTS.coords['time_axis_IABPobs']   = (('time_axis_IABPobs')  , time_axis_obs.astype('float32'))
+		ds_outTS.coords['time_axis_CRFFWCobs'] = (('time_axis_CRFFWCobs'), time_axis_CRFFWC.astype('float32'))
 
-		w_nc_var = w_nc_fid.createVariable('LongTS_ibgvoltot', 'f4', ('time_axis_mod'))
-		w_nc_var.long_name='Sea-ice volume in the Arctic basin'
-		w_nc_var.units="km3"
-		w_nc_fid.variables['LongTS_ibgvoltot'][:] = LongTS_ibgvoltot
-
-		w_nc_var = w_nc_fid.createVariable('LongTS_ibgarea', 'f4', ('time_axis_mod'))
-		w_nc_var.long_name='Sea-ice area in the Arctic basin'
-		w_nc_var.units="km2"
-		w_nc_fid.variables['LongTS_ibgarea'][:] = LongTS_ibgarea
-
-		w_nc_var = w_nc_fid.createVariable('LongTS_sice_ext', 'f4', ('time_axis_mod'))
-		w_nc_var.long_name='Sea-ice extent in the Arctic basin'
-		w_nc_var.units="km2"
-		w_nc_fid.variables['LongTS_sice_ext'][:] = LongTS_sice_ext
-
-		w_nc_var = w_nc_fid.createVariable('LongTS_VEICE', 'f4', ('time_axis_mod'))
-		w_nc_var.long_name='Sea-ice drift calculated in the CRF box centered over the Beaufort Gyre'
-		w_nc_var.units="m/s"
-		w_nc_fid.variables['LongTS_VEICE'][:] = LongTS_VEICE
-
-		w_nc_var = w_nc_fid.createVariable('LongTS_FWC', 'f4', ('time_axis_mod'))
-		w_nc_var.long_name='Freshwater content over the CRF box'
-		w_nc_var.units="km3"
-		w_nc_fid.variables['LongTS_FWC'][:] = LongTS_FWC
-
-		w_nc_var = w_nc_fid.createVariable('LongTS_BIGFWC', 'f4', ('time_axis_mod'))
-		w_nc_var.long_name='Freshwater content over the whole Arctic basin '
-		w_nc_var.units="km3"
-		w_nc_fid.variables['LongTS_BIGFWC'][:] = LongTS_BIGFWC
-
-		w_nc_var = w_nc_fid.createVariable('LongTS_WEkm', 'f4', ('time_axis_mod'))
-		w_nc_var.long_name='Ekman pumping over the CRF box'
-		w_nc_var.units="m/day"
-		w_nc_fid.variables['LongTS_WEkm'][:] = LongTS_WEkm*86400.*365.
+		# Save diagnotics 
+		ds_outTS['LongTS_ibgvoltot']= (('time_axis'), LongTS_ibgvoltot.astype('float32'))
+		ds_outTS['LongTS_ibgvoltot'].attrs['long_name']='Sea-ice volume in the Arctic basin'
+		ds_outTS['LongTS_ibgvoltot'].attrs['units']="km3"
+		ds_outTS['LongTS_ibgarea']= (('time_axis'), LongTS_ibgarea.astype('float32'))
+		ds_outTS['LongTS_ibgarea'].attrs['long_name']='Sea-ice area in the Arctic basin'
+		ds_outTS['LongTS_ibgarea'].attrs['units']="km2"
+		ds_outTS['LongTS_sice_ext']= (('time_axis'), LongTS_sice_ext.astype('float32'))
+		ds_outTS['LongTS_sice_ext'].attrs['long_name']='Sea-ice extent in the Arctic basin'
+		ds_outTS['LongTS_sice_ext'].attrs['units']="km2"
+		ds_outTS['LongTS_VEICE']= (('time_axis'), LongTS_VEICE.astype('float32'))
+		ds_outTS['LongTS_VEICE'].attrs['long_name']='Sea-ice drift calculated in the CRF box centered over the Beaufort Gyre'
+		ds_outTS['LongTS_VEICE'].attrs['units']="m/s"
+		ds_outTS['LongTS_FWC']= (('time_axis'), LongTS_FWC.astype('float32'))
+		ds_outTS['LongTS_FWC'].attrs['long_name']='Freshwater content over the CRF box'
+		ds_outTS['LongTS_FWC'].attrs['units']="km3"
+		ds_outTS['LongTS_BIGFWC']= (('time_axis'), LongTS_BIGFWC.astype('float32'))
+		ds_outTS['LongTS_BIGFWC'].attrs['long_name']='Freshwater content over the whole Arctic basin '
+		ds_outTS['LongTS_BIGFWC'].attrs['units']="km3"
+		ds_outTS['LongTS_WEkm']= (('time_axis'), (LongTS_WEkm*86400.*365.).astype('float32'))
+		ds_outTS['LongTS_WEkm'].attrs['long_name']='Ekman pumping over the CRF box'
+		ds_outTS['LongTS_WEkm'].attrs['units']="m/day"
+		ds_outTS['LongTS_OBS_icevol']= (('time_axis_PIO'   ), LongTS_OBS_icevol.astype('float32')) 
+		ds_outTS['LongTS_OBS_icevol'].attrs['long_name']='Sea-ice volume from PIOMAS reanalysis'
+		ds_outTS['LongTS_OBS_icevol'].attrs['units']="km3"
+		ds_outTS['LongTS_OBS_iceare']= (('time_axis_NSIDC' ), LongTS_OBS_iceare.astype('float32'))
+		ds_outTS['LongTS_OBS_iceare'].attrs['long_name']='Sea-ice area from NSIDC '
+		ds_outTS['LongTS_OBS_iceare'].attrs['units']="km2"
+		ds_outTS['LongTS_OBS_iceext']= (('time_axis_NSIDC'), LongTS_OBS_iceext.astype('float32'))
+		ds_outTS['LongTS_OBS_iceext'].attrs['long_name']='Sea-ice extent from NSIDC '
+		ds_outTS['LongTS_OBS_iceext'].attrs['units']="km2"
+		ds_outTS['LongTS_OBS_CRFFWC']= (('time_axis_CRFFWCobs'), LongTS_OBS_CRFFWC.astype('float32'))
+		ds_outTS['LongTS_OBS_CRFFWC'].attrs['long_name']='Freshwater content over the CRF box from Proshutinsky et al. GRL2018 observations'
+		ds_outTS['LongTS_OBS_CRFFWC'].attrs['units']="m/s"
+		ds_outTS['IABPObservations']= (('time_axis_obs'), IABPObservations.astype('float32')) 
+		ds_outTS['IABPObservations'].attrs['long_name']='Sea-ice drift from IABP observation system'
+		ds_outTS['IABPObservations'].attrs['units']="m/s"
 
 		if MassSaltFLX :
-			w_nc_var = w_nc_fid.createVariable('LongTS_SFX', 'f4', ('time_axis_mod'))
-			w_nc_var.long_name='Ice salt flux'
-			w_nc_var.units="kg/m2/s"
-			w_nc_fid.variables['LongTS_SFX'][:] = LongTS_SFX
+			ds_outTS['LongTS_SFX']= (('time_axis'), LongTS_SFX.astype('float32'))
+			ds_outTS['LongTS_SFX'].attrs['long_name']='Ice salt flux'
+			ds_outTS['LongTS_SFX'].attrs['units']="kg/m2/s"
+			ds_outTS['LongTS_VFX']= (('time_axis'), LongTS_VFX.astype('float32'))
+			ds_outTS['LongTS_VFX'].attrs['long_name']='Ice mass flux'
+			ds_outTS['LongTS_VFX'].attrs['units']="kg/m2/s"
 
-			w_nc_var = w_nc_fid.createVariable('LongTS_VFX', 'f4', ('time_axis_mod'))
-			w_nc_var.long_name='Ice mass flux'
-			w_nc_var.units="kg/m2/s"
-			w_nc_fid.variables['LongTS_VFX'][:] = LongTS_VFX
-
-		w_nc_var = w_nc_fid.createVariable('LongTS_OBS_icevol', 'f4', ('time_axis_PIO'))
-		w_nc_var.long_name='Sea-ice volume from PIOMAS model'
-		w_nc_var.units="km3"
-		w_nc_fid.variables['LongTS_OBS_icevol'][:] = LongTS_OBS_icevol
-
-		w_nc_var = w_nc_fid.createVariable('LongTS_OBS_iceare', 'f4', ('time_axis_NSIDC'))
-		w_nc_var.long_name='Sea-ice area from NSIDC '
-		w_nc_var.units="km2"
-		w_nc_fid.variables['LongTS_OBS_iceare'][:] = LongTS_OBS_iceare
-
-		w_nc_var = w_nc_fid.createVariable('LongTS_OBS_iceext', 'f4', ('time_axis_NSIDC'))
-		w_nc_var.long_name='Sea-ice extent from NSIDC '
-		w_nc_var.units="km2"
-		w_nc_fid.variables['LongTS_OBS_iceext'][:] = LongTS_OBS_iceext
-
-		w_nc_var = w_nc_fid.createVariable('IABPObservations', 'f4', ('time_axis_IABPobs'))
-		w_nc_var.long_name='Sea-ice drift from IABP observation system'
-		w_nc_var.units="m/s"
-		w_nc_fid.variables['IABPObservations'][:] = IABPObservations
-
-		w_nc_var = w_nc_fid.createVariable('LongTS_OBS_CRFFWC', 'f4', ('time_axis_CRFFWCobs'))
-		w_nc_var.long_name='Freshwater content over the CRF box from Proshutinsky et al. GRL2018 observations'
-		w_nc_var.units="m/s"
-		w_nc_fid.variables['LongTS_OBS_CRFFWC'][:] = LongTS_OBS_CRFFWC
-		
-		w_nc_fid.close()  # close the file
-
-
-
-
-
+		# Write the NetCDF file 
+		ds_outTS.attrs['History'] = "Diagnostics have been calculated using the Arctic monitoring tool "
+		ds_outTS.attrs['Date'] = datetime.now().strftime("%a %b %e %H:%M:%S GMT %Y")
+		nc_f = './NETCDF/'+CONFIG+'-'+CASE+'_ICEFWCWEK-LGTS_'+'y'+str(lgTS_ys)+'LASTy.nc'
+		ds_outTS.to_netcdf(nc_f,engine='netcdf4')
