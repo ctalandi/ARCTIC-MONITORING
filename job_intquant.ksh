@@ -31,9 +31,6 @@ cd ${WPDIR}/MONARC/INTQUANT
 
 cp ${INITDIR}/INTQUANT/CREG_intquant_func.py .
 cp ${DMONTOOLS}/MONARC/checkfile.py .
-cp ${DMONTOOLS}/MONARC/PyRaf/PyRaf_plots.py .
-cp ${DMONTOOLS}/MONARC/PyRaf/PyRaf_colormaps.py .
-cp ${DMONTOOLS}/MONARC/PyRaf/PyRaf.py .
 
 
 getfiles=XXGETFILEXX
