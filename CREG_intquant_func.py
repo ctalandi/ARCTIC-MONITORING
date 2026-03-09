@@ -2,6 +2,9 @@ import numpy as npy
 import scipy.io as sio
 from netCDF4 import Dataset
 from checkfile import *
+import xarray as xr
+from fsspec.implementations.local import LocalFileSystem
+fs = LocalFileSystem()
 
 def READ_MOD_LGTS_DATA(locpath,locfile,zLongTS,npz=None,zvarname=None) :
 	# Function dedicated to read model data in numpy npy format (Default)
@@ -89,26 +92,25 @@ def READ_OBS_LGTS_DATA(CONFIG,lgTS_ys,lgTS_ye) :
 
 def CAL_ICE_VOL_AREA(CONFIG,CASE,lgts_year,data_dir,xiosfreq,dom_area,tmask2D) :
 
-        Ar_size=(12,dom_area.shape[0],dom_area.shape[1]) ;  dom_areatime=npy.tile(dom_area,(12,1,1))   ;  tmask2Dtime=npy.tile(tmask2D,(12,1,1))
-        Ithdata_read=npy.zeros(Ar_size)  ;     Ifrdata_read=npy.zeros(Ar_size)
-        cur_month=0
-        while cur_month <= 11 :
-                str_month='m0'+str(cur_month+1) if cur_month <= 8 else 'm'+str(cur_month+1)
-                locpath=data_dir+'/'+str(lgts_year)+'/'+xiosfreq+'/'
-                locfile=CONFIG+'-'+CASE+'_y'+str(lgts_year)+str_month+'.'+xiosfreq+'_icemod.nc'
-                if chkfile(locpath+locfile) :
-                	field = Dataset(locpath+locfile)
-                	Ithdata_read[cur_month,:,:] = npy.where(npy.squeeze(field.variables['sivolu']) > 1e18 , 0, npy.squeeze(field.variables['sivolu']))
-                	Ifrdata_read[cur_month,:,:] = npy.where(npy.squeeze(field.variables['siconc']) > 1e18 , 0, npy.squeeze(field.variables['siconc']))
-                else:
-                	Ithdata_read[cur_month,:,:] = npy.nan
-                	Ifrdata_read[cur_month,:,:] = npy.nan
-                cur_month = cur_month + 1 
+	# List files to be read
+	locpath=data_dir+'/'+str(lgts_year)+'/'+xiosfreq+'/'
+	locfile=CONFIG+'-'+CASE+'_y'+str(lgts_year)+'m??.'+xiosfreq+'_icemod.nc'
+	ICE_files = [f for f in fs.glob(locpath+locfile)]
+	
+	drp_var=["time_centered_bounds","time_counter_bounds","siages"]
+	if len(ICE_files) == 12 :
+	   ds_Idata = xr.open_mfdataset(locpath+locfile, engine="netcdf4", concat_dim=["time_counter"], combine='nested', parallel=True, drop_variables=drp_var)
+	   Ithdata_read = ds_Idata['sivolu']
+	   Ifrdata_read = ds_Idata['siconc']
+
+	   # Fill NaN with zero
+	   Ithdata_read= Ithdata_read.fillna(0)
+	   Ifrdata_read= Ifrdata_read.fillna(0)
+
+	ice_volume = npy.sum( Ithdata_read * dom_area * tmask2D, axis=(1,2) )
+	ice_area   = npy.sum( Ifrdata_read * dom_area * tmask2D, axis=(1,2) )
         
-        ice_volume = npy.sum( Ithdata_read[:,:,:] * dom_areatime[:,:,:] * tmask2Dtime[:,:,:], axis=(1,2) )
-        ice_area   = npy.sum( Ifrdata_read[:,:,:] * dom_areatime[:,:,:] * tmask2Dtime[:,:,:], axis=(1,2) )
-        
-        return ice_volume, ice_area
+	return ice_volume, ice_area
 
 def READ_OBS_LGTS_CRFFWC(lgTS_ys,lgTS_ye) :
         # Function dedicated to read observations data that don't change 
