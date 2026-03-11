@@ -4,14 +4,14 @@
 import matplotlib
 matplotlib.use('Agg')
 import sys
-import PyRaf
 import matplotlib.pylab as plt
 import numpy as npy
-from netCDF4 import Dataset
 from checkfile import *
 from CREG_moorings_cont import *
 from CREG_moorings_func import *
 import xarray as xr
+from fsspec.implementations.local import LocalFileSystem
+fs = LocalFileSystem()
 
 s_year=XXSYEAXX
 e_year=XXEYEAXX
@@ -42,7 +42,7 @@ print()
 print('      >>>>>>>>>>>>>>>>>>>>>>>>>>>>Perform the treatment of the '+CONFCASE+' experiment ')
 print()
 print()
-print('         Start to read geographical, scale factors & masks ')
+print('         Start reading geographical coordinates, scale factors & masks ')
 print()
 
 locpath=grid_dir
@@ -142,7 +142,6 @@ if chkfile(locpath+locfile) :
 ####################################################################################################################
 ####################################################################################################################
 #if False: 
-do_RedVar=True
 if lgTS_ye-lgTS_ys+1 > 1 :
     plt.clf()
     plt.subplots_adjust(bottom=0.1, left=0.1, right=0.95, top=0.9)
@@ -159,7 +158,6 @@ if lgTS_ye-lgTS_ys+1 > 1 :
         cumul_box=cumul_box+'-'+zbox['box']
         moor_n+=2
 
-    do_RedVar=False
     # Save year time series to use for a longer time series
     timeadd='_month' if monthly_data == 1 else ''
 
@@ -194,12 +192,12 @@ if do_Kprofile :
     for zmybox in All_box :
         zbox=DEF_MOOR_BOX(CONFIG,zmybox)
         fram=num_fram+moor_n
-        if do_RedVar : hsct_lev,Red_My_varinit=DEF_REDVAR(CONFIG,CASE,ds_TSdata,ds_TSinit,zbox,All_var,s_year,e_year,tmask,e1t,e2t,e3t)
-        DEF_ZPROFILE(CONFIG,CASE,str(s_year),hsct_lev,Red_My_varinit,zbox,zplt,zfram=fram,zs_year=s_year) 
+        hsct_lev,Red_My_varinit=DEF_REDVAR(CONFIG,CASE,ds_TSdata,ds_TSinit,zbox,All_var,s_year,e_year,tmask,e1t,e2t,e3t)
+        DEF_ZPROFILE(CONFIG,CASE,str(s_year),hsct_lev,Red_My_varinit,zbox,All_var,zplt,zfram=fram,zs_year=s_year) 
         cumul_box=cumul_box+'-'+zbox['box']
         moor_n+=2
 
-        pfile_ext='_TemSaliProfile'+cumul_box+'_y'+str(s_year)+'_z0-500'
-        file_name=CONFIG+'-'+CASE+pfile_ext
-        plt.tight_layout()
-        plt.savefig(DIR_FIG_OUT+file_name+'.png',dpi=300)
+    pfile_ext='_TemSaliProfile'+cumul_box+'_y'+str(s_year)+'_z0-500'
+    file_name=CONFIG+'-'+CASE+pfile_ext
+    plt.tight_layout()
+    plt.savefig(DIR_FIG_OUT+file_name+'.png',dpi=300)

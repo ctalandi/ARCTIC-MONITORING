@@ -4,8 +4,8 @@ import matplotlib.pylab as plt
 import scipy.io as sio
 from checkfile import *
 from CREG_moorings_cont import *
-from netCDF4 import Dataset
 import subprocess
+from datetime import datetime
 import xarray as xr 
 from fsspec.implementations.local import LocalFileSystem
 fs = LocalFileSystem()
@@ -37,7 +37,9 @@ def DEF_MOOR_BOX(CONFIG,box2sel):
 
 	if CONFIG == 'CREG12.L75':
 		# Set the range of values for variables to plot Z-Time
-		print('   >>>>>>>>>>	    Use the CREG12.L75 coordinates for moorings')
+		print()
+		print('   >>>>>>>>>>	    Use the CREG12.L75 coordinates for moorings location')
+		print()
 		# Define a ARC_M1 box or point
 		bx_ARC_M1={'name':'Arctic M1 box','imin':1060,'imax':1060,'jmin':1487,'jmax':1487,'depthlim':(-500.,0.),'box':'ARC-M1', 
 			   'templim':(-2.,2.,0.2), 'sallim':(27.,35.,0.2),
@@ -154,7 +156,9 @@ def DEF_MOOR_BOX(CONFIG,box2sel):
 	
 	
 	if CONFIG == 'CREG025.L75':
-		print('   >>>>>>>>>>	    Use the CREG025.L75 coordinates for moorings')
+		print()
+		print('   >>>>>>>>>>	    Use the CREG025.L75 coordinates for moorings location')
+		print()
 		# Define a ARC_M1 box or point
 		bx_ARC_M1={'name':'Arctic M1 box','imin':354,'imax':354,'jmin':498,'jmax':498,'depthlim':(-500.,0.),'box':'ARC-M1',
 			   'templim':(-2.,2.,0.2),'sallim':(27.,35.,0.2),
@@ -295,20 +299,11 @@ def DEF_MOOR_BOX(CONFIG,box2sel):
 
 	return sbox
 
-def DEF_ZPROFILE(zCONFIG,zCASE,zclimyear,zhsct_lev,Red_My_varinit,box,zplt,zgtype=None,zMyvar=None,zfram=None,zs_year=None):
+def DEF_ZPROFILE(zCONFIG,zCASE,zclimyear,zhsct_lev,Red_My_varinit,box,zAll_var,zplt,zgtype=None,zMyvar=None,zfram=None,zs_year=None):
 
-	print()
-	print('				##################################################################  ') 
-	print('				##################################################################  ') 
-	print('				######### PLOT VERTICAL PROFILES AT MOORINGS LOCATION ############  ') 
-	print('				##################################################################  ') 
-	print('				##################################################################  ') 
-	print()
-	
-	
 	nvar=0
-	for var in DEF_INFO_VAR('gridT','votemper') :
-		print('   Vertical profile for'+ var['name']+' '+ box['box'] )
+	for var in zAll_var :
+		print('   Vertical profile for '+ var['name']+' '+ box['box'] )
 		
 		ax=plt.subplot(zfram+nvar)
 		if var['name'] == "votemper":
@@ -351,10 +346,10 @@ def DEF_ZPROFILE(zCONFIG,zCASE,zclimyear,zhsct_lev,Red_My_varinit,box,zplt,zgtyp
 				plt.title('\n @ moor '+box['name'],size=7)
 				plt.xlabel(r' (PSU)', fontsize=7)
 			if box['box'] == 'ARC-B':
-				plt.axis([28.,35.,-1000.,0.])
+				plt.axis([28.,35.5,-1000.,0.])
 				plt.yticks(-100.*npy.arange(11),size=7)
 			elif box['box'] == 'EUR-B':
-				plt.axis([28.,35.,-2000.,0.])
+				plt.axis([28.,35.5,-2000.,0.])
 				plt.yticks(-200.*npy.arange(11),size=7)
 			elif box['box'] == 'GIN-B':
 				print(	box['box']+ ' set axis Ok')
@@ -421,13 +416,6 @@ def DEF_ZPROFILE(zCONFIG,zCASE,zclimyear,zhsct_lev,Red_My_varinit,box,zplt,zgtyp
 
 
 def DEF_ZTIME(zCONFIG,zCASE,lgTS_ys,lgTS_ye,box,z,z2dt,hsct_lev,zgtype=None,zMyvar=None,zfram=None,zoutNC=False):
-	print()
-	print('				##################################################################  ')
-	print('				##################################################################  ')
-	print('				######### PLOT LONG TIME-SERIES AT MOORINGS LOCATION #############  ')
-	print('				##################################################################  ')
-	print('				##################################################################  ')
-	print()
 
 	LongTS_hsct_lev= []   
 
@@ -436,7 +424,7 @@ def DEF_ZTIME(zCONFIG,zCASE,lgTS_ys,lgTS_ye,box,z,z2dt,hsct_lev,zgtype=None,zMyv
 	lgts_year=lgTS_ys    ;	  t_months=(npy.arange(12)*30.+15.)/365.   ;   start = 1
 	while  lgts_year <= lgTS_ye  :
 	       # Read monthly Time-depth fields for each year
-	       print('		>>>>		       Read LONG TIME SERIES PROFILES | year'+	str(lgts_year))
+	       print('		>>>>		       Read LONG TIME SERIES PROFILES | year '+	str(lgts_year))
 	       file_extZ='_ZTimeTS'
 	       locpath='./DATA/'+zCONFIG+'/'
 	       locfile=zCASE+'_'+box['box']+file_extZ+'_y'+str(lgts_year)+'.npy'
@@ -525,38 +513,34 @@ def DEF_ZTIME(zCONFIG,zCASE,lgTS_ys,lgTS_ye,box,z,z2dt,hsct_lev,zgtype=None,zMyv
 		lnvar+=1
 
 	if zoutNC:
-		# FWC field 
-		#######################
-		cmd_ddate="date"  ;  get_output = subprocess.check_output(cmd_ddate)
-		nc_f = './NETCDF/'+zCONFIG+'-'+zCASE+'_MOOR-'+box['box']+'_y'+str(lgts_year)+'LASTy.nc'
-		w_nc_fid = Dataset(nc_f, 'w', format='NETCDF4')
-		w_nc_fid.description = "Diagnostics have been calculated using the Arctic monitoring tool "
-		w_nc_fid.date=get_output.decode("utf-8")
-		w_nc_fid.createDimension('z', z.size)
-		w_nc_fid.createDimension('time', time_axis.shape[0])
-		#w_nc_fid.createDimension('time_counter', None)
+		ds_outZProf = xr.Dataset()
+		# Define coordinates
+		ds_outZProf.coords['time'] = (('time') , time_axis.astype('float32'))
+		ds_outZProf.coords['z']    = (('z')    , z.values.astype('float32'))
 
-		w_nc_var = w_nc_fid.createVariable('Temp', 'f4', ('z','time'))
-		w_nc_var.long_name='Monthly mean temperature profile @ mooring '+box['box']
-		w_nc_var.units="DegC"
-		w_nc_fid.variables['Temp'][:,:] = LongTS_hsct_lev[0,:,:]
+		ds_outZProf['Temp']= (('z','time'), LongTS_hsct_lev[0,:,:].astype('float32')) 
+		ds_outZProf['Temp'].attrs['long_name']='Monthly mean temperature profile @ mooring '+box['box']
+		ds_outZProf['Temp'].attrs['units']='DegC'
 
-		w_nc_var = w_nc_fid.createVariable('Sal', 'f4', ('z','time'))
-		w_nc_var.long_name='Monthly mean salinity profile @ mooring '+box['box']
-		w_nc_var.units="PSU"
-		w_nc_fid.variables['Sal'][:,:] = LongTS_hsct_lev[1,:,:]
+		ds_outZProf['Sal']= (('z','time'), LongTS_hsct_lev[1,:,:].astype('float32')) 
+		ds_outZProf['Sal'].attrs['long_name']='Monthly mean salinity profile @ mooring '+box['box']
+		ds_outZProf['Sal'].attrs['units']='PSU'
 
-		w_nc_var = w_nc_fid.createVariable('Time2D', 'f4', ('z','time'))
-		w_nc_var.long_name='Depth versus time array for contour plot'
-		w_nc_var.units="month"
-		w_nc_fid.variables['Time2D'][:,:] = xplt[:,:]
+		#w_nc_var = w_nc_fid.createVariable('Time2D', 'f4', ('z','time'))
+		#w_nc_var.long_name='Depth versus time array for contour plot'
+		#w_nc_var.units="month"
+		#w_nc_fid.variables['Time2D'][:,:] = xplt[:,:]
 
-		w_nc_var = w_nc_fid.createVariable('Depth2D', 'f4', ('z','time'))
-		w_nc_var.long_name='Depth versus time array for contour plot'
-		w_nc_var.units="m"
-		w_nc_fid.variables['Depth2D'][:,:] = -zplt[:,:]
+		#w_nc_var = w_nc_fid.createVariable('Depth2D', 'f4', ('z','time'))
+		#w_nc_var.long_name='Depth versus time array for contour plot'
+		#w_nc_var.units="m"
+		#w_nc_fid.variables['Depth2D'][:,:] = -zplt[:,:]
 
-		w_nc_fid.close()  # close the file
+		# Write the NetCDF file 
+		ds_outZProf.attrs['History'] = "Diagnostics have been calculated using the Arctic monitoring tool "
+		ds_outZProf.attrs['Date'] = datetime.now().strftime("%a %b %e %H:%M:%S GMT %Y")
+		nc_f = './NETCDF/'+zCONFIG+'-'+zCASE+'_MOOR-'+box['box']+'_y'+str(lgTS_ys)+'LASTy.nc'
+		ds_outZProf.to_netcdf(nc_f,engine='netcdf4')
 
 
 	return 
