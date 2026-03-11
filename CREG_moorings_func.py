@@ -6,6 +6,9 @@ from checkfile import *
 from CREG_moorings_cont import *
 from netCDF4 import Dataset
 import subprocess
+import xarray as xr 
+from fsspec.implementations.local import LocalFileSystem
+fs = LocalFileSystem()
 
 def DEF_INFO_VAR(zgtype,zMyvar):
 	# The following box indices have been defined for the ARCTIC area
@@ -559,88 +562,45 @@ def DEF_ZTIME(zCONFIG,zCASE,lgTS_ys,lgTS_ye,box,z,z2dt,hsct_lev,zgtype=None,zMyv
 	return 
 
 
-def DEF_REDVAR(CONFIG,CASE,My_var,My_varinit,box,nbvar,time_dim,e3t,zAll_var,s_year,e_year,tmask,lon,lat,e1t3D,e2t3D):
+def DEF_REDVAR(CONFIG,CASE,My_var,My_varinit,box,zAll_var,s_year,e_year,tmask,e1t,e2t,e3t):
 	########################################
 	# Start calculation
 	########################################
 	#------------------------------------------------------------------------------------------------------------------------
-	Ar_3Ds=(e3t.shape[0],lon.shape[0],lon.shape[1])
-	Ar_inter=npy.empty(Ar_3Ds)
-	My_box=npy.empty(Ar_3Ds)
-	
-	# Define the box area where to compute the budget
-	Ar_inter[:,box['jmin']:box['jmax']+1,box['imin']:box['imax']+1] = 1.
-	My_box[:,:,:]=Ar_inter[:,:,:]*tmask[:,:,:]
-	My_box = npy.ma.masked_where(tmask < 1,My_box)
-	del tmask
-	del Ar_inter
-	
+	# Number of variables temperature/salinity to process
+	nbvar = 2 
+
+	# Define a box area in which mean values will be computed
+	boxmsk = tmask.copy()*.0
+	boxmsk[:,box['jmin']:box['jmax']+1,box['imin']:box['imax']+1] = 1.
+
 	# Compute the volume of each grid point
-	#My_box_vol= npy.float64(e1t3D)*npy.float64(e2t3D)*npy.float64(e3t)*My_box
-	My_box_vol= e1t3D*e2t3D*e3t*My_box
-	# Keep only field above continental slope within the boundary current
-	#My_box_vol = npy.ma.masked_where(( gdepw3D <= 500. ), My_box_vol)
-	#My_box_vol = npy.ma.masked_where(( gdepw3D > 3000. ), My_box_vol)
-	
-	#del gdepw3D
-	
-	
-	Red_My_box_vol=My_box_vol[:,box['jmin']:box['jmax']+1,box['imin']:box['imax']+1].copy()
-	box_vol=npy.sum(My_box_vol)
-	del My_box_vol
-	del My_box
-	del e1t3D
-	del e2t3D
+	My_box_vol = e3t * boxmsk * e1t * e2t
+	Red_My_box_vol = My_box_vol.isel(y=slice(box['jmin'],box['jmax']+1),x=slice(box['imin'],box['imax']+1))
+	box_vol_lev = Red_My_box_vol.sum(dim=['y','x'])
 	print()
 	print('			Reduce Array size step')
 	print()
-	Red_My_var=My_var[:,:,:,box['jmin']:box['jmax']+1,box['imin']:box['imax']+1].copy()
-	Red_My_varinit=npy.squeeze(My_varinit[:,:,box['jmin']:box['jmax']+1,box['imin']:box['imax']+1].copy())
-	del My_var
-	del My_varinit
+
+	Red_My_var = My_var.isel(y=slice(box['jmin'],box['jmax']+1),x=slice(box['imin'],box['imax']+1))
+	My_varinitbox = My_varinit.isel(y=slice(box['jmin'],box['jmax']+1),x=slice(box['imin'],box['imax']+1)).squeeze()
 	
-	hsct=npy.empty((nbvar,time_dim))
-	hsct_lev=npy.empty((nbvar,e3t.shape[0],time_dim))
-	monthly_data=1
+	hsct_lev = xr.DataArray( dims=['nvar','z','time_counter'], coords = dict(nvar=npy.arange(nbvar),z=My_var.z,time_counter=My_var.time_counter) ) 
+	Red_My_varinit = xr.DataArray( dims=['nvar','z'], coords = dict(nvar=npy.arange(nbvar),z=My_var.z) ) 
 	
 	nvar=0
 	for var in zAll_var:
-		t_month=0
 	
 		print()
-		print('			Start to compute HSCT ZT for '+var['name'])
+		print('		        Compute HSCT ZT for '+var['name'])
 		print()
 		# Compute the Temp/Salt mean
-		c_year=s_year
-		while c_year <= e_year:
-			if monthly_data == 1:
-			    c_month=0
-			    while c_month <= 11:
-			        T_inter = Red_My_var[nvar,t_month,:,:,:]*Red_My_box_vol[:,:,:]
-			        for klev in range(e3t.shape[0]):
-			            T_inter_lev=T_inter[klev,:,:].copy()
-			            box_vol_lev=Red_My_box_vol[klev,:,:].copy()
-			            hsct_lev[nvar,klev,t_month] = npy.sum(T_inter_lev)/npy.sum(box_vol_lev)
-
-			        print('			Compute HSCT ZT for year :'+ str(c_year)+ ' month:'+ str(c_month))
-	
-			        c_month+=1
-			        t_month+=1
-			else:
-			    T_inter = Red_My_var[nvar,c_year-s_year,:,:,:]*Red_My_box_vol[:,:,:]
-			    for klev in range(e3t.shape[0]):
-			        T_inter_lev=T_inter[klev,:,:].copy()
-			        box_vol_lev=Red_My_box_vol[klev,:,:].copy()
-			        hsct_lev[nvar,klev,c_year-s_year] = npy.sum(T_inter_lev)/npy.sum(box_vol_lev)
-
-			    print('		Compute HSCT ZT for year :'+ str(c_year)+ ' Ok')
-	
-			c_year = c_year + 1 
-		
+		hsct_lev[nvar,:,:] = (Red_My_var[var['name']] * Red_My_box_vol).sum(dim=['y','x'])/ box_vol_lev
+		Red_My_varinit[nvar,:] = My_varinitbox[var['name']].values
 		nvar+=1
 	
 	# Save year time series to use for a longer time series
 	file_extZ='_ZTimeTS'
 	npy.save('./DATA/'+CONFIG+'/'+CASE+'_'+box['box']+file_extZ+'_y'+str(s_year)+'.npy',hsct_lev)
 	
-	return hsct_lev,Red_My_varinit
+	return hsct_lev, Red_My_varinit
