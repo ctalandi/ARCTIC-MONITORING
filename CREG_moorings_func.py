@@ -526,15 +526,13 @@ def DEF_ZTIME(zCONFIG,zCASE,lgTS_ys,lgTS_ye,box,z,z2dt,hsct_lev,zgtype=None,zMyv
 		ds_outZProf['Sal'].attrs['long_name']='Monthly mean salinity profile @ mooring '+box['box']
 		ds_outZProf['Sal'].attrs['units']='PSU'
 
-		#w_nc_var = w_nc_fid.createVariable('Time2D', 'f4', ('z','time'))
-		#w_nc_var.long_name='Depth versus time array for contour plot'
-		#w_nc_var.units="month"
-		#w_nc_fid.variables['Time2D'][:,:] = xplt[:,:]
+		ds_outZProf['Time2D']= (('z','time'), xplt ) 
+		ds_outZProf['Time2D'].attrs['long_name']='Depth versus time array for contour plot'
+		ds_outZProf['Time2D'].attrs['units']='month'
 
-		#w_nc_var = w_nc_fid.createVariable('Depth2D', 'f4', ('z','time'))
-		#w_nc_var.long_name='Depth versus time array for contour plot'
-		#w_nc_var.units="m"
-		#w_nc_fid.variables['Depth2D'][:,:] = -zplt[:,:]
+		ds_outZProf['Depth2D']= (('z','time'), -1.*zplt ) 
+		ds_outZProf['Depth2D'].attrs['long_name']='Depth versus time array for contour plot'
+		ds_outZProf['Depth2D'].attrs['units']='m'
 
 		# Write the NetCDF file 
 		ds_outZProf.attrs['History'] = "Diagnostics have been calculated using the Arctic monitoring tool "
