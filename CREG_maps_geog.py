@@ -6,9 +6,9 @@ matplotlib.use('Agg')
 import numpy as npy
 import CREG_maps_func
 from checkfile import *
-from netCDF4 import Dataset
 import matplotlib.pylab as plt
 import matplotlib as mpl
+import xarray as xr
 
 main_dir='./'
 CONFIG='XXCONFXX'   ; CASE='XXCASEXX'	  
@@ -28,9 +28,9 @@ print()
 locpath=grid_dir
 locfile=CONFCASE+'_mask.nc'
 if chkfile(locpath+locfile,zstop=True,zscript=sys.argv[0]) :
-	fieldmask=Dataset(locpath+locfile)
-	lon = npy.squeeze(npy.array(fieldmask.variables['glamt']))
-	lat = npy.squeeze(npy.array(fieldmask.variables['gphit']))
+	ds_msk = xr.open_dataset(locpath+locfile)[['glamt','gphit']]
+	lon = ds_msk['glamt'].squeeze()
+	lat = ds_msk['gphit'].squeeze()
 #------------------------------------------------------------------------------------------------------------------------
 
 	fig=plt.figure()
@@ -41,15 +41,14 @@ if chkfile(locpath+locfile,zstop=True,zscript=sys.argv[0]) :
 	############################################################################################################
 	boxtoplot=1
 	if boxtoplot == 1:
-		tmskBFG=npy.ones((lon.shape[0],lon.shape[1]))
-		tmskBFG=npy.ma.masked_where(lat[:,:] >	80.5,tmskBFG)
-		tmskBFG=npy.ma.masked_where(lat[:,:] <	70.5,tmskBFG)
-		tmskBFG=npy.ma.masked_where(lon[:,:] > -130.,tmskBFG)
-		tmskBFG=npy.ma.masked_where(lon[:,:] < -170.,tmskBFG)
+		tmskBFG = npy.ones((lon.shape[0],lon.shape[1]))
+		tmskBFG = npy.ma.masked_where( lat[:,:] >  80.5,tmskBFG )
+		tmskBFG = npy.ma.masked_where( lat[:,:] <  70.5,tmskBFG )
+		tmskBFG = npy.ma.masked_where( lon[:,:] > -130.,tmskBFG )
+		tmskBFG = npy.ma.masked_where( lon[:,:] < -170.,tmskBFG )
 
 		norm = mpl.colors.Normalize(vmin=0., vmax=1.)
-		pal = plt.cm.get_cmap('cool')
-		#pal = plt.cm.get_cmap('binary')
+		pal = plt.get_cmap('cool')
 		C2= zoutmap.contourf(X,Y,tmskBFG,[0.,1.],cmap=pal,norm=norm,alpha=0.4)
 		props = dict(boxstyle='round', facecolor='w', alpha=1.0)
 		fig.text(0.33, 0.61, 'CRF-Box', color='b',fontsize=7, bbox=props, alpha=0.5)
@@ -124,4 +123,4 @@ if chkfile(locpath+locfile,zstop=True,zscript=sys.argv[0]) :
 
 	zfile_ext='_ARC-GEO_'
 	plt.tight_layout()
-	plt.savefig('MONARC_ARC-GEOLOC.pdf')
+	plt.savefig('MONARC_ARC-GEOLOC.png')

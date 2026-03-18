@@ -13,8 +13,8 @@ def SET_ARC_CNT(zCASE,zclimyear,seas,zMyvar,zslev=0,zplot_obs=0,zdiff=0):
 	if zMyvar == 'ssh' :
 	   my_cblab=r'(cm)'
 	   m_alpha=100.
-	   my_cmap=plt.cm.get_cmap('coolwarm')
-	   my_cmap=plt.cm.get_cmap('Spectral_r')
+	   my_cmap=plt.get_cmap('coolwarm')
+	   my_cmap=plt.get_cmap('Spectral_r')
 	   
 	   zfile_ext='_SSHClim_'
 	   if zplot_obs == 1 :
@@ -34,7 +34,7 @@ def SET_ARC_CNT(zCASE,zclimyear,seas,zMyvar,zslev=0,zplot_obs=0,zdiff=0):
 	######### MIXED LAYER DEPTH #########
 	if zMyvar == 'mldr10_1' :
 	   my_cblab=r'(m)'
-	   my_cmap=plt.cm.get_cmap('Blues')
+	   my_cmap=plt.get_cmap('Blues')
 	   
 	   zfile_ext='_MLD01Clim_'
 	   if seas == 'm03' : 
@@ -56,8 +56,8 @@ def SET_ARC_CNT(zCASE,zclimyear,seas,zMyvar,zslev=0,zplot_obs=0,zdiff=0):
 	######### SEA-ICE VOLUME #########
 	if zMyvar == 'sivolu' :
 	   my_cblab=r'(m)'
-	   my_cmap=plt.cm.get_cmap('Spectral')
-	   #my_cmap=plt.cm.get_cmap('Blues')
+	   my_cmap=plt.get_cmap('Spectral')
+	   #my_cmap=plt.get_cmap('Blues')
 	  
 	   zfile_ext='_SITHICKClim_'
 	   if zplot_obs == 1 :
@@ -75,7 +75,7 @@ def SET_ARC_CNT(zCASE,zclimyear,seas,zMyvar,zslev=0,zplot_obs=0,zdiff=0):
 	######### SEA-ICE CONCENTRATION #########
 	if zMyvar == 'siconc' :
 	   my_cblab=r'(%)'
-	   my_cmap=plt.cm.get_cmap('Blues')
+	   my_cmap=plt.get_cmap('Blues')
 	   m_alpha=100.
 	   
 	   zfile_ext='_SICONClim_'
@@ -95,7 +95,7 @@ def SET_ARC_CNT(zCASE,zclimyear,seas,zMyvar,zslev=0,zplot_obs=0,zdiff=0):
 	if zMyvar == 'sobarstf' :
 	   my_cblab=r'(Sv)'
 	   m_alpha=1.e-6
-	   my_cmap=plt.cm.get_cmap('coolwarm')
+	   my_cmap=plt.get_cmap('coolwarm')
 	   
 	   zfile_ext='_PSIClim_'
 	   ztitle=' mean PSI over \n'+zclimyear
@@ -108,7 +108,7 @@ def SET_ARC_CNT(zCASE,zclimyear,seas,zMyvar,zslev=0,zplot_obs=0,zdiff=0):
 	if zMyvar == 'voeke' :
 	   my_cblab=r'($cm^2s^{-2}$)'
 	   m_alpha=1.e+4
-	   my_cmap=plt.cm.get_cmap('YlOrRd')
+	   my_cmap=plt.get_cmap('YlOrRd')
 	   
 	   zfile_ext='_EKEClim_'
 	   if zslev == '0' : 
@@ -131,15 +131,15 @@ def SET_ARC_CNT(zCASE,zclimyear,seas,zMyvar,zslev=0,zplot_obs=0,zdiff=0):
 	######### TEMPERATURE #########
 	if zMyvar == 'votemper' :
 	   my_cblab=r'($^\circ$C)'
-	   #my_cmap=plt.cm.get_cmap('coolwarm')
-	   my_cmap=plt.cm.get_cmap('jet')
+	   #my_cmap=plt.get_cmap('coolwarm')
+	   my_cmap=plt.get_cmap('jet')
 	   
 	   if zdiff == 1 :
 	        zfile_ext='_TSDiffClim_z'+zslev+'m_'
 	        ztitle=zCASE +' mean Temp diff with init. state over '+zclimyear+'\n @ depth '+zslev+' m'
 	        vmin=-3. ; vmax=3. ; vint=0.5
-	        my_cmap=plt.cm.get_cmap('RdBu_r')
-	        #my_cmap=plt.cm.get_cmap('coolwarm')
+	        my_cmap=plt.get_cmap('RdBu_r')
+	        #my_cmap=plt.get_cmap('coolwarm')
 	   else:
 	        zfile_ext='_TClim_z'+zslev+'m_'
 	        ztitle=zCASE +' mean Temp over'+zclimyear+'\n @ depth '+zslev+' m'
@@ -151,15 +151,15 @@ def SET_ARC_CNT(zCASE,zclimyear,seas,zMyvar,zslev=0,zplot_obs=0,zdiff=0):
 	######### SALINITY #########
 	if zMyvar == 'vosaline' :
 	   my_cblab=r'(PSU)'
-	   my_cmap=plt.cm.get_cmap('jet')
-	   #my_cmap=plt.cm.get_cmap('YlOrRd')
+	   my_cmap=plt.get_cmap('jet')
+	   #my_cmap=plt.get_cmap('YlOrRd')
 	 
 	   if zdiff == 1 :
 	        zfile_ext='_TSDiffClim_z'+zslev+'m_'
 	        ztitle=zCASE +' mean Sal diff with init. state over '+zclimyear+'\n @ depth '+zslev+' m'
 	        vmin=-4. ; vmax=4. ; vint=0.5
 	        if zslev == '97' or zslev == '199' : vmin=-2. ; vmax=2. ; vint=0.5
-	        my_cmap=plt.cm.get_cmap('RdBu_r')
+	        my_cmap=plt.get_cmap('RdBu_r')
 	   else:
 	        zfile_ext='_SClim_z'+zslev+'m_'
 	        ztitle=zCASE +' mean Sal over'+zclimyear+'\n @ depth '+zslev+' m'
