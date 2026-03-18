@@ -31,10 +31,7 @@ cd ${WPDIR}/MONARC/MAPS
 
 cp ${INITDIR}/MAPS/CREG_maps_cont.py .
 cp ${INITDIR}/MAPS/CREG_maps_func.py .
-cp ${DMONTOOLS}/MONARC/checkfile.py .
-cp ${DMONTOOLS}/MONARC/PyRaf/PyRaf_plots.py .
-cp ${DMONTOOLS}/MONARC/PyRaf/PyRaf_colormaps.py .
-cp ${DMONTOOLS}/MONARC/PyRaf/PyRaf.py .
+cp ${DMONTOOLS}/checkfile.py .
 
 getfiles=XXGETFILEXX
 if [ $getfiles -eq 1 ] ; then 
@@ -127,12 +124,12 @@ fi
 
 if [ ${PLT_MAP} -eq 1 ]  ;  then
    ./CREG_maps_geog.py 
-   mv MONARC_ARC-GEOLOC.pdf ${INITDIR}/.
+   mv MONARC_ARC-GEOLOC.png ${INITDIR}/.
 fi
 
 for ZMAPS in `echo ${MAPS} ` ; do
     ./CREG_maps_y${S_Y}${E_Y}_${ZMAPS}.py 
-    mv ${CONFCASE}*${ZMAPS}*${S_Y}*.pdf ${CONFCASE}*${ZMAPS}*${S_Y}*.png ${CONFCASE}*LAB*LGTS* ${OUTFIGS}/.
+    mv ${CONFCASE}*${ZMAPS}*${S_Y}*.png ${CONFCASE}*LAB*LGTS* ${OUTFIGS}/.
     mv ${CONFCASE}*???_MLDClimm03* ${OUTFIGS}/.
 done
 

@@ -84,10 +84,11 @@ MKSECPLOT=[FramS,Beauf,Kara]
 ################################
 ########## MOORINGS ############
 ################################
-# Select the mooring [which is currently a grid point NOT a BOX]
+# Select a pair of moorings [which is currently a grid point NOT a BOX]
 # Two moorings by default: EURA within the Eurasian basin & ARCB within the Beaufort Gyre
 BOX="['ARCB','EURA']"
-#BOX="['ARCB','EURA','GINB','MIKB','BRAB','ALPB']"
+#BOX="['GINB','MIKB']"
+#BOX="['BRAB','ALPB']"
 
 #####################################################################################
 #############################################
