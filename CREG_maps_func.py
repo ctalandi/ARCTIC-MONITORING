@@ -5,6 +5,7 @@ matplotlib.use('Agg')
 import sys
 import numpy as npy
 from CREG_maps_cont import *
+from CREG_maps_obse import *
 from checkfile import *
 import subprocess
 import xarray as xr 
@@ -49,14 +50,14 @@ def ICE_maps( zlon, zlat, zMy_var1, zMy_var1frld_SeasM, zMy_var1frld_SeasS, zCON
         zmask, plon, plat = CREG_MSK( zCASE )
 
         zMyvar='sivolu'   ; fram=num_fram+2
-        obs_thick = ICE_THICK_OBS( zconfig=zCONF, t_year=zs_year )
+        obs_thick = CREG_maps_obse.ICE_THICK_OBS( zconfig=zCONF, t_year=zs_year )
         obs_thick = xr.where( npy.squeeze(zmask[0,:,:]) < 1., npy.nan, obs_thick )
         obs_thick = xr.where( obs_thick == 0., npy.nan, obs_thick )
 
         simple_maps( plon, plat, zCONF, zCASE, obs_thick, zMyvar, zs_year, zfram=fram, plot_obs=1 )
 
         # Read NSIDC obs. data 
-        obs_conc_m03, obs_conc_m09, obs_lon, obs_lat = ICE_CONCE_OBS( t_year=zc_year )
+        obs_conc_m03, obs_conc_m09, obs_lon, obs_lat = CREG_maps_obse.ICE_CONCE_OBS( t_year=zc_year )
 
         # March mean Ice fraction 
         zMyvar='siconc'   ; fram=num_fram+4
@@ -146,7 +147,7 @@ def MLD_maps( zlon, zlat, zMy_var1SeasM, zMy_var1SeasS, zCONF, zCASE, zclimyear,
         simple_maps( zlon, zlat, zCONF, zCASE, zMy_var1SeasS, zMyvar, zclimyear, seas='m09', zfram=fram )
 
         # MLD from observation
-        mld_obs_m03, mld_obs_m09, lon_obs, lat_obs = MLD_OBS()
+        mld_obs_m03, mld_obs_m09, lon_obs, lat_obs = CREG_maps_obse.MLD_OBS()
         # March mean MLD
         zMyvar='mldr10_1'   ; fram=num_fram+2
         simple_maps( lon_obs, lat_obs, zCONF, zCASE, mld_obs_m03, zMyvar, zclimyear, seas='m03', zfram=fram, plot_obs=1 )
@@ -226,7 +227,7 @@ def DYN_maps( zlon, zlat, zMy_var1, zMy_var1SeasM, zMy_var1SeasS, zdepth, zCONF,
 
         # EKE from observation
         zMyvar='voeke'   ; fram=num_fram+2
-        obs_eke, lon_obs, lat_obs = EKE_OBS( t_year=zs_year )
+        obs_eke, lon_obs, lat_obs = CREG_maps_obse.EKE_OBS( t_year=zs_year )
         obs_eke = xr.where( obs_eke >= 9e20, npy.nan, obs_eke )
         simple_maps( lon_obs, lat_obs, zCONF, zCASE, obs_eke, zMyvar, zclimyear, slev=str(zd1), zfram=fram, plot_obs=1 )
         plt.tight_layout()
@@ -627,7 +628,7 @@ def MTS_maps( zlon, zlat, zCONF, zCASE, zMLD_M, zMLD_S, zMy_varM, zMy_varS, zgde
 	S_mldS = (e3t_0msk_SeasS * zMy_varS['vosaline']).sum(dim='z').squeeze()/e3t_0sum_SeasS
 
 	# MLTS from MIMOC observations
-	mlT_obs, mlS_obs, lon_obs, lat_obs = MLTS_OBS()
+	mlT_obs, mlS_obs, lon_obs, lat_obs = CREG_maps_obse.MLTS_OBS()
 
 	# Plots Temperature maps 
 	########################
@@ -808,7 +809,7 @@ def AWTmax_maps( zlon, zlat, zMy_var1T, zMy_var1S, zdepth, zMyvar, zCONFIG, zCAS
 	# Now switch to PHC 3.0 Obs. data
 
 	# Read the associated data
-	zMy_varTinit, zMy_varSinit ,lon_obs, lat_obs = PHC3_OBS()
+	zMy_varTinit, zMy_varSinit ,lon_obs, lat_obs = CREG_maps_obse.PHC3_OBS()
 	## Set depths manualy 
 	#zdepth_phc3=npy.array([0, 10, 20, 30, 50, 75, 100, 125, 150, 200, 250, 300, 400, 500, 600, \
 	#	     700, 800, 900, 1000, 1100, 1200, 1300, 1400, 1500, 1750, 2000, 2500, \
@@ -989,7 +990,7 @@ def FWC_maps( zlon, zlat, zMy_var1S, zMy_varSinit, zMy_var1ssh, zCONFIG, zCASE, 
 		obsper='2003-2017'
 
 	# Get observations SSH
-	obs_ssh, lon_obs, lat_obs, obs_ssh_per = SSH_OBS( t_year=int(zclimyear[0:4]) )
+	obs_ssh, lon_obs, lat_obs, obs_ssh_per = CREG_maps_obse.SSH_OBS( t_year=int(zclimyear[0:4]) )
 	obs_ssh = xr.where( obs_ssh >= 9e20, npy.nan, obs_ssh )
 
 	plt.clf()
@@ -1255,196 +1256,6 @@ def Arc_Bat( ztype='isol1000' ) :
 	return m, X, Y
 
 ################################################################################################################################
-def SSH_OBS( t_year=1959 ) :
-################################################################################################################################
-
-	locpath='./DATA/'
-	locfile='EKE_DOT_based_2003-2014.nc'
-	if chkfile(locpath+locfile,zstop=True) :
-		ds_sshobs = xr.open_dataset(locpath+locfile)
-		lon = ds_sshobs['lon']
-		lat = ds_sshobs['lat']
-		ssh_init = ds_sshobs['DOT']
-
-		SSH_lon2D=npy.tile(lon,(lat.size,1))
-		SSH_lat2D=npy.tile(lat,(lon.size,1)).T
-
-	if t_year >= 2003 and t_year <=2014 :
-		# Get the specific year
-		s_ind=(t_year-2003)*12	 
-		out_ssh_OBS = ssh_init.isel(date=slice(s_ind,s_ind+12)).mean(dim='date').squeeze()
-		ssh_OBS_obsper = str(t_year)
-	else:
-		# Compute the mean over the obs. monthly period 2003-2014
-		out_ssh_OBS = ssh_init.mean(dim='date').squeeze()
-		ssh_OBS_obsper = '2003-2014'
-
-	# Remove the domain mean to get an anomaly
-	out_ssh_OBS = out_ssh_OBS - ssh_init.mean()
-
-	return out_ssh_OBS, SSH_lon2D, SSH_lat2D, ssh_OBS_obsper
-
-################################################################################################################################
-def MLD_OBS() :
-################################################################################################################################
-
-	locpath='./DATA/'
-	locfile='MLD_MIMOC_based_monthlyClim_rhocrit0.01.nc'
-	if chkfile(locpath+locfile,zstop=True) :
-		ds_obsmld = xr.open_dataset(locpath+locfile)
-		lon = ds_obsmld['lon'].squeeze()
-		lat = ds_obsmld['lat'].squeeze()
-		mld_init = ds_obsmld['MLD'].squeeze()
-
-	MLD_lon2D = npy.tile(lon,(lat.size,1))
-	MLD_lat2D = npy.tile(lat,(lon.size,1)).T
-
-	mld_init = xr.where( mld_init > 1e9, npy.nan, mld_init )
-
-	# Compute the mean over the obs. monthly period 2003-2014
-	mld_m03 = npy.squeeze(mld_init[2,:,:])
-	mld_m09 = npy.squeeze(mld_init[8,:,:])
-
-	return mld_m03, mld_m09, MLD_lon2D, MLD_lat2D
-
-################################################################################################################################
-def MLTS_OBS() :
-################################################################################################################################
-
-	locpath='./DATA/'
-	locfile='MIMOC_ML_v2.2_PT_S_MLP_Clim.nc'
-	if chkfile(locpath+locfile,zstop=True) :
-		ds_tsmld = xr.open_dataset(locpath+locfile)
-		lon2D = ds_tsmld['longitude'].squeeze()
-		lat2D = ds_tsmld['latitude'].squeeze()
-		mlT_init = ds_tsmld['POTENTIAL_TEMPERATURE_MIXED_LAYER'].squeeze()
-		mlS_init = ds_tsmld['SALINITY_MIXED_LAYER'].squeeze()
-		mld_init = ds_tsmld['DEPTH_MIXED_LAYER'].squeeze()
-
-	mlT_init = xr.where( mlT_init > 1e9, npy.nan, mlT_init )
-	mlS_init = xr.where( mlS_init > 1e9, npy.nan, mlS_init )
-	mld_init = xr.where( mld_init > 1e9, npy.nan, mld_init )
-
-	return mlT_init, mlS_init, lon2D, lat2D
-
-
-################################################################################################################################
-def EKE_OBS( t_year=1959 ) :
-################################################################################################################################
-
-	locpath='./DATA/'
-	locfile='EKE_DOT_based_2003-2014.nc'
-	if chkfile(locpath+locfile,zstop=True) :
-		ds_ekedot = xr.open_dataset(locpath+locfile)
-		lon = ds_ekedot['lon'].squeeze()
-		lat = ds_ekedot['lat'].squeeze()
-		EKE_init = ds_ekedot['EKE_yearly'].squeeze()
-
-	EKE_lon2D = npy.tile(lon,(lat.size,1))
-	EKE_lat2D = npy.tile(lat,(lon.size,1)).T
-
-	if t_year >= 2003 and t_year <=2014 :
-		# Get the specific year
-		s_ind = (t_year-2003)
-		out_EKE_OBS = npy.squeeze(EKE_init[s_ind,:,:].copy())
-	else:
-		# Compute the mean over the obs. monthly period 2003-2014
-		out_EKE_OBS = npy.mean(EKE_init,axis=0).squeeze()
-
-	return out_EKE_OBS,EKE_lon2D,EKE_lat2D
-
-################################################################################################################################
-def ICE_THICK_OBS( zconfig='CREG025.L75', t_year=1959 ) :
-################################################################################################################################
-
-	locpath='./DATA/'
-	if zconfig == 'CREG025.L75' : 
-		locfile='PIOMAS_icethic_interpCREG025.L75_1-12_1979-2020.nc'
-	elif zconfig == 'CREG12.L75' :
-		locfile='PIOMAS_icethic_interpCREG12.L75_1-12_1979-2020.nc'
-	if chkfile(locpath+locfile,zstop=True) :
-		ds_icet = xr.open_dataset(locpath+locfile)
-		ICE_thick_init = ds_icet['icethic'].squeeze()
-
-	if t_year >= 1979 and t_year <= 2020 :
-		s_ind = (t_year-1979)*12
-		mean_ICE_thick = ICE_thick_init[s_ind:s_ind+12,:,:].copy()
-	else:
-		mean_ICE_thick = ICE_thick_init.copy()
-	
-	# Annual or climatological mean
-	out_ICE_thick = npy.mean(mean_ICE_thick,axis=0).squeeze()
-
-	return out_ICE_thick
-
-
-################################################################################################################################
-def ICE_CONCE_OBS( t_year=1959 ) :
-################################################################################################################################
-
-	locpath='./DATA/'
-	locfile='NSIDC-0051_92585_monthly.nc'
-	if chkfile(locpath+locfile,zstop=True) :
-		ds_icec = xr.open_dataset(locpath+locfile)
-		lon = ds_icec['longitude'].squeeze()
-		lat = ds_icec['latitude'].squeeze()
-		CONC_init = ds_icec['Average_Sea_Ice_Concentration_with_Final_Version'].squeeze()
-
-	## Initial data are based on add_offset
-	## 251 > missing pole
-	## 252 > not used
-	## 253 > coastline
-	## 254 > land
-	## 255 > missing value
-	## data will be recovered in dividing it by 250
-	CONC_init = xr.where( CONC_init == 255, npy.nan, CONC_init )
-	CONC_init = xr.where( CONC_init == 254, npy.nan, CONC_init )
-	CONC_init = xr.where( CONC_init == 253, npy.nan, CONC_init )
-	CONC_init = xr.where( CONC_init == 251, npy.nan, CONC_init )
-	COR_CONC_init = CONC_init/250.
-
-	CONC_init_land = npy.squeeze(CONC_init[0,:,:].copy())
-
-	if t_year >= 1979 and t_year <= 2015 : 
-		print( " Simplification calculation")
-		# Select only March & September monthly mean
-		mean_CONC_m03 = COR_CONC_init.sel(time=str(t_year)+'-03').squeeze()
-		mean_CONC_m09 = COR_CONC_init.sel(time=str(t_year)+'-09').squeeze()
-	else:
-		# Compute a mean seasonal cycle and select March & September
-		CONC_clim = COR_CONC_init.groupby('time.month').mean('time')
-		mean_CONC_m03 = CONC_clim.isel(month=2)
-		mean_CONC_m09 = CONC_clim.isel(month=8)
-
-	mean_CONC_m03 = xr.where( CONC_init_land == 254 , npy.nan, mean_CONC_m03 )
-	mean_CONC_m09 = xr.where( CONC_init_land == 254 , npy.nan, mean_CONC_m09 )
-
-	return mean_CONC_m03, mean_CONC_m09, lon, lat
-
-
-################################################################################################################################
-def PHC3_OBS() :
-################################################################################################################################
-
-	print('				Read PHC 3.0 Obs. state  ')
-	locpath='./DATA/'
-	locfile='phc3.0_annual.nc'
-	if chkfile(locpath+locfile) : 
-		ds_obs = xr.open_dataset(locpath+locfile)
-		lon_obs = ds_obs['lon']
-		lat_obs = ds_obs['lat']
-		PHC_lon2D=npy.tile(lon_obs,(lat_obs.size,1))
-		PHC_lat2D=npy.tile(lat_obs,(lon_obs.size,1)).T
-
-		My_varTinit = ds_obs['temp']
-		My_varSinit = ds_obs['salt']
-
-		My_varTinit = xr.where(My_varTinit > 1.e9, npy.nan, My_varTinit)
-		My_varSinit = xr.where(My_varSinit > 1.e9, npy.nan, My_varSinit)
-
-	return My_varTinit, My_varSinit, PHC_lon2D, PHC_lat2D
-	
-################################################################################################################################
 def CREG_MSK( zCASE ) :
 ################################################################################################################################
 
@@ -1460,17 +1271,19 @@ def CREG_MSK( zCASE ) :
         return mask, lon, lat
 
 ################################################################################################################################
-def CREG_INIT( zCONFIG, zCASE, llon, lzd ) :
+def CREG_INIT( zCONFIG, zCASE ) :
 ################################################################################################################################
 	# Read initial state to compare with
-	print('				Read initial state  ')
+	print('                      Read initial state  ')
 	locpath=zCONFIG+'/'+zCONFIG+'-'+zCASE+'-MEAN/'
 	locfile=zCONFIG+'-'+zCASE+'_init_gridT.nc'
 	if chkfile(locpath+locfile) : 
-		ds_sinit = xr.open_dataset(locpath+locfile)
-		My_varSinit = ds_sinit['vosaline'].squeeze()
+		ds_TSinit = xr.open_dataset(locpath+locfile, engine="netcdf4")[['votemper','vosaline']]
+		ds_TSinit = ds_TSinit.rename({'nav_lev':'z'})
+		My_varTinit = ds_TSinit['votemper'].squeeze()
+		My_varSinit = ds_TSinit['vosaline'].squeeze()
 	
-	return My_varSinit
+	return My_varTinit, My_varSinit
 
 ################################################################################################################################
 def Atl_plot( lon, lat, tab, contours, limits, myticks=None, name=None, zmy_cblab=None, zmy_cmap=None, filename='test.png', zvar=None, zarea=None, data_ref=False ) :
