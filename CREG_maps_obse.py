@@ -1,31 +1,11 @@
 #!/usr/bin/env python
 
-import matplotlib
-matplotlib.use('Agg')
 import sys
-import numpy as npy
-from CREG_maps_cont import *
-from checkfile import *
 import subprocess
 import xarray as xr 
+import numpy as npy
 from datetime import datetime
-
-# Matplotlib
-try:
-	import matplotlib.pylab as plt
-	import matplotlib as mpl
-	from matplotlib import rcParams
-except:
-	print('  matplotlib is not available on your machine')
-	print('  check python path or install this package') ; exit()
-
-# Basemap
-try:
-	from mpl_toolkits.basemap import Basemap
-except:
-	print('  Basemap is not available on your machine')
-	print('  check python path or install this package') ; exit()
-
+from checkfile import *
 
 ################################################################################################################################
 def SSH_OBS( t_year=1959 ) :
