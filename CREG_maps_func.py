@@ -49,15 +49,15 @@ def ICE_maps( zlon, zlat, zMy_var1, zMy_var1frld_SeasM, zMy_var1frld_SeasS, zCON
         # Read lat, lon from CREG025 grid since the PIOMASS data is not available on CREG12.L75 grid
         zmask, plon, plat = CREG_MSK( zCASE )
 
-        zMyvar='sivolu'   ; fram=num_fram+2
-        obs_thick = CREG_maps_obse.ICE_THICK_OBS( zconfig=zCONF, t_year=zs_year )
+        obs_thick = ICE_THICK_OBS( zconfig=zCONF, t_year=zs_year )
         obs_thick = xr.where( npy.squeeze(zmask[0,:,:]) < 1., npy.nan, obs_thick )
         obs_thick = xr.where( obs_thick == 0., npy.nan, obs_thick )
 
+        zMyvar='sivolu'   ; fram=num_fram+2
         simple_maps( plon, plat, zCONF, zCASE, obs_thick, zMyvar, zs_year, zfram=fram, plot_obs=1 )
 
         # Read NSIDC obs. data 
-        obs_conc_m03, obs_conc_m09, obs_lon, obs_lat = CREG_maps_obse.ICE_CONCE_OBS( t_year=zc_year )
+        obs_conc_m03, obs_conc_m09, obs_lon, obs_lat = ICE_CONCE_OBS( t_year=zc_year )
 
         # March mean Ice fraction 
         zMyvar='siconc'   ; fram=num_fram+4
@@ -147,7 +147,7 @@ def MLD_maps( zlon, zlat, zMy_var1SeasM, zMy_var1SeasS, zCONF, zCASE, zclimyear,
         simple_maps( zlon, zlat, zCONF, zCASE, zMy_var1SeasS, zMyvar, zclimyear, seas='m09', zfram=fram )
 
         # MLD from observation
-        mld_obs_m03, mld_obs_m09, lon_obs, lat_obs = CREG_maps_obse.MLD_OBS()
+        mld_obs_m03, mld_obs_m09, lon_obs, lat_obs = MLD_OBS()
         # March mean MLD
         zMyvar='mldr10_1'   ; fram=num_fram+2
         simple_maps( lon_obs, lat_obs, zCONF, zCASE, mld_obs_m03, zMyvar, zclimyear, seas='m03', zfram=fram, plot_obs=1 )
@@ -226,9 +226,10 @@ def DYN_maps( zlon, zlat, zMy_var1, zMy_var1SeasM, zMy_var1SeasS, zdepth, zCONF,
         simple_maps( zlon, zlat, zCONF, zCASE, zMy_var1SeasS, zMyvar, zclimyear, slev=str(zd2), zfram=fram )
 
         # EKE from observation
-        zMyvar='voeke'   ; fram=num_fram+2
-        obs_eke, lon_obs, lat_obs = CREG_maps_obse.EKE_OBS( t_year=zs_year )
+        obs_eke, lon_obs, lat_obs = EKE_OBS( t_year=zs_year )
         obs_eke = xr.where( obs_eke >= 9e20, npy.nan, obs_eke )
+
+        zMyvar='voeke'   ; fram=num_fram+2
         simple_maps( lon_obs, lat_obs, zCONF, zCASE, obs_eke, zMyvar, zclimyear, slev=str(zd1), zfram=fram, plot_obs=1 )
         plt.tight_layout()
 
@@ -361,8 +362,8 @@ def ATL_maps( zlon, zlat, zMy_var1SeasM, zMdata_read, zMy_var1T, zMy_varTinit, z
         limits=[vmin,vmax,vint]  ;              myticks=[0.,100.,200.,400.,800.,1200.,1600.,2000.,2400.]
 
         plt.subplot(fram)
-        zoutmap = Atl_Bat( ztype='isol1000',zarea='labsea' )
-        Atl_plot( zlon, zlat, zMy_var1SeasM, contours, limits, myticks, name=ztitle, zmy_cblab=my_cblab, zmy_cmap=my_cmap, zvar=zMyvar, zarea='labsea' )
+        zoutmap = Iso_Bat( ztype='isol1000',zarea='labsea' )
+        Proj_plot( zlon, zlat, zMy_var1SeasM, contours, limits, myticks, name=ztitle, zmy_cblab=my_cblab, zmy_cmap=my_cmap, zvar=zMyvar, zarea='labsea' )
         plt.tight_layout()
 
         zfile_ext='_LAB_MLDClimm03_'
@@ -448,8 +449,8 @@ def ATL_maps( zlon, zlat, zMy_var1SeasM, zMdata_read, zMy_var1T, zMy_varTinit, z
         vmin=0. ; vmax=1600. ; vint=100.   ;   contours=[0.,100.,200.,400.,600.,800.,1000.,1200.,1600.]
         limits=[vmin,vmax,vint]  ;              myticks=[0.,100.,200.,400.,600.,800.,1000.,1200.,1600.]
         plt.subplot(fram)
-        zoutmap = Atl_Bat( ztype='isol1000',zarea='irmsea' )
-        Atl_plot( zlon, zlat, zMy_var1SeasM, contours, limits, myticks, name=ztitle, zmy_cblab=my_cblab, zmy_cmap=my_cmap, zvar=zMyvar, zarea='irmsea' )
+        zoutmap = Iso_Bat( ztype='isol1000',zarea='irmsea' )
+        Proj_plot( zlon, zlat, zMy_var1SeasM, contours, limits, myticks, name=ztitle, zmy_cblab=my_cblab, zmy_cmap=my_cmap, zvar=zMyvar, zarea='irmsea' )
         plt.tight_layout()
 
         zfile_ext='_IRM_MLDClimm03_'
@@ -467,13 +468,15 @@ def ATL_maps( zlon, zlat, zMy_var1SeasM, zMdata_read, zMy_var1T, zMy_varTinit, z
         vmin=0. ; vmax=1600. ; vint=100.   ;   contours=[0.,100.,200.,400.,600.,800.,1000.,1200.,1600.]
         limits=[vmin,vmax,vint]  ;              myticks=[0.,100.,200.,400.,600.,800.,1000.,1200.,1600.]
         plt.subplot(fram)
-        zoutmap = Atl_Bat( ztype='isol1000',zarea='ginsea' )
-        Atl_plot( zlon, zlat, zMy_var1SeasM, contours, limits, myticks, name=ztitle, zmy_cblab=my_cblab, zmy_cmap=my_cmap, zvar=zMyvar, zarea='ginsea' )
+        zoutmap = Iso_Bat( ztype='isol1000',zarea='ginsea' )
+        Proj_plot( zlon, zlat, zMy_var1SeasM, contours, limits, myticks, name=ztitle, zmy_cblab=my_cblab, zmy_cmap=my_cmap, zvar=zMyvar, zarea='ginsea' )
         plt.tight_layout()
 
         zfile_ext='_GIN_MLDClimm03_'
         plt.savefig(zCONF+'-'+zCASE+zfile_ext+'y'+zclimyear+'.png',dpi=300)
 
+        plt.clf()
+        plt.figure()
         # PLOT ISOTHERM 17 Deg OFF CAPE HATTERAS
         ########################################
         num_fram=110
@@ -485,15 +488,17 @@ def ATL_maps( zlon, zlat, zMy_var1SeasM, zMdata_read, zMy_var1T, zMy_varTinit, z
 
         plt.subplot(fram)
         klev=29
-        zoutmap = Atl_Bat( ztype='isol1000', zarea='GulfS' )
+        zoutmap = Iso_Bat( ztype='isol1000', zarea='GulfS' )
         zzlon = zlon.values   ; zzlat = zlat.values 
-        Atl_plot( zzlon, zzlat, npy.squeeze(zMy_var1T[klev,:,:])   , contours, limits, myticks, name=ztitle, zmy_cblab=my_cblab, zmy_cmap=my_cmap, zvar=zMyvar, zarea='GulfS' )
-        Atl_plot( zzlon, zzlat, npy.squeeze(zMy_varTinit[klev,:,:]), contours, limits, myticks, name=ztitle, zmy_cblab=my_cblab, zmy_cmap=my_cmap, zvar=zMyvar, zarea='GulfS', data_ref=True )
+        Proj_plot( zzlon, zzlat, npy.squeeze(zMy_var1T[klev,:,:])   , contours, limits, myticks, name=ztitle, zmy_cblab=my_cblab, zmy_cmap=my_cmap, zvar=zMyvar, zarea='GulfS' )
+        Proj_plot( zzlon, zzlat, npy.squeeze(zMy_varTinit[klev,:,:]), contours, limits, myticks, name=ztitle, zmy_cblab=my_cblab, zmy_cmap=my_cmap, zvar=zMyvar, zarea='GulfS', data_ref=True )
         plt.tight_layout()
 
         zfile_ext='_ATL_ISO17Clim_'
         plt.savefig(zCONF+'-'+zCASE+zfile_ext+'y'+zclimyear+'.png',dpi=300)
 
+        plt.clf()
+        plt.figure()
         # PLOT SSH OVER THE ATLANTIC AREA
         #################################
         num_fram=110
@@ -503,11 +508,10 @@ def ATL_maps( zlon, zlat, zMy_var1SeasM, zMdata_read, zMy_var1T, zMy_varTinit, z
         vmin=-100. ; vmax=100. ; vint=5.  ;   contours=npy.arange(vmin,vmax+vint,vint)
         limits=[vmin,vmax,vint]           ;   myticks=npy.arange(vmin,vmax+vint,vint)
 
-        plt.figure()
         #plt.subplot(fram)
-        zoutmap = Atl_Bat( ztype='isol1000' )
-        Atl_plot( zzlon,  zzlat, zMy_var1ssh*100. , contours, limits, myticks, name=ztitle, zmy_cblab=my_cblab, zmy_cmap=my_cmap, zvar=zMyvar )
-        #Atl_plot( zzlon,  zzlat, npy.squeeze(zMy_varTinit[klev,:,:]), contours, limits, myticks, name=ztitle, zmy_cblab=my_cblab, zmy_cmap=my_cmap, zvar=zMyvar, zarea='GulfS', data_ref=True )
+        zoutmap = Iso_Bat( ztype='isol1000' )
+        Proj_plot( zzlon,  zzlat, zMy_var1ssh*100. , contours, limits, myticks, name=ztitle, zmy_cblab=my_cblab, zmy_cmap=my_cmap, zvar=zMyvar )
+        #Proj_plot( zzlon,  zzlat, npy.squeeze(zMy_varTinit[klev,:,:]), contours, limits, myticks, name=ztitle, zmy_cblab=my_cblab, zmy_cmap=my_cmap, zvar=zMyvar, zarea='GulfS', data_ref=True )
         #plt.tight_layout()
 
         zfile_ext='_ATL_SSHClim_'
@@ -628,7 +632,7 @@ def MTS_maps( zlon, zlat, zCONF, zCASE, zMLD_M, zMLD_S, zMy_varM, zMy_varS, zgde
 	S_mldS = (e3t_0msk_SeasS * zMy_varS['vosaline']).sum(dim='z').squeeze()/e3t_0sum_SeasS
 
 	# MLTS from MIMOC observations
-	mlT_obs, mlS_obs, lon_obs, lat_obs = CREG_maps_obse.MLTS_OBS()
+	mlT_obs, mlS_obs, lon_obs, lat_obs = MLTS_OBS()
 
 	# Plots Temperature maps 
 	########################
@@ -642,23 +646,23 @@ def MTS_maps( zlon, zlat, zCONF, zCASE, zMLD_M, zMLD_S, zMy_varM, zMy_varS, zgde
 	ztitle=zCASE +' March ML mean T over \n'+str(zclimyear)
 	my_cblab=r'($^\circ$C)'
 	my_cmap= plt.get_cmap('Spectral_r')
-	zoutmap = Arc_Bat( ztype='isol1000' )
-	Arc_plot( zlon, zlat, T_mldM, contours, limits, myticks, name=ztitle, zmy_cblab=my_cblab, zmy_cmap=my_cmap )
+	zoutmap = Iso_Bat( ztype='isol1000' )
+	Proj_plot( zlon, zlat, T_mldM, contours, limits, myticks, name=ztitle, zmy_cblab=my_cblab, zmy_cmap=my_cmap )
 
 	plt.subplot(222)
 	ztitle=zCASE +' September ML mean T over \n'+str(zclimyear)
-	zoutmap = Arc_Bat( ztype='isol1000' )
-	Arc_plot(zlon, zlat, T_mldS, contours, limits, myticks, name=ztitle, zmy_cblab=my_cblab, zmy_cmap=my_cmap)
+	zoutmap = Iso_Bat( ztype='isol1000' )
+	Proj_plot(zlon, zlat, T_mldS, contours, limits, myticks, name=ztitle, zmy_cblab=my_cblab, zmy_cmap=my_cmap)
 
 	plt.subplot(223)
 	ztitle='MIMOC March ML mean T'
-	zoutmap = Arc_Bat( ztype='isol1000' )
-	Arc_plot( lon_obs, lat_obs, mlT_obs[2,:,:].squeeze(), contours, limits, myticks, name=ztitle, zmy_cblab=my_cblab, zmy_cmap=my_cmap )
+	zoutmap = Iso_Bat( ztype='isol1000' )
+	Proj_plot( lon_obs, lat_obs, mlT_obs[2,:,:].squeeze(), contours, limits, myticks, name=ztitle, zmy_cblab=my_cblab, zmy_cmap=my_cmap )
 
 	plt.subplot(224)
 	ztitle='MIMOC September ML mean T'
-	zoutmap = Arc_Bat( ztype='isol1000' )
-	Arc_plot( lon_obs, lat_obs, mlT_obs[8,:,:].squeeze(), contours, limits, myticks, name=ztitle, zmy_cblab=my_cblab, zmy_cmap=my_cmap )
+	zoutmap = Iso_Bat( ztype='isol1000' )
+	Proj_plot( lon_obs, lat_obs, mlT_obs[8,:,:].squeeze(), contours, limits, myticks, name=ztitle, zmy_cblab=my_cblab, zmy_cmap=my_cmap )
 
 	plt.tight_layout()
 
@@ -677,23 +681,23 @@ def MTS_maps( zlon, zlat, zCONF, zCASE, zMLD_M, zMLD_S, zMy_varM, zMy_varS, zgde
 	ztitle=zCASE +' March ML mean S over \n'+str(zclimyear)
 	my_cblab=r'(PSU)'
 	my_cmap= plt.get_cmap('Spectral_r')
-	zoutmap = Arc_Bat( ztype='isol1000' )
-	Arc_plot( zlon, zlat, S_mldM, contours, limits, myticks, name=ztitle, zmy_cblab=my_cblab, zmy_cmap=my_cmap, zvar='MLTSS' )
+	zoutmap = Iso_Bat( ztype='isol1000' )
+	Proj_plot( zlon, zlat, S_mldM, contours, limits, myticks, name=ztitle, zmy_cblab=my_cblab, zmy_cmap=my_cmap, zvar='MLTSS' )
 
 	plt.subplot(222)
 	ztitle=zCASE +' September ML mean S over \n'+str(zclimyear)
-	zoutmap = Arc_Bat( ztype='isol1000' )
-	Arc_plot( zlon, zlat, S_mldS, contours, limits, myticks, name=ztitle, zmy_cblab=my_cblab, zmy_cmap=my_cmap, zvar='MLTSS' )
+	zoutmap = Iso_Bat( ztype='isol1000' )
+	Proj_plot( zlon, zlat, S_mldS, contours, limits, myticks, name=ztitle, zmy_cblab=my_cblab, zmy_cmap=my_cmap, zvar='MLTSS' )
 
 	plt.subplot(223)
 	ztitle='MIMOC March ML mean S'
-	zoutmap  =Arc_Bat( ztype='isol1000' )
-	Arc_plot( lon_obs, lat_obs, mlS_obs[2,:,:].squeeze(), contours, limits, myticks, name=ztitle, zmy_cblab=my_cblab, zmy_cmap=my_cmap, zvar='MLTSS' )
+	zoutmap  =Iso_Bat( ztype='isol1000' )
+	Proj_plot( lon_obs, lat_obs, mlS_obs[2,:,:].squeeze(), contours, limits, myticks, name=ztitle, zmy_cblab=my_cblab, zmy_cmap=my_cmap, zvar='MLTSS' )
 
 	plt.subplot(224)
 	ztitle='MIMOC September ML mean S'
-	zoutmap = Arc_Bat( ztype='isol1000' )
-	Arc_plot( lon_obs, lat_obs, mlS_obs[8,:,:].squeeze(), contours, limits, myticks, name=ztitle, zmy_cblab=my_cblab, zmy_cmap=my_cmap, zvar='MLTSS' )
+	zoutmap = Iso_Bat( ztype='isol1000' )
+	Proj_plot( lon_obs, lat_obs, mlS_obs[8,:,:].squeeze(), contours, limits, myticks, name=ztitle, zmy_cblab=my_cblab, zmy_cmap=my_cmap, zvar='MLTSS' )
 
 	plt.tight_layout()
 
@@ -764,24 +768,7 @@ def MTS_maps( zlon, zlat, zCONF, zCASE, zMLD_M, zMLD_S, zMy_varM, zMy_varS, zgde
 	return
 
 ################################################################################################################################
-def simple_maps( zlon, zlat, zCONF, zCASE, zMy_var1, zMyvar, zclimyear, slev=None, seas='', zfram=111, plot_obs=0, ano=0 ) :
-################################################################################################################################
-
-	m_alpha=1.
-	
-	# Do the plot 
-	print(	zMyvar+' plot')
-	print() 
-	
-	plt.subplot(zfram)
-	contours, limits, myticks, ztitle, zfile_ext, my_cblab, my_cmap, m_alpha = SET_ARC_CNT( zCASE, zclimyear, seas, zMyvar, zslev=slev, zplot_obs=plot_obs, zdiff=ano )
-	zoutmap = Arc_Bat( ztype='isol1000' )
-	Arc_plot( zlon, zlat, zMy_var1[:,:]*m_alpha, contours, limits, myticks, name=ztitle, zmy_cblab=my_cblab, zmy_cmap=my_cmap, zvar=zMyvar )
-
-	return
-
-################################################################################################################################
-def AWTmax_maps( zlon, zlat, zMy_var1T, zMy_var1S, zdepth, zMyvar, zCONFIG, zCASE, zclimyear, zncout) :
+def AWT_maps( zlon, zlat, zMy_var1T, zMy_var1S, zdepth, zMyvar, zCONFIG, zCASE, zclimyear, zncout) :
 ################################################################################################################################
 
 	zCONFCASE=zCONFIG+'-'+zCASE
@@ -809,7 +796,7 @@ def AWTmax_maps( zlon, zlat, zMy_var1T, zMy_var1S, zdepth, zMyvar, zCONFIG, zCAS
 	# Now switch to PHC 3.0 Obs. data
 
 	# Read the associated data
-	zMy_varTinit, zMy_varSinit ,lon_obs, lat_obs = CREG_maps_obse.PHC3_OBS()
+	zMy_varTinit, zMy_varSinit ,lon_obs, lat_obs = PHC3_OBS()
 	## Set depths manualy 
 	#zdepth_phc3=npy.array([0, 10, 20, 30, 50, 75, 100, 125, 150, 200, 250, 300, 400, 500, 600, \
 	#	     700, 800, 900, 1000, 1100, 1200, 1300, 1400, 1500, 1750, 2000, 2500, \
@@ -845,18 +832,16 @@ def AWTmax_maps( zlon, zlat, zMy_var1T, zMy_var1S, zdepth, zMyvar, zCONFIG, zCAS
 	plt.clf()
 	plt.figure()
 	plt.subplot(221)
-	zoutmap = Arc_Bat( ztype='isol1000' )
-	Arc_plot( zlon, zlat, zAWTmax1, contours, limits, myticks, name=ztitle, zmy_cblab=my_cblab, zmy_cmap=my_cmap, zvar=zMyvar )
+	zoutmap = Iso_Bat( ztype='isol1000' )
+	Proj_plot( zlon, zlat, zAWTmax1, contours, limits, myticks, name=ztitle, zmy_cblab=my_cblab, zmy_cmap=my_cmap, zvar=zMyvar )
 
 	plt.subplot(222)
 	ztitle=' AW Max Temp from \n'+' PHC 3.0'
-	zoutmap = Arc_Bat( ztype='isol1000' )
-	Arc_plot( lon_obs, lat_obs, zAWTmaxI, contours, limits, myticks, name=ztitle, zmy_cblab=my_cblab, zmy_cmap=my_cmap, zvar=zMyvar ) 
+	zoutmap = Iso_Bat( ztype='isol1000' )
+	Proj_plot( lon_obs, lat_obs, zAWTmaxI, contours, limits, myticks, name=ztitle, zmy_cblab=my_cblab, zmy_cmap=my_cmap, zvar=zMyvar ) 
 	
 	# Make the plot for the AW Max Temp depth
 	#############################################################################################
-	zfile_ext='_AWTmaxDepth_'
-	
 	vmin=0. ; vmax=800. ; vint=100.
 	contours=npy.arange(vmin,vmax+vint,vint)  
 	limits=[vmin,vmax,vint]			 
@@ -867,15 +852,16 @@ def AWTmax_maps( zlon, zlat, zMy_var1T, zMy_var1S, zdepth, zMyvar, zCONFIG, zCAS
 	my_cmap= plt.get_cmap('jet')
 
 	plt.subplot(223) 
-	zoutmap = Arc_Bat( ztype='isol1000' )
-	Arc_plot( zlon, zlat, zAWTmax_depth1, contours, limits, myticks, name=ztitle, zmy_cblab=my_cblab, zmy_cmap=my_cmap )
+	zoutmap = Iso_Bat( ztype='isol1000' )
+	Proj_plot( zlon, zlat, zAWTmax_depth1, contours, limits, myticks, name=ztitle, zmy_cblab=my_cblab, zmy_cmap=my_cmap )
 
 	plt.subplot(224) 
 	ztitle=' AW Max Temp depth from \n'+' PHC 3.0'
-	zoutmap = Arc_Bat( ztype='isol1000' )
-	Arc_plot( lon_obs, lat_obs, zAWTmax_depthI, contours, limits, myticks, name=ztitle, zmy_cblab=my_cblab, zmy_cmap=my_cmap )
+	zoutmap = Iso_Bat( ztype='isol1000' )
+	Proj_plot( lon_obs, lat_obs, zAWTmax_depthI, contours, limits, myticks, name=ztitle, zmy_cblab=my_cblab, zmy_cmap=my_cmap )
 	plt.tight_layout()
 	
+	zfile_ext='_AWTmaxDepth_'
 	plt.savefig(zCONFCASE+zfile_ext+'y'+zclimyear+'.png',dpi=300)
 
 	if zncout:
@@ -920,7 +906,7 @@ def AWTmax_maps( zlon, zlat, zMy_var1T, zMy_var1S, zdepth, zMyvar, zCONFIG, zCAS
 		# Write the NetCDF file 
 		ds_out.attrs['History'] = 'Diagnostics have been calculated using the Arctic monitoring tool '
 		ds_out.attrs['Date'] = datetime.now().strftime("%a %b %e %H:%M:%S GMT %Y")
-		nc_f = './NETCDF/'+zCONFIG+'-'+zCASE+'_AWTmaxClim_'+'y'+zclimyear+'.nc'
+		nc_f = './NETCDF/'+zCONFIG+'-'+zCASE+'_AWTClim_'+'y'+zclimyear+'.nc'
 		ds_out.to_netcdf(nc_f,engine='netcdf4')
 
 	return
@@ -990,7 +976,7 @@ def FWC_maps( zlon, zlat, zMy_var1S, zMy_varSinit, zMy_var1ssh, zCONFIG, zCASE, 
 		obsper='2003-2017'
 
 	# Get observations SSH
-	obs_ssh, lon_obs, lat_obs, obs_ssh_per = CREG_maps_obse.SSH_OBS( t_year=int(zclimyear[0:4]) )
+	obs_ssh, lon_obs, lat_obs, obs_ssh_per = SSH_OBS( t_year=int(zclimyear[0:4]) )
 	obs_ssh = xr.where( obs_ssh >= 9e20, npy.nan, obs_ssh )
 
 	plt.clf()
@@ -999,45 +985,43 @@ def FWC_maps( zlon, zlat, zMy_var1S, zMy_varSinit, zMy_var1ssh, zCONFIG, zCASE, 
 	# Plot the FWC map mean over the year
 	#####################################
 	my_cblab=r'(m)'
-	zfile_ext='_FWCClim_'
 	ztitle=zCASE+' mean FWC (m) over \n'+zclimyear
 	vmin=0. ; vmax=25. ; vint=2.
 	contours=npy.arange(vmin,vmax+vint,vint)  # optional contours
 	limits=[vmin,vmax,vint]			       # limits for eke
 	myticks=npy.arange(vmin,vmax+vint,vint)   # optional colorbar ticks (None)
-	my_cmap=plt.get_cmap('coolwarm')
 	my_cmap=plt.get_cmap('Spectral_r')
-	zMyvar='FWC'
 	
 	plt.subplot(231)
-	zoutmap = Arc_Bat( ztype='isol1000' )
-	Arc_plot( zlon, zlat, fwc2D, contours, limits, myticks, name=ztitle, zmy_cblab=my_cblab, zmy_cmap=my_cmap, zvar=zMyvar )
+	zMyvar='FWC'
+	zoutmap = Iso_Bat( ztype='isol1000' )
+	Proj_plot( zlon, zlat, fwc2D, contours, limits, myticks, name=ztitle, zmy_cblab=my_cblab, zmy_cmap=my_cmap, zvar=zMyvar )
 
 	plt.subplot(232)
 	maxval=npy.nanmax(mean_FWCObs)
 	fig.text(0.45,0.78,'Max: '+str(maxval)+' m',fontsize=5,color='r')
 	ztitle=' Mean FWC (m) from \n'+' BG Obs Sys. (Proshutinsky et al. GRL2018) \n '+ ' over year ' + obsper
-	zoutmap = Arc_Bat( ztype='isol1000' )
-	Arc_plot( lon2D_obs, lat2D_obs, mean_FWCObs, contours, limits, myticks, name=ztitle, zmy_cblab=my_cblab, zmy_cmap=my_cmap, zvar=zMyvar )
+	zoutmap = Iso_Bat( ztype='isol1000' )
+	Proj_plot( lon2D_obs, lat2D_obs, mean_FWCObs, contours, limits, myticks, name=ztitle, zmy_cblab=my_cblab, zmy_cmap=my_cmap, zvar=zMyvar )
 
 	plt.subplot(233)
 	ztitle=' Mean FWC (m) from \n'+' Init State '
-	zoutmap = Arc_Bat( ztype='isol1000' )
-	Arc_plot( zlon, zlat, fwc2D_init, contours, limits, myticks, name=ztitle, zmy_cblab=my_cblab, zmy_cmap=my_cmap, zvar=zMyvar )
+	zoutmap = Iso_Bat( ztype='isol1000' )
+	Proj_plot( zlon, zlat, fwc2D_init, contours, limits, myticks, name=ztitle, zmy_cblab=my_cblab, zmy_cmap=my_cmap, zvar=zMyvar )
 	
 	plt.subplot(234)
 	zMyvar='ssh'
 	seas=''
 	contours, limits, myticks, ztitle, zfile_ext, my_cblab, my_cmap, m_alpha = SET_ARC_CNT( zCASE, zclimyear, seas, zMyvar )
-	zoutmap = Arc_Bat( ztype='isol1000' )
-	Arc_plot( zlon, zlat, zMy_var1ssh*m_alpha, contours, limits, myticks, name=ztitle, zmy_cblab=my_cblab, zmy_cmap=my_cmap, zvar=zMyvar )
+	zoutmap = Iso_Bat( ztype='isol1000' )
+	Proj_plot( zlon, zlat, zMy_var1ssh*m_alpha, contours, limits, myticks, name=ztitle, zmy_cblab=my_cblab, zmy_cmap=my_cmap, zvar=zMyvar )
 
 	plt.subplot(235)
 	zMyvar='ssh'
 	seas=''
 	contours, limits, myticks, ztitle, zfile_ext, my_cblab, my_cmap, m_alpha = SET_ARC_CNT( zCASE, zclimyear, seas, zMyvar, zplot_obs=1 )
-	zoutmap = Arc_Bat( ztype='isol1000' )
-	Arc_plot( lon_obs, lat_obs, obs_ssh*m_alpha, contours, limits, myticks, name=ztitle, zmy_cblab=my_cblab, zmy_cmap=my_cmap, zvar=zMyvar )
+	zoutmap = Iso_Bat( ztype='isol1000' )
+	Proj_plot( lon_obs, lat_obs, obs_ssh*m_alpha, contours, limits, myticks, name=ztitle, zmy_cblab=my_cblab, zmy_cmap=my_cmap, zvar=zMyvar )
 	#plt.tight_layout()
 
 	zfile_ext='_FWCSSHClim_'
@@ -1126,135 +1110,6 @@ def FWC_maps( zlon, zlat, zMy_var1S, zMy_varSinit, zMy_var1ssh, zCONFIG, zCASE, 
 
 	return
 
-
-################################################################################################################################
-def Arc_plot( lon, lat, tab, contours, limits, myticks=None, name=None, zmy_cblab=None, zmy_cmap=None, filename='test.png', zvar=None ) :
-################################################################################################################################
-	#
-	plt.rcParams['text.usetex']=False
-	plt.rcParams['font.family']='serif'
-	plt.rcParams['axes.unicode_minus'] = False
-	plt.rcParams['contour.negative_linestyle'] = 'solid'
-	#
-	m = Basemap(projection='npstere',boundinglat=65,lon_0=-60, resolution='i')
-
-	if zvar == 'sivolu' or zvar == 'siconc'  or zvar == 'ssh' or zvar == 'FWC' :
-		zfontsize=4.
-	else:
-		zfontsize=6.
-
-	if zvar != 'Bathy' :
-		m.drawparallels(npy.arange(-90.,91.,5.),labels=[False,False,False,False], size=zfontsize, linewidth=0.3)
-		m.drawmeridians(npy.arange(-180.,181.,20.),labels=[True,False,False,True], size=zfontsize, latmax=90.,linewidth=0.3)
-		m.fillcontinents(color='grey',lake_color='white')
-
-	norm = mpl.colors.Normalize(vmin=limits[0], vmax=limits[1])
-
-	if zmy_cmap != None :
-		pal = zmy_cmap
-	else:
-		pal = plt.get_cmap('coolwarm')
-
-	X,Y = m(lon,lat)
-	C = m.contourf(X,Y,tab,contours,cmap=pal,norm=norm,extend='both')
-	if zvar == 'ssh' :
-		CS=m.contour(X, Y, tab, linewidths=0.5, levels=npy.arange(limits[0],limits[1],5.), colors='k', alpha=0.4)
-
-	############################################################################################################
-	############################################################################################################
-	moorplot=1
-	if moorplot == 1 :
-		bx_ARCB={'name':'B'  ,'lon_min':-150.,'lon_max':-150.,'lat_min':78.,'lat_max':78.}
-		bx_ARCM={'name':'M1' ,'lon_min': 125.,'lon_max': 125.,'lat_min':78.,'lat_max':78.}
-		bx_EURA={'name':'EUR','lon_min':  60.,'lon_max':  60.,'lat_min':85.,'lat_max':85.}
-
-		All_box=[bx_ARCB,bx_EURA]
-		for box in All_box:
-			lats = [box['lat_min'],box['lat_max']]
-			lons = [box['lon_min'],box['lon_max']]
-			x,y = m(lons,lats)
-			m.scatter(x,y,1,marker='o', color='r')
-			#m.plot(x,y,linewidth=2, color='g')
-	############################################################################################################
-	############################################################################################################
-
-	# colorbar	
-	if myticks is None:
-		cbar = plt.colorbar(C,format='%.2f',orientation='vertical',shrink=0.8)
-	else:
-		if zvar == 'votemper' or zvar == 'vosaline' or zvar == 'sivolu' or zvar == 'sobarstf' :
-			cbar = plt.colorbar(C,format='%.2f',orientation='vertical',shrink=0.8,drawedges=True)
-		elif zvar == 'MLTSS' :
-			cbar = plt.colorbar(C,ticks=myticks,format='%.0f',orientation='vertical',shrink=0.8,drawedges=True)
-		else:
-			cbar = plt.colorbar(C,format='%.0f',orientation='vertical',shrink=0.8,drawedges=True)
-		
-		cbar.set_label(zmy_cblab,fontsize=zfontsize)
-		cl = plt.getp(cbar.ax, 'ymajorticklabels')
-		plt.setp(cl, fontsize=zfontsize)
-
-	plt.title(name,fontsize=zfontsize)
-
-	return 
-
-################################################################################################################################
-def Arc_Bat( ztype='isol1000' ) :
-################################################################################################################################
-
-	locpath='./'
-	locfile='Bathymetry.nc'
-	if chkfile(locpath+locfile,zstop=True,zscript=sys.argv[0]) :
-		ds_bat = xr.open_dataset(locpath+locfile)
-		lon = ds_bat['nav_lon'].squeeze()
-		lat = ds_bat['nav_lat'].squeeze()
-		My_var = ds_bat['bathy_meter'].squeeze()
-	
-	spval = 0.
-	My_var = xr.where( My_var <= spval, npy.nan, My_var )
-	
-	if ztype == 'isol1000' :
-		vmin=1000. ; vmax=2000. 
-		contours=[1000.]
-		limits=[vmin,vmax]  
-		myticks=[1000.]
-	elif ztype == 'isol1500' :
-		vmin=1500. ; vmax=2000. 
-		contours=[1500.]
-		limits=[vmin,vmax]  
-		myticks=[1500.]
-	elif ztype == 'isomonarc' :
-		vmin=500. ; vmax=4000. 
-		contours=[500.,2000.,4000.]
-		limits=[vmin,vmax]  
-		myticks=[500.,2000.,4000.]
-	elif ztype == 'isol500' :
-		vmin=500. ; vmax=500. 
-		contours=[500.]
-		limits=[vmin,vmax]  
-		myticks=[500.]
-	else:
-		vmin=0. ; vmax=8000. 
-		contours=[100.,500.,1000.,2000.,3000.,3500.,4000.]
-		limits=[vmin,vmax] 
-		myticks=[100.,500.,1000.,2000.,3000.,3500.,4000.]
-	
-	#
-	plt.rcParams['text.usetex']=False
-	plt.rcParams['font.family']='serif'
-	plt.rcParams['axes.unicode_minus'] = False
-	plt.rcParams['contour.negative_linestyle'] = 'solid'
-	#
-	m = Basemap(projection='npstere',boundinglat=65,lon_0=-60, resolution='i')
-	norm = mpl.colors.Normalize(vmin=limits[0], vmax=limits[1])
-	pal = plt.get_cmap('binary')
-	X,Y = m(lon,lat)
-
-	# contour (optional)
-	CS2 = m.contour( X, Y, My_var, linewidths=0.5, levels=contours, colors='grey', alpha=0.4 )
-	##plt.clabel(CS2, CS2.levels, inline=True, fmt='%.0f', fontsize=3)  
-
-	return m, X, Y
-
 ################################################################################################################################
 def CREG_MSK( zCASE ) :
 ################################################################################################################################
@@ -1286,102 +1141,7 @@ def CREG_INIT( zCONFIG, zCASE ) :
 	return My_varTinit, My_varSinit
 
 ################################################################################################################################
-def Atl_plot( lon, lat, tab, contours, limits, myticks=None, name=None, zmy_cblab=None, zmy_cmap=None, filename='test.png', zvar=None, zarea=None, data_ref=False ) :
-################################################################################################################################
-	#
-	plt.rcParams['text.usetex']=False
-	plt.rcParams['font.family']='serif'
-	plt.rcParams['axes.unicode_minus'] = False
-	plt.rcParams['contour.negative_linestyle'] = 'solid'
-	#
-	if zarea == 'labsea': # Focus on Labrador Sea
-		m = Basemap(width=1400000,height=1600000,lat_1=50.,lat_2=65,lon_0=-50,lat_0=59.5,projection='aea',resolution='i')
-		############################################################################################################
-		bx_LABK1={'name':'K1'  ,'lon_min':-52.4,'lon_max':-52.4,'lat_min':56.3,'lat_max':56.3}
-		All_box=[bx_LABK1]
-		for box in All_box:
-			lats = [box['lat_min'],box['lat_max']]
-			lons = [box['lon_min'],box['lon_max']]
-			x,y = m(lons,lats)
-			m.scatter(x,y,1,marker='o', color='r')
-		############################################################################################################
-	elif zarea == 'GulfS': # Focus on Gulf Stream area
-		my_area = {'lonmin':-80., 'lonmax':-40.,'latmin':30.,'latmax':50.}
-		m = Basemap(projection='cyl',llcrnrlat=my_area['latmin'],urcrnrlat=my_area['latmax'],\
-					     llcrnrlon=my_area['lonmin'],urcrnrlon=my_area['lonmax'],resolution='i')
-	elif zarea == 'irmsea': # Focus on Irminger Sea
-		m = Basemap(width=1800000,height=1600000,lat_1=50.,lat_2=65,lon_0=-30,lat_0=59.5,projection='aea',resolution='i')
-		############################################################################################################
-		bx_ISB={'name':'ISB'  ,'lon_min':-37.,'lon_max':-37.,'lat_min':61.,'lat_max':61.}
-		All_box=[bx_ISB]
-		for box in All_box:
-			lats = [box['lat_min'],box['lat_max']]
-			lons = [box['lon_min'],box['lon_max']]
-			x,y = m(lons,lats)
-			m.scatter(x,y,1,marker='o', color='r')
-		############################################################################################################
-	elif zarea == 'ginsea': # Focus on GIN Seas
-		m = Basemap(width=1400000,height=1600000,lat_1=50.,lat_2=65,lon_0=0,lat_0=74.,projection='aea',resolution='i')
-	else: # Focus on North Atlantic sector
-		#m = Basemap(projection='cyl',llcrnrlat=24,urcrnrlat=65,llcrnrlon=-83,urcrnrlon=-15.,resolution='i')
-		#m = Basemap(projection='ortho',lat_0=45.,lon_0=-45.,resolution='i', height=1000000.)
-		 m = Basemap(width=6100000,height=5000000,lat_1=30.,lat_2=70,lon_0=-45,lat_0=45,projection='aea',resolution='i')
-		 #m = Basemap(width=2700000,height=2000000,lat_1=50.,lat_2=70,lon_0=-40,lat_0=60,projection='aea',resolution='i')
-	
-	if zvar == 'sivolu' or zvar == 'siconc'  :
-		zfontsize=4.
-	else:
-		zfontsize=6.
-	
-	if zvar != 'Bathy' :
-		m.drawparallels(npy.arange(-90.,91.,2.),labels=[True,False,False,False], size=zfontsize, linewidth=0.3, color='grey',alpha=0.70 )
-		m.drawmeridians(npy.arange(-180.,181.,5.),labels=[False,False,False,True], size=zfontsize, latmax=90.,linewidth=0.3, color='grey',alpha=0.70 )
-		m.fillcontinents(color='grey',lake_color='white')
-	
-	norm = mpl.colors.Normalize(vmin=limits[0], vmax=limits[1])
-	
-	if zmy_cmap != None :
-		pal = zmy_cmap
-	else:
-		pal = plt.get_cmap('coolwarm')
-	
-	X,Y = m(lon,lat)
-	
-	if zarea == 'GulfS' and zvar == 'votemper' :
-		if data_ref :
-			zlinewidths=1.1   ; zcolor='g'
-		else:	
-			zlinewidths=0.8   ; zcolor='r'
-		C = m.contour( X,Y,tab,linewidths=zlinewidths,levels=[17.], colors=zcolor )
-	else:
-		C = m.contourf( X,Y,tab,contours,cmap=pal,norm=norm,extend='both' )
-		#zlinewidths=0.5   ; zcolor='k'
-		#C2 = m.contour(X,Y,tab,linewidths=zlinewidths,levels=[-75.,-50.,-25.,25.,50.,75.], colors=zcolor )
-		#plt.clabel(C2, C2.levels, inline=True, fmt='%.0f', fontsize=6)
-		#zlinewidths=0.8   ; zcolor='k'
-		#C3 = m.contour(X,Y,tab,linewidths=zlinewidths,levels=[0.], colors=zcolor )
-		#plt.clabel(C3, C3.levels, inline=True, fmt='%.0f', fontsize=6)
-	
-	
-		# colorbar	
-		if myticks is None:
-			cbar = plt.colorbar(C,format='%.2f',orientation='vertical',shrink=0.8)
-		else:
-			if zvar == 'votemper' or zvar == 'vosaline' or zvar == 'sivolu' :
-				cbar = plt.colorbar(C,format='%.2f',orientation='vertical',shrink=0.8,drawedges=True)
-			else:
-				cbar = plt.colorbar(C,format='%.0f',orientation='vertical',shrink=0.8,drawedges=True)
-	
-			cbar.set_label(zmy_cblab,fontsize=zfontsize)
-			cl = plt.getp(cbar.ax, 'ymajorticklabels')
-			plt.setp(cl, fontsize=zfontsize)
-	
-	plt.title(name,fontsize=zfontsize)
-	
-	return 
-
-################################################################################################################################
-def Atl_Bat( ztype='isol1000', zarea=None ) :
+def Iso_Bat( ztype='isol1000', zarea='arctic' ) :
 ################################################################################################################################
 
 	locpath='./'
@@ -1427,8 +1187,11 @@ def Atl_Bat( ztype='isol1000', zarea=None ) :
 	plt.rcParams['axes.unicode_minus'] = False
 	plt.rcParams['contour.negative_linestyle'] = 'solid'
 	#
-	zcolorbat='grey'  ;  zalpha=0.7
-	if zarea == 'labsea': # Focus on Labrador Sea
+	zcolorbat='grey'  ;  zalpha=0.4
+
+	if zarea == 'arctic': # Focus on Arctic
+		m = Basemap(projection='npstere',boundinglat=65,lon_0=-60, resolution='i')
+	elif zarea == 'labsea': # Focus on Labrador Sea
 		m = Basemap(width=1400000,height=1600000,lat_1=50.,lat_2=65,lon_0=-50,lat_0=59.5,projection='aea',resolution='i')
 	elif zarea == 'GulfS': # Focus on Gulf Stream area
 		my_area = {'lonmin':-80., 'lonmax':-40.,'latmin':30.,'latmax':50.}
@@ -1448,7 +1211,6 @@ def Atl_Bat( ztype='isol1000', zarea=None ) :
 	elif zarea == 'ginsea': # Focus on GIN Seas
 		m = Basemap(width=1400000,height=1600000,lat_1=50.,lat_2=65,lon_0=0,lat_0=74.,projection='aea',resolution='i')
 	else: # Focus on North Atlantic sector
-		#m = Basemap(projection='cyl',llcrnrlat=20,urcrnrlat=60,llcrnrlon=-90,urcrnrlon=0,resolution='i')
 		m = Basemap(width=6100000,height=5000000,lat_1=30.,lat_2=70,lon_0=-45,lat_0=45,projection='aea',resolution='i')
 		zcolorbat='grey'   ;  zalpha=0.7
 
@@ -1458,7 +1220,140 @@ def Atl_Bat( ztype='isol1000', zarea=None ) :
 
 	# contour (optional)
 	CS2 = m.contour( X, Y, My_var.values, linewidths=0.5,levels=contours, colors=zcolorbat, alpha=zalpha )
-	plt.clabel(CS2, CS2.levels, inline=True, fmt='%.0f', fontsize=4)
+	plt.clabel(CS2, CS2.levels, inline=True, fmt='%.0f', fontsize=3)
 
 	return m, X, Y
+
+################################################################################################################################
+def Proj_plot( lon, lat, tab, contours, limits, myticks=None, name=None, zmy_cblab=None, zmy_cmap=None, filename='test.png', zvar=None, zarea='arctic', data_ref=False ) :
+################################################################################################################################
+	#
+	plt.rcParams['text.usetex']=False
+	plt.rcParams['font.family']='serif'
+	plt.rcParams['axes.unicode_minus'] = False
+	plt.rcParams['contour.negative_linestyle'] = 'solid'
+	#
+	############################################################################################################
+	if zarea == 'arctic': # Focus on Arctic basin
+		m = Basemap(projection='npstere',boundinglat=65,lon_0=-60, resolution='i')
+	############################################################################################################
+	elif zarea == 'labsea': # Focus on Gulf Stream area
+		m = Basemap(width=1400000,height=1600000,lat_1=50.,lat_2=65,lon_0=-50,lat_0=59.5,projection='aea',resolution='i')
+		bx_LABK1={'name':'K1'  ,'lon_min':-52.4,'lon_max':-52.4,'lat_min':56.3,'lat_max':56.3}
+		All_box=[bx_LABK1]
+		for box in All_box:
+			lats = [box['lat_min'],box['lat_max']]
+			lons = [box['lon_min'],box['lon_max']]
+			x,y = m(lons,lats)
+			m.scatter(x,y,1,marker='o', color='r')
+	############################################################################################################
+	elif zarea == 'GulfS': # Focus on Gulf Stream area
+		my_area = {'lonmin':-80., 'lonmax':-40.,'latmin':30.,'latmax':50.}
+		m = Basemap(projection='cyl',llcrnrlat=my_area['latmin'],urcrnrlat=my_area['latmax'],\
+					     llcrnrlon=my_area['lonmin'],urcrnrlon=my_area['lonmax'],resolution='i')
+	############################################################################################################
+	elif zarea == 'irmsea': # Focus on Irminger Sea
+		m = Basemap(width=1800000,height=1600000,lat_1=50.,lat_2=65,lon_0=-30,lat_0=59.5,projection='aea',resolution='i')
+		bx_ISB={'name':'ISB'  ,'lon_min':-37.,'lon_max':-37.,'lat_min':61.,'lat_max':61.}
+		All_box=[bx_ISB]
+		for box in All_box:
+			lats = [box['lat_min'],box['lat_max']]
+			lons = [box['lon_min'],box['lon_max']]
+			x,y = m(lons,lats)
+			m.scatter(x,y,1,marker='o', color='r')
+	############################################################################################################
+	elif zarea == 'ginsea': # Focus on GIN Seas
+		m = Basemap(width=1400000,height=1600000,lat_1=50.,lat_2=65,lon_0=0,lat_0=74.,projection='aea',resolution='i')
+	############################################################################################################
+	else: # Focus on North Atlantic sector
+		 m = Basemap(width=6100000,height=5000000,lat_1=30.,lat_2=70,lon_0=-45,lat_0=45,projection='aea',resolution='i')
+	
+	if zvar == 'sivolu' or zvar == 'siconc'  or zvar == 'ssh' or zvar == 'FWC' :
+		zfontsize=4.
+	else:
+		zfontsize=6.
+	
+	if zvar != 'Bathy' :
+		if zarea == 'arctic': 
+			m.drawparallels(npy.arange(-90.,91.,5.),labels=[False,False,False,False], size=zfontsize, linewidth=0.3)
+			m.drawmeridians(npy.arange(-180.,181.,20.),labels=[True,False,False,True], size=zfontsize, latmax=90.,linewidth=0.3)
+		else :
+			m.drawparallels(npy.arange(-90.,91.,2.),labels=[True,False,False,False], size=zfontsize, linewidth=0.3, color='grey',alpha=0.70 )
+			m.drawmeridians(npy.arange(-180.,181.,5.),labels=[False,False,False,True], size=zfontsize, latmax=90.,linewidth=0.3, color='grey',alpha=0.70 )
+		m.fillcontinents(color='grey',lake_color='white')
+	
+	norm = mpl.colors.Normalize(vmin=limits[0], vmax=limits[1])
+	
+	if zmy_cmap != None :
+		pal = zmy_cmap
+	else:
+		pal = plt.get_cmap('coolwarm')
+	
+	X,Y = m(lon,lat)
+	
+	if zarea == 'GulfS' and zvar == 'votemper' :
+		if data_ref :
+			zlinewidths=1.1   ; zcolor='g'
+		else:	
+			zlinewidths=0.8   ; zcolor='r'
+		C = m.contour( X,Y,tab,linewidths=zlinewidths,levels=[17.], colors=zcolor )
+	else:
+		C = m.contourf( X,Y,tab,contours,cmap=pal,norm=norm,extend='both' )
+		if zvar == 'ssh' :
+			CS=m.contour(X, Y, tab, linewidths=0.5, levels=npy.arange(limits[0],limits[1],5.), colors='k', alpha=0.4)
+
+		############################################################################################################
+		############################################################################################################
+		moorplot=1
+		if moorplot == 1 :
+			bx_ARCB={'name':'B'  ,'lon_min':-150.,'lon_max':-150.,'lat_min':78.,'lat_max':78.}
+			bx_ARCM={'name':'M1' ,'lon_min': 125.,'lon_max': 125.,'lat_min':78.,'lat_max':78.}
+			bx_EURA={'name':'EUR','lon_min':  60.,'lon_max':  60.,'lat_min':85.,'lat_max':85.}
+
+			All_box=[bx_ARCB,bx_EURA]
+			for box in All_box:
+				lats = [box['lat_min'],box['lat_max']]
+				lons = [box['lon_min'],box['lon_max']]
+				x,y = m(lons,lats)
+				m.scatter(x,y,1,marker='o', color='r')
+				#m.plot(x,y,linewidth=2, color='g')
+		############################################################################################################
+		############################################################################################################
+	
+		# colorbar	
+		if myticks is None:
+			cbar = plt.colorbar(C,format='%.2f',orientation='vertical',shrink=0.8)
+		else:
+			if zvar == 'votemper' or zvar == 'vosaline' or zvar == 'sivolu' or zvar == 'sobarstf' :
+				cbar = plt.colorbar(C,format='%.2f',orientation='vertical',shrink=0.8,drawedges=True)
+			elif zvar == 'MLTSS' :
+				cbar = plt.colorbar(C,ticks=myticks,format='%.0f',orientation='vertical',shrink=0.8,drawedges=True)
+			else:
+				cbar = plt.colorbar(C,format='%.0f',orientation='vertical',shrink=0.8,drawedges=True)
+	
+			cbar.set_label(zmy_cblab,fontsize=zfontsize)
+			cl = plt.getp(cbar.ax, 'ymajorticklabels')
+			plt.setp(cl, fontsize=zfontsize)
+	
+	plt.title(name,fontsize=zfontsize)
+	
+	return 
+
+################################################################################################################################
+def simple_maps( zlon, zlat, zCONF, zCASE, zMy_var1, zMyvar, zclimyear, slev=None, seas='', zfram=111, plot_obs=0, ano=0 ) :
+################################################################################################################################
+
+	m_alpha=1.
+	
+	# Do the plot 
+	print() 
+	print('                    plot '+zMyvar+' field')
+	print() 
+	
+	plt.subplot(zfram)
+	contours, limits, myticks, ztitle, zfile_ext, my_cblab, my_cmap, m_alpha = SET_ARC_CNT( zCASE, zclimyear, seas, zMyvar, zslev=slev, zplot_obs=plot_obs, zdiff=ano )
+	zoutmap = Iso_Bat( ztype='isol1000' )
+	Proj_plot( zlon, zlat, zMy_var1[:,:]*m_alpha, contours, limits, myticks, name=ztitle, zmy_cblab=my_cblab, zmy_cmap=my_cmap, zvar=zMyvar )
+
+	return
 

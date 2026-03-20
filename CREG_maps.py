@@ -4,7 +4,7 @@ import sys
 import matplotlib
 matplotlib.use('Agg')
 import numpy as npy
-import CREG_maps_func
+from CREG_maps_func import *
 from checkfile import *
 import matplotlib.pylab as plt
 import matplotlib as mpl
@@ -235,7 +235,7 @@ while c_year <= e_year:
         c_year = c_year + 1 
 
 # Read the initial state to compare with
-if AW_Tmax_maps or FWC_maps or TSD_maps or ATL_maps : My_varTinit, My_varSinit = CREG_maps_func.CREG_INIT( CONFIG, CASE )
+if AW_Tmax_maps or FWC_maps or TSD_maps or ATL_maps : My_varTinit, My_varSinit = CREG_INIT( CONFIG, CASE )
 
 ###########################################
 # CALL FUNCTIONS TO PERFORM DIAGS AND PLOTS 
@@ -245,38 +245,38 @@ if AW_Tmax_maps or FWC_maps or TSD_maps or ATL_maps : My_varTinit, My_varSinit =
 
 # To plot the mean T/S in the ML
 if MTS_maps : 
-	CREG_maps_func.MTS_maps( lon, lat, CONFIG, CASE, My_var1SeasM, My_var1SeasS, My_varTSM, My_varTSS, gdepw_0, ze3, climyear, data_dir, grid_dir, NCDF_OUT )
+	MTS_maps( lon, lat, CONFIG, CASE, My_var1SeasM, My_var1SeasS, My_varTSM, My_varTSS, gdepw_0, ze3, climyear, data_dir, grid_dir, NCDF_OUT )
 
 # To plot the Atlantic Water maximum temperature as the associated depth
 # Use the salinity criteria S < 33.5
 if AW_Tmax_maps : 
         zMyvar='votemper'
-        CREG_maps_func.AWTmax_maps( lon, lat, My_var1T, My_var1S, gdept1d, zMyvar, CONFIG, CASE, climyear, NCDF_OUT )
+        AWT_maps( lon, lat, My_var1T, My_var1S, gdept1d, zMyvar, CONFIG, CASE, climyear, NCDF_OUT )
 
 # To plot SSH and FWC (based on a salinity ref of 34.8 PSU)
 if FWC_maps : 
-        CREG_maps_func.FWC_maps( lon, lat, My_var1S, My_varSinit, My_var1ssh, CONFIG, CASE, climyear, ze3, tmask, NCDF_OUT )
+        FWC_maps( lon, lat, My_var1S, My_varSinit, My_var1ssh, CONFIG, CASE, climyear, ze3, tmask, NCDF_OUT )
 
 # To plot ICE variables
 if ICE_maps : 
-        CREG_maps_func.ICE_maps( lon, lat, My_var1, My_var1frld_SeasM, My_var1frld_SeasS, CONFIG, CASE, climyear, s_year, c_year, NCDF_OUT )
+        ICE_maps( lon, lat, My_var1, My_var1frld_SeasM, My_var1frld_SeasS, CONFIG, CASE, climyear, s_year, c_year, NCDF_OUT )
 
 # To plot MLD variable
 if MLD_maps : 
-        CREG_maps_func.MLD_maps( lon, lat, My_var1SeasM, My_var1SeasS, CONFIG, CASE, climyear, NCDF_OUT )
+        MLD_maps( lon, lat, My_var1SeasM, My_var1SeasS, CONFIG, CASE, climyear, NCDF_OUT )
 
 # To plot DYN variables PSI and EKE 
 if DYN_maps : 
-        CREG_maps_func.DYN_maps( lon, lat, My_var1, My_var1SeasM, My_var1SeasS, gdept1d, CONFIG, CASE, climyear, s_year, NCDF_OUT )
+        DYN_maps( lon, lat, My_var1, My_var1SeasM, My_var1SeasS, gdept1d, CONFIG, CASE, climyear, s_year, NCDF_OUT )
 
 # To plot T/S drift at the surface, ~100m, ~200m & ~300m
 if TSD_maps : 
-        CREG_maps_func.TSD_maps( lon, lat, My_var1T, My_var1S, My_varTinit, My_varSinit, gdept1d, CONFIG, CASE, climyear, NCDF_OUT )
+        TSD_maps( lon, lat, My_var1T, My_var1S, My_varTinit, My_varSinit, gdept1d, CONFIG, CASE, climyear, NCDF_OUT )
 
 # To plot ATL variables such as MLD, SSH in differents areas GIN, LAB, IRM seas 
 if ATL_maps : 
-        CREG_maps_func.ATL_maps( lon, lat, My_var1SeasM, Mdata_read, My_var1T, My_varTinit, My_var1ssh, gdept1d, CONFIG, CASE, climyear, s_year, e_year, NCDF_OUT )
+        ATL_maps( lon, lat, My_var1SeasM, Mdata_read, My_var1T, My_varTinit, My_var1ssh, gdept1d, CONFIG, CASE, climyear, s_year, e_year, NCDF_OUT )
 
 # To plot AMOC and Time series 
 if MOC_maps : 
-        CREG_maps_func.MOC_maps( lon, lat, My_MOC, gdept1d, CONFIG, CASE, climyear, s_year, e_year, NCDF_OUT )
+        MOC_maps( lon, lat, My_MOC, gdept1d, CONFIG, CASE, climyear, s_year, e_year, NCDF_OUT )

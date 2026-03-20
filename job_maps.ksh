@@ -31,6 +31,7 @@ cd ${WPDIR}/MONARC/MAPS
 
 cp ${INITDIR}/MAPS/CREG_maps_cont.py .
 cp ${INITDIR}/MAPS/CREG_maps_func.py .
+cp ${INITDIR}/MAPS/CREG_maps_obse.py .
 cp ${DMONTOOLS}/checkfile.py .
 
 getfiles=XXGETFILEXX
