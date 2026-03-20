@@ -58,7 +58,7 @@ print()
 locpath=grid_dir
 locfile=CONFCASE+'_mask.nc'
 if chkfile(locpath+locfile,zstop=True,zscript=sys.argv[0]) :
-    ds_grd=xr.open_dataset(locpath+locfile)[['glamt','gphit','tmask','fmask']]
+    ds_grd = xr.open_dataset(locpath+locfile)[['glamt','gphit','tmask','fmask']]
     lon = ds_grd['glamt'].squeeze()
     lat = ds_grd['gphit'].squeeze()
     tmask = ds_grd['tmask'].isel(time_counter=0)
@@ -69,14 +69,14 @@ if chkfile(locpath+locfile,zstop=True,zscript=sys.argv[0]) :
 locpath=grid_dir
 locfile=CONFCASE+'_mesh_hgr.nc'
 if chkfile(locpath+locfile,zstop=True,zscript=sys.argv[0]) :
-    ds_mes=xr.open_dataset(locpath+locfile)
+    ds_mes = xr.open_dataset(locpath+locfile)[['e1t','e2t']]
     e1t = ds_mes['e1t'].squeeze()
     e2t = ds_mes['e2t'].squeeze()
 
 locpath=grid_dir
 locfile=CONFCASE+'_mesh_zgr.nc'
 if chkfile(locpath+locfile,zstop=True,zscript=sys.argv[0]) :
-    ds_zgr=xr.open_dataset(locpath+locfile)[['e3t_0','gdept_1d','gdepw_0']]
+    ds_zgr = xr.open_dataset(locpath+locfile)[['e3t_0','gdept_1d','gdepw_0']]
     ze3 = ds_zgr['e3t_0'].squeeze()
     ze3 = ze3.rename({'nav_lev':'z'})
     gdept1d = ds_zgr['gdept_1d'].squeeze()
