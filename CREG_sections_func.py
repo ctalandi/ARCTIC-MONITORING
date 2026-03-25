@@ -6,7 +6,6 @@ import matplotlib as mpl
 import scipy.io as sio
 import subprocess
 from checkfile import *
-from netCDF4 import Dataset
 import xarray as xr 
 from datetime import datetime
 

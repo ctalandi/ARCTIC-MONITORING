@@ -4,14 +4,9 @@ import sys
 import matplotlib
 matplotlib.use('Agg')
 import numpy as npy
-import matplotlib.pylab as plt
-from netCDF4 import Dataset
-import matplotlib as mpl
-import scipy.io as sio
 from checkfile import *
 from CREG_sections_func import *
 import subprocess
-from datetime import datetime
 import xarray as xr 
 from fsspec.implementations.local import LocalFileSystem
 fs = LocalFileSystem()
