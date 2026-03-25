@@ -30,11 +30,7 @@ chkdir ${OUTNCDF}
 cd ${WPDIR}/MONARC/SECTIONS
 
 cp ${INITDIR}/SECTIONS/CREG_sections_func.py .
-
-cp ${DMONTOOLS}/MONARC/checkfile.py .
-cp ${DMONTOOLS}/MONARC/PyRaf/PyRaf_plots.py .
-cp ${DMONTOOLS}/MONARC/PyRaf/PyRaf_colormaps.py .
-cp ${DMONTOOLS}/MONARC/PyRaf/PyRaf.py .
+cp ${DMONTOOLS}/checkfile.py .
 
 
 getfiles=XXGETFILEXX
@@ -91,8 +87,8 @@ pwd
 
 ls -lrt 
 
-mv *LGTS*.pdf ${INITDIR}/INTQUANT/FIGS-${CONFIG}/${CONFIG}-${CASE}/.
-mv ${CONFCASE}*y${S_Y}*.png ${CONFCASE}*y${S_Y}*.pdf ${OUTFIGS}/.
+mv *LGTS*.png ${INITDIR}/INTQUANT/FIGS-${CONFIG}/${CONFIG}-${CASE}/.
+mv ${CONFCASE}*y${S_Y}*.png ${OUTFIGS}/.
 
 mv ./NETCDF/${CONFCASE}*.nc ${OUTNCDF}/.
 
