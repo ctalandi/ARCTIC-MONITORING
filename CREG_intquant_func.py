@@ -2,6 +2,7 @@ import numpy as npy
 import scipy.io as sio
 from checkfile import *
 import xarray as xr
+import pandas as pd 
 from fsspec.implementations.local import LocalFileSystem
 fs = LocalFileSystem()
 
@@ -27,28 +28,27 @@ def READ_OBS_LGTS_DATA(CONFIG,lgTS_ys,lgTS_ye) :
         elif CONFIG == 'CREG12.L75' :
         	locfile = 'PIOMAS_icevol_maskedBeringSea_interpCREG12.L75_1-12_1979-2020.nc'
         if chkfile(locpath+locfile) :
-		ds_fld = xr.open_dataset(locpath+locfile)
-        	LongTS_OBS_icevol = ds_fld['icevol-BS']
+                ds_fld = xr.open_dataset(locpath+locfile)
+                LongTS_OBS_icevol = ds_fld['icevol-BS']
         else:
-        	LongTS_OBS_icevol = npy.arange((2020-1979+1)*12)+npy.nan
+                LongTS_OBS_icevol = npy.arange((2020-1979+1)*12)+npy.nan
         # Set the time axis for PIOMAS observations
         lgts_year=1979    ;      start = 1
         while  lgts_year <= 2020  :
                 y_years=npy.tile(lgts_year,12)+t_months
                 if start == 1:
-                	time_axis_PIO=y_years
-                	start=0
+                        time_axis_PIO=y_years
+                        start=0
                 else:
-                	time_axis_PIO=npy.append(time_axis_PIO,y_years)
+                        time_axis_PIO=npy.append(time_axis_PIO,y_years)
                 lgts_year+=1
-
 
         # Ice extent obs
         # Data start in November 1978, so there is a 2 months shift
         locpath='./'
         locfile='NSIDC_ice_area_and_extent_maskBeringSea_fullPoleGap.nc'
         if chkfile(locpath+locfile) :
-		ds_fld = xr.open_dataset(locpath+locfile)
+                ds_fld = xr.open_dataset(locpath+locfile)
                 LongTS_OBS_iceext = ds_fld['ice_extent'][2::]
                 LongTS_OBS_iceare = ds_fld['ice_area'][2::]
         else:
@@ -65,29 +65,32 @@ def READ_OBS_LGTS_DATA(CONFIG,lgTS_ys,lgTS_ye) :
                        time_axis_NSIDC=npy.append(time_axis_NSIDC,y_years)
                lgts_year+=1
 
+        # Return also the September ice extent 
+        LongTS_OBS_Septiceext = ds_fld['ice_extent'].where( ds_fld.month == 9 , drop=True)
+        LongTS_OBS_Septiceext['time_counter'] = pd.date_range(start='1979-01',end='2015-12',freq='YS') + pd.DateOffset(days=180)
 
         # Ice drift from IABP
         # Data start in 18/01/1979, with 784 Buoys and 2 smapling / day : 0 & 12 
         locpath='./'
         locfile='ice_drift_BG_1979-2011.mat'
         if chkfile(locpath+locfile) :
-        	IABPObservations_read = sio.loadmat(locpath+locfile,squeeze_me=True)
-        	IABPObservations = npy.array(IABPObservations_read['time_series'])
+                IABPObservations_read = sio.loadmat(locpath+locfile,squeeze_me=True)
+                IABPObservations = npy.array(IABPObservations_read['time_series'])
         else:
-        	IABPObservations = npy.arange(396)+npy.nan
+                IABPObservations = npy.arange(396)+npy.nan
         
         # Set the time axis for observations
         lgts_year=1979    ;      start = 1
         while  lgts_year <= 2011  :
-        	y_years=npy.tile(lgts_year,12)+t_months
-        	if start == 1:
-        	        time_axis_obs=y_years
-        	        start=0
-        	else:
-        	        time_axis_obs=npy.append(time_axis_obs,y_years)
-        	lgts_year+=1
+                y_years=npy.tile(lgts_year,12)+t_months
+                if start == 1:
+                        time_axis_obs=y_years
+                        start=0
+                else:
+                        time_axis_obs=npy.append(time_axis_obs,y_years)
+                lgts_year+=1
         
-        return LongTS_OBS_icevol, LongTS_OBS_iceext, LongTS_OBS_iceare, IABPObservations, time_axis_obs, time_axis_PIO, time_axis_NSIDC
+        return LongTS_OBS_icevol, LongTS_OBS_iceext, LongTS_OBS_Septiceext, LongTS_OBS_iceare, IABPObservations, time_axis_obs, time_axis_PIO, time_axis_NSIDC
 
 def CAL_ICE_VOL_AREA(CONFIG,CASE,lgts_year,data_dir,xiosfreq,dom_area,tmask2D) :
 
@@ -119,7 +122,7 @@ def READ_OBS_LGTS_CRFFWC(lgTS_ys,lgTS_ye) :
         locpath='./'
         locfile = 'BeaufortGyreFWC-Obs-Proshutinsky_GRL2018_y2003-2017.nc'
         if chkfile(locpath+locfile) :
-		ds_fld = xr.open_dataset(locpath+locfile)
+                ds_fld = xr.open_dataset(locpath+locfile)
                 LongTS_OBS_FWC = ds_fld['CRFBGFWC_mean']
                 time_axis_FWC = ds_fld['time_obs']
         else:
@@ -136,11 +139,11 @@ def READ_OBS_LGTS_CRFEkm(lgTS_ys,lgTS_ye) :
         locpath='./'
         locfile = 'ArcticEkmanPumping_MonthlyMean.nc'
         if chkfile(locpath+locfile) :
-		ds_fld = xr.open_dataset(locpath+locfile)
-        	LongTS_OBS_Ekm = npy.squeeze(field.variables['weMooringMonth'])
-        	time_axis_Ekm = npy.squeeze(field.variables['time'])
+                ds_fld = xr.open_dataset(locpath+locfile)
+                LongTS_OBS_Ekm = ds_fld['weMooringMonth'].squeeze()
+                time_axis_Ekm = ds_fld['time'].squeeze()
         else:
-        	LongTS_OBS_Ekm = npy.arange((2015-2003+1))+npy.nan
-        	time_axis_Ekm = npy.arange((2015-2003+1))+npy.nan
+                LongTS_OBS_Ekm = npy.arange((2015-2003+1))+npy.nan
+                time_axis_Ekm = npy.arange((2015-2003+1))+npy.nan
         
         return  LongTS_OBS_Ekm, time_axis_Ekm

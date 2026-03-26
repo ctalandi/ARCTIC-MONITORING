@@ -10,6 +10,7 @@ import sys
 from checkfile import *
 from CREG_intquant_func import *
 import xarray as xr
+import pandas as pd 
 from datetime import datetime
 from fsspec.implementations.local import LocalFileSystem
 fs = LocalFileSystem()
@@ -198,7 +199,7 @@ Sref=34.80*1.004715
 ########################################
 
 # Define a mask over this area on T-points
-tmskBFG=npy.ones((tmask.shape[1],tmask.shape[2]))
+tmskBFG = npy.ones((tmask.shape[1],tmask.shape[2]))
 tmskBFG[npy.where(lon[:,:] > -130.)]=0.
 tmskBFG[npy.where(lon[:,:] < -170.)]=0.
 tmskBFG[npy.where(lat[:,:] >  80.5)]=0.
@@ -206,7 +207,7 @@ tmskBFG[npy.where(lat[:,:] <  70.5)]=0.
 areaTBG = areaT * tmskBFG
 
 # Still the same area but now for the vorticity field or F-point
-fmskBFG=npy.ones((fmask.shape[1],fmask.shape[2]))
+fmskBFG = npy.ones((fmask.shape[1],fmask.shape[2]))
 fmskBFG[npy.where(lon[:,:] > -130.)]=0.
 fmskBFG[npy.where(lon[:,:] < -170.)]=0.
 fmskBFG[npy.where(lat[:,:] >  80.5)]=0.
@@ -373,8 +374,24 @@ if lgTS_ye-lgTS_ys+1 > 1 :
 
 		lgts_year+=1
 
+	# Get the model September sea-ice extent 
+	#######################################################################################################
+	# Define a proper time axis in the middle of each month 
+	pd_time = pd.date_range(start=str(lgTS_ys)+'-01',end=str(lgTS_ye)+'-12',freq='MS')+ pd.DateOffset(days=14)
+
+	# Then a Dataset with this monhtly time axis as the Sea-ice extent time-series
+	ds_ice = xr.Dataset()
+	ds_ice['time'] = ( ('time'), pd_time )
+	ds_ice['LongTS_sice_ext'] = ( ('time'), LongTS_sice_ext )
+	ds_ice = ds_ice.set_coords(['time'])
+
+	# Finally, define a Datarray where to store the September sea-ice extent 
+	Sept_sice_ext =  ds_ice['LongTS_sice_ext'].where( ds_ice.time.dt.month == 9, drop = True )
+	yearly_time = pd.date_range(start=str(lgTS_ys),end=str(lgTS_ye),freq='YS') + pd.DateOffset(days=180)
+	Sept_sice_ext['time'] =  yearly_time 
+
 	# Read observations DATA from PIOMAS, NSIDC and IABP
-	LongTS_OBS_icevol, LongTS_OBS_iceext, LongTS_OBS_iceare, IABPObservations, time_axis_obs, time_axis_PIO, time_axis_NSIDC = READ_OBS_LGTS_DATA(CONFIG,lgTS_ys,lgTS_ye)
+	LongTS_OBS_icevol, LongTS_OBS_iceext, LongTS_OBS_Septiceext, LongTS_OBS_iceare, IABPObservations, time_axis_obs, time_axis_PIO, time_axis_NSIDC = READ_OBS_LGTS_DATA(CONFIG,lgTS_ys,lgTS_ye)
 	# Read observations DATA from Proshutinsky et al. GRL2018
 	LongTS_OBS_CRFFWC, time_axis_CRFFWC = READ_OBS_LGTS_CRFFWC(lgTS_ys,lgTS_ye)
 	# Read observations DATA from Gianluca et al. JPO2017
@@ -480,35 +497,32 @@ if lgTS_ye-lgTS_ys+1 > 1 :
 	plt.grid(True, linestyle='--', which='both', color='grey', alpha=0.50)
 	plt.ylabel('Ice extent \n'+r'(x$10^6$ $km^{2}$)',size=6)
 	
-	# Mean Ice drift 
-	################
+	# September Ice extent 
+	######################
 	ax=plt.subplot(xwind+4)
 	plt.title(' Sea-Ice drift',size=9)
-	plt.plot(time_axis, LongTS_VEICE*100 , 'k', label='CRF box' , linewidth=0.7 )
-	plt.plot(time_axis_obs, IABPObservations*100 , 'g', label='Obs.', linewidth=0.7  )
-	plt.text(lgTS_ye+1.,15.   ,str(npy.round(npy.nanmean(LongTS_VEICE)*100. ,decimals=1)),color='k',size=8)
-	plt.text(2011+1,1.  ,str(npy.round(npy.nanmean(IABPObservations)*100. ,decimals=1)),color='g',size=8)
-	plt.xlim([lgTS_ys-1.,2018.])
-	plt.ylim([0,20])
-	plt.xticks(full_newlocsx,full_newlabelsx,size=5)
+	(Sept_sice_ext*1e-12).plot(color='k', linewidth=0.7 )
+	(LongTS_OBS_Septiceext*1e-12).plot(color='g', linewidth=0.7 )
+	#plt.plot(time_axis_obs, IABPObservations*100 , 'g', label='Obs.', linewidth=0.7  )
+	plt.ylim([3,8])
 	plt.setp(ax.get_xticklabels(),rotation=90)
 	plt.yticks(size=6)
 	plt.grid(True, linestyle='--', which='both', color='grey', alpha=0.50)
-	plt.ylabel('Ice drift '+r'(cm $s^{-1}$)',size=7)
+	plt.ylabel('September Ice extent \n '+r'(x$10^6$ $km^{2}$)',size=6)
 	
-	plt.legend(loc='upper left',ncol=3)
-	leg = plt.gca().get_legend()
-	ltext = leg.get_texts()
-	plt.setp(ltext, fontsize=5.)
-	plt.tight_layout()
+	#plt.legend(loc='upper left',ncol=3)
+	#leg = plt.gca().get_legend()
+	#ltext = leg.get_texts()
+	#plt.setp(ltext, fontsize=5.)
+	#plt.tight_layout()
 	
-	plt.savefig(CONFIG+'-'+CASE+'_ICEVolExtDrift-LGTS_y'+str(lgTS_ys)+'LASTy.png',dpi=400)
+	plt.savefig(CONFIG+'-'+CASE+'_ICEVolExt-LGTS_y'+str(lgTS_ys)+'LASTy.png',dpi=400)
 	
 	# Plot the mean FWC & Ice drift 
 	###############################
 
 	plt.clf()
-	xwind=210
+	xwind=310
 	# Fresh water content (FWC)
 	###########################
 	ax=plt.subplot(xwind+1)
@@ -538,7 +552,7 @@ if lgTS_ye-lgTS_ys+1 > 1 :
 
 	# Ekman pumping in the CRF box 
 	###############################
-	xwind=211
+	xwind=311
 	ax=plt.subplot(xwind+1)
 	plt.title(CASE+' Ekman pumping \n '+str(lgtsclimyear),size=9)
 	ax.plot(time_axis, LongTS_WEkm*86400.*365. , 'k', label='Model CRF box', linewidth=0.5	)
@@ -553,8 +567,31 @@ if lgTS_ye-lgTS_ys+1 > 1 :
 	ax.legend(loc='upper left',ncol=2)
 
 
+	# Mean Ice drift 
+	################
+	xwind=312
+	ax=plt.subplot(xwind+1)
+	plt.title(' Sea-Ice drift',size=9)
+	plt.plot(time_axis, LongTS_VEICE*100 , 'k', label='CRF box' , linewidth=0.7 )
+	plt.plot(time_axis_obs, IABPObservations*100 , 'g', label='Obs.', linewidth=0.7  )
+	plt.text(lgTS_ye+1.,15.   ,str(npy.round(npy.nanmean(LongTS_VEICE)*100. ,decimals=1)),color='k',size=8)
+	plt.text(2011+1,1.  ,str(npy.round(npy.nanmean(IABPObservations)*100. ,decimals=1)),color='g',size=8)
+	plt.xlim([lgTS_ys-1.,2018.])
+	plt.ylim([0,20])
+	plt.xticks(full_newlocsx,full_newlabelsx,size=5)
+	plt.setp(ax.get_xticklabels(),rotation=90)
+	plt.yticks(size=6)
+	plt.grid(True, linestyle='--', which='both', color='grey', alpha=0.50)
+	plt.ylabel('Ice drift '+r'(cm $s^{-1}$)',size=7)
+	
+	plt.legend(loc='upper left',ncol=3)
+	leg = plt.gca().get_legend()
+	ltext = leg.get_texts()
+	plt.setp(ltext, fontsize=5.)
+
+
 	plt.tight_layout()
-	plt.savefig(CONFIG+'-'+CASE+'_FWC-WEK-LGTS_y'+str(lgTS_ys)+'LASTy.png',dpi=400)
+	plt.savefig(CONFIG+'-'+CASE+'_FWC-WEK-ICEDrift-LGTS_y'+str(lgTS_ys)+'LASTy.png',dpi=400)
 
 	if MassSaltFLX :
 		# Ice salt/mass flux in the CRF box 
@@ -597,7 +634,7 @@ if lgTS_ye-lgTS_ys+1 > 1 :
 		ds_outTS.coords['time_axis_NSIDC']     = (('time_axis_NSIDC')    , time_axis_NSIDC.astype('float32'))
 		ds_outTS.coords['time_axis_PIO']       = (('time_axis_PIO')      , time_axis_PIO.astype('float32'))
 		ds_outTS.coords['time_axis_IABPobs']   = (('time_axis_IABPobs')  , time_axis_obs.astype('float32'))
-		ds_outTS.coords['time_axis_CRFFWCobs'] = (('time_axis_CRFFWCobs'), time_axis_CRFFWC.astype('float32'))
+		ds_outTS.coords['time_axis_CRFFWCobs'] = (('time_axis_CRFFWCobs'), time_axis_CRFFWC.values.astype('float32'))
 
 		# Save diagnotics 
 		ds_outTS['LongTS_ibgvoltot']= (('time_axis'), LongTS_ibgvoltot.astype('float32'))
@@ -621,16 +658,16 @@ if lgTS_ye-lgTS_ys+1 > 1 :
 		ds_outTS['LongTS_WEkm']= (('time_axis'), (LongTS_WEkm*86400.*365.).astype('float32'))
 		ds_outTS['LongTS_WEkm'].attrs['long_name']='Ekman pumping over the CRF box'
 		ds_outTS['LongTS_WEkm'].attrs['units']="m/day"
-		ds_outTS['LongTS_OBS_icevol']= (('time_axis_PIO'   ), LongTS_OBS_icevol.astype('float32')) 
+		ds_outTS['LongTS_OBS_icevol']= (('time_axis_PIO'   ), LongTS_OBS_icevol.values.astype('float32')) 
 		ds_outTS['LongTS_OBS_icevol'].attrs['long_name']='Sea-ice volume from PIOMAS reanalysis'
 		ds_outTS['LongTS_OBS_icevol'].attrs['units']="km3"
-		ds_outTS['LongTS_OBS_iceare']= (('time_axis_NSIDC' ), LongTS_OBS_iceare.astype('float32'))
+		ds_outTS['LongTS_OBS_iceare']= (('time_axis_NSIDC' ), LongTS_OBS_iceare.values.astype('float32'))
 		ds_outTS['LongTS_OBS_iceare'].attrs['long_name']='Sea-ice area from NSIDC '
 		ds_outTS['LongTS_OBS_iceare'].attrs['units']="km2"
-		ds_outTS['LongTS_OBS_iceext']= (('time_axis_NSIDC'), LongTS_OBS_iceext.astype('float32'))
+		ds_outTS['LongTS_OBS_iceext']= (('time_axis_NSIDC'), LongTS_OBS_iceext.values.astype('float32'))
 		ds_outTS['LongTS_OBS_iceext'].attrs['long_name']='Sea-ice extent from NSIDC '
 		ds_outTS['LongTS_OBS_iceext'].attrs['units']="km2"
-		ds_outTS['LongTS_OBS_CRFFWC']= (('time_axis_CRFFWCobs'), LongTS_OBS_CRFFWC.astype('float32'))
+		ds_outTS['LongTS_OBS_CRFFWC']= (('time_axis_CRFFWCobs'), LongTS_OBS_CRFFWC.values.astype('float32'))
 		ds_outTS['LongTS_OBS_CRFFWC'].attrs['long_name']='Freshwater content over the CRF box from Proshutinsky et al. GRL2018 observations'
 		ds_outTS['LongTS_OBS_CRFFWC'].attrs['units']="m/s"
 		ds_outTS['IABPObservations']= (('time_axis_obs'), IABPObservations.astype('float32')) 
