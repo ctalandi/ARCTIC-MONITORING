@@ -131,7 +131,7 @@ def BFG_mapsf( zlon, zlat, zvar_ssh, zbathy, zarea, zCONF, zCASE, zs_year, ze_ye
 	mod_area[:,0] = npy.squeeze(npy.array(Dataset(outname).variables["BGarea"]))
 	mod_maxhlat[:,0] = npy.squeeze(npy.array(Dataset(outname).variables["BGmaxhlat"]))
 	mod_maxhlon[:,0] = npy.squeeze(npy.array(Dataset(outname).variables["BGmaxhlon"]))
-	mod_time[:,0] = npy.arange(s_year,e_year+1,1./12)
+	mod_time[:,0] = npy.arange(zs_year,ze_year+1,1./12)
 	
 	fig, ax = plt.subplots(4,1,figsize=(6,10))
 	ax[0].plot(obs_time,obs_max,"b*-",linewidth=0.6)
