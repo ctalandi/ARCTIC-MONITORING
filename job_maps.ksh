@@ -87,6 +87,7 @@ if [ $getfiles -eq 1 ] ; then
         ln -sf ${OBS_DIR}/OCEAN/MLD_MIMOC_based_monthlyClim_rhocrit0.01.nc .
         ln -sf ${OBS_DIR}/OCEAN/MIMOC_ML_v2.2_PT_S_MLP_Clim.nc .
         ln -sf ${OBS_DIR}/OCEAN/BeaufortGyreFWC-Obs-Proshutinsky_GRL2018_y2003-2017.nc .
+        ln -sf ${OBS_DIR}/OCEAN/BGmask_2003to2014.nc .
 
         ln -sf ${OBS_DIR}/ICE/NSIDC-0051_92585_monthly.nc
 	if  [ ${CONFIG} == 'CREG025.L75'   ]  ; then 
@@ -103,6 +104,7 @@ if [ $getfiles -eq 1 ] ; then
 	# Get all necessary grid files
 	chkdir ${CONFIG}/GRID
 	cd ${CONFIG}/GRID
+	ln -sf ${GRID_DIR}/${BATH_FILE} .
 	if [ ! -f ${CONFCASE}_mesh_hgr.nc ] ; then ln -sf $GRID_DIR/${GRDH_FILE}  ${CONFCASE}_mesh_hgr.nc ; fi 
 	if [ ! -f ${CONFCASE}_mesh_zgr.nc ] ; then ln -sf $GRID_DIR/${GRDZ_FILE}  ${CONFCASE}_mesh_zgr.nc ; fi
 	if [ ! -f ${CONFCASE}_mask.nc ] ; then ln -sf $GRID_DIR/${MASK_FILE} ${CONFCASE}_mask.nc ; fi

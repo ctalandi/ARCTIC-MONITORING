@@ -6,9 +6,6 @@ matplotlib.use('Agg')
 import numpy as npy
 from CREG_maps_func import *
 from checkfile import *
-import matplotlib.pylab as plt
-import matplotlib as mpl
-import subprocess
 from datetime import datetime
 import xarray as xr 
 from fsspec.implementations.local import LocalFileSystem
@@ -41,6 +38,7 @@ TSD_maps=XXTSD_MAPSXX
 ATL_maps=XXATL_MAPSXX
 MOC_maps=XXMOC_MAPSXX
 MTS_maps=XXMTS_MAPSXX
+BFG_maps=XXBFG_MAPSXX
 
 NCDF_OUT=XXNCDFOUTXX
 
@@ -58,20 +56,24 @@ print()
 locpath=grid_dir
 locfile=CONFCASE+'_mask.nc'
 if chkfile(locpath+locfile,zstop=True,zscript=sys.argv[0]) :
-    ds_grd = xr.open_dataset(locpath+locfile)[['glamt','gphit','tmask','fmask']]
-    lon = ds_grd['glamt'].squeeze()
-    lat = ds_grd['gphit'].squeeze()
-    tmask = ds_grd['tmask'].isel(time_counter=0)
+    ds_msk = xr.open_dataset(locpath+locfile)[['tmask','fmask']]
+    tmask = ds_msk['tmask'].isel(time_counter=0)
     tmask = tmask.rename({'nav_lev':'z'}) 
-    fmask = ds_grd['fmask'].isel(time_counter=0)
+    fmask = ds_msk['fmask'].isel(time_counter=0)
     fmask = fmask.rename({'nav_lev':'z'}) 
 
 locpath=grid_dir
-locfile=CONFCASE+'_mesh_hgr.nc'
+locfile=CONFIG+'_domain_cfg.nc'
 if chkfile(locpath+locfile,zstop=True,zscript=sys.argv[0]) :
-    ds_mes = xr.open_dataset(locpath+locfile)[['e1t','e2t']]
-    e1t = ds_mes['e1t'].squeeze()
-    e2t = ds_mes['e2t'].squeeze()
+    ds_grd = xr.open_dataset(locpath+locfile)[['glamt','gphit','bathy_meter','e1t','e2t']]
+    lon = ds_grd['glamt'].squeeze()
+    lat = ds_grd['gphit'].squeeze()
+    bathy = ds_grd['bathy_meter'].squeeze()
+    e1t = ds_grd['e1t'].squeeze()
+    e2t = ds_grd['e2t'].squeeze()
+
+    e1te2t = e1t * e2t * tmask[0,:,:]
+    bathy = bathy * tmask[0,:,:].squeeze()
 
 locpath=grid_dir
 locfile=CONFCASE+'_mesh_zgr.nc'
@@ -82,8 +84,6 @@ if chkfile(locpath+locfile,zstop=True,zscript=sys.argv[0]) :
     gdept1d = ds_zgr['gdept_1d'].squeeze()
     gdepw_0 = ds_zgr['gdepw_0'].squeeze()
     gdepw_0 = gdepw_0.rename({'nav_lev':'z'})
-
-e1te2t = e1t * e2t * tmask[0,:,:]
 
 ########################################
 # Read DATA 
@@ -98,7 +98,7 @@ while c_year <= e_year:
         locpath=data_dir+'/'+str(c_year)+'/'+xiosfreq+'/'
 
         #########################################################################################################################################
-        if FWC_maps or ATL_maps :
+        if FWC_maps or ATL_maps or BFG_maps :
              print('                    Read SSH variable')
 
              # List files to be read
@@ -107,12 +107,23 @@ while c_year <= e_year:
              
              if chkfile(locpath+locfile) :
                 ds_ssh = xr.open_dataset(locpath+locfile, engine="netcdf4")[['ssh']]
-                My_var1ssh = ds_ssh['ssh']
-                My_var1ssh = xr.where( My_var1ssh >= 1e15, 0. , My_var1ssh )
-                My_sshmean1 = (My_var1ssh * e1te2t).sum(dim=['y','x'])/e1te2t.sum(dim=['y','x'])
-                My_var1ssh = My_var1ssh - My_sshmean1
+                var_ssh = ds_ssh['ssh']
+                var_ssh = xr.where( var_ssh >= 1e15, 0. , var_ssh )
+                mean_ssh = (var_ssh * e1te2t).sum(dim=['y','x'])/e1te2t.sum(dim=['y','x'])
+                var_ssh = var_ssh - mean_ssh
                 if c_year == e_year : 
-                        My_var1ssh = xr.where( tmask[0,:,:] < 1, npy.nan, My_var1ssh ).squeeze()
+                        var_ssh = xr.where( tmask[0,:,:] < 1, npy.nan, var_ssh ).squeeze()
+
+             zMyvar='ssh'
+             # List files to be read
+             locfile=CONFCASE+'_y'+str(c_year)+'m*.'+xiosfreq+'_gridT.nc'
+             SSH_files = [f for f in fs.glob(locpath+locfile)]
+             
+             if len(SSH_files) == 12 :
+                ds_SSHdata = xr.open_mfdataset(locpath+locfile, engine="netcdf4", concat_dim=["time_counter"], combine='nested', parallel=True)[[zMyvar]]
+                var_sshini = ds_SSHdata[zMyvar]
+                if c_year == e_year : 
+                        var_sshini = xr.where( tmask[0,:,:] < 1, npy.nan, var_sshini ).squeeze()
 
         #########################################################################################################################################
         if ICE_maps :
@@ -243,6 +254,10 @@ if AW_Tmax_maps or FWC_maps or TSD_maps or ATL_maps : My_varTinit, My_varSinit =
 #------------------------------------------------------------------------------------------------------------------------
 # In the following call the appropriate function depending on the diagnostic
 
+# To plot Beaufort Gyre center based on SSH
+if BFG_maps : 
+        BFG_mapsf( lon, lat, var_sshini, bathy, e1te2t, CONFIG, CASE, s_year, e_year, NCDF_OUT )
+
 # To plot the mean T/S in the ML
 if MTS_maps : 
 	MTS_maps( lon, lat, CONFIG, CASE, My_var1SeasM, My_var1SeasS, My_varTSM, My_varTSS, gdepw_0, ze3, climyear, data_dir, grid_dir, NCDF_OUT )
@@ -255,7 +270,7 @@ if AW_Tmax_maps :
 
 # To plot SSH and FWC (based on a salinity ref of 34.8 PSU)
 if FWC_maps : 
-        FWC_maps( lon, lat, My_var1S, My_varSinit, My_var1ssh, CONFIG, CASE, climyear, ze3, tmask, NCDF_OUT )
+        FWC_maps( lon, lat, My_var1S, My_varSinit, var_ssh, CONFIG, CASE, climyear, ze3, tmask, NCDF_OUT )
 
 # To plot ICE variables
 if ICE_maps : 
@@ -275,7 +290,7 @@ if TSD_maps :
 
 # To plot ATL variables such as MLD, SSH in differents areas GIN, LAB, IRM seas 
 if ATL_maps : 
-        ATL_maps( lon, lat, My_var1SeasM, Mdata_read, My_var1T, My_varTinit, My_var1ssh, gdept1d, CONFIG, CASE, climyear, s_year, e_year, NCDF_OUT )
+        ATL_maps( lon, lat, My_var1SeasM, Mdata_read, My_var1T, My_varTinit, var_ssh, gdept1d, CONFIG, CASE, climyear, s_year, e_year, NCDF_OUT )
 
 # To plot AMOC and Time series 
 if MOC_maps : 
