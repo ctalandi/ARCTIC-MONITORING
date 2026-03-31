@@ -13,6 +13,8 @@ fs = LocalFileSystem()
 
 s_year=XXSYEAXX
 e_year=XXEYEAXX
+lgTS_ys=XXLGTSSXX
+lgTS_ye=XXLGTSEXX
 xiosfreq=XXXIOSFREQXX
 main_dir='./'
 CONFIG='XXCONFXX'   ; CASE='XXCASEXX'     ;  CASE2='XXCASE2XX'
@@ -123,7 +125,8 @@ while c_year <= e_year:
                 ds_SSHdata = xr.open_mfdataset(locpath+locfile, engine="netcdf4", concat_dim=["time_counter"], combine='nested', parallel=True)[[zMyvar]]
                 var_sshini = ds_SSHdata[zMyvar]
                 if c_year == e_year : 
-                        var_sshini = xr.where( tmask[0,:,:] < 1, npy.nan, var_sshini ).squeeze()
+                        # To keep the dimensions order 
+                        var_sshini = var_sshini.where( tmask[0,:,:] == 1, other=npy.nan )
 
         #########################################################################################################################################
         if ICE_maps :
@@ -256,7 +259,7 @@ if AW_Tmax_maps or FWC_maps or TSD_maps or ATL_maps : My_varTinit, My_varSinit =
 
 # To plot Beaufort Gyre center based on SSH
 if BFG_maps : 
-        BFG_mapsf( lon, lat, var_sshini, bathy, e1te2t, CONFIG, CASE, s_year, e_year, NCDF_OUT )
+        BFG_mapsf( lon, lat, var_sshini, bathy, e1te2t, CONFIG, CASE, s_year, e_year, lgTS_ys, lgTS_ye, NCDF_OUT )
 
 # To plot the mean T/S in the ML
 if MTS_maps : 

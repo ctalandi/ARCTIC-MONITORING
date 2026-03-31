@@ -28,7 +28,7 @@ except:
 	print('  check python path or install this package') ; exit()
 
 ################################################################################################################################
-def BFG_mapsf( zlon, zlat, zvar_ssh, zbathy, zarea, zCONF, zCASE, zs_year, ze_year, zncout ) :
+def BFG_mapsf( zlon, zlat, zvar_ssh, zbathy, zarea, zCONF, zCASE, zs_year, ze_year, zlgTS_ys, zlgTS_ye, zncout ) :
 ################################################################################################################################
 
 	from netCDF4 import Dataset,num2date,date2num
@@ -51,108 +51,153 @@ def BFG_mapsf( zlon, zlat, zvar_ssh, zbathy, zarea, zCONF, zCASE, zs_year, ze_ye
 	########################################
 	#------------------------------------------------------------------------------------------------------------------------
 
+	timetype = 'yearly'
+	
+	zincr = increment_in*1
+	timestr = 'y'+str(zs_year)
+	ncoutname = './NETCDF/BeaufortGyre_'+zCASE+'_inc'+incstr+'_'+timetype+'_'+str(zs_year)+'-'+str(ze_year)+'fromSSH'
+
+	# Compute the annual mean SSH
+	zssh = zvar_ssh.mean(dim='time_counter').values.squeeze()
+
+	start_time = time.time()
+	msk, lonmsk, latmsk, maxmsk = BFG_compute( zlon, zlat, zssh, zbathy, 'SSH', zincr, timestr, ncoutname, [zs_year,1,15], zarea, do_npz=0 )
+
+	print(time.time() - start_time)
+	
+        # Plot the monthly closed contours as the BFG center as well 
+	plt.figure()
+	plt.subplot(211)
+	zoutmap, X, Y = Iso_Bat( ztype='isol1000' )	
+	zoutmap.drawparallels(npy.arange(-90.,91.,5.),labels=[False,False,False,False], size=5, linewidth=0.3)
+	zoutmap.drawmeridians(npy.arange(-180.,181.,20.),labels=[True,False,False,True], size=5, latmax=90.,linewidth=0.3)
+	zoutmap.fillcontinents(color='grey',lake_color='white')
+
+	if npy.nansum(msk) > 0:
+		msk_plot = xr.where( npy.isnan(msk), 0., msk*1 )
+		CS2 = zoutmap.contour( X, Y, msk_plot, linewidths=0.5, colors='k' )
+	# Get indices of the BFG center 
+	[r,c] = npy.nonzero( msk*zssh == npy.nanmax(msk*zssh) )
+	
+	clat = [zlat[r.item(),c.item()],]
+	clon = [zlon[r.item(),c.item()],]
+	cx,cy = zoutmap(clon,clat)
+	zoutmap.scatter(cx,cy, marker='*', color='k')
+	plt.title( zCASE+' BFG SSH contours \n yearly mean SSH '+str(zs_year), fontsize=6 )
+
+	#------------------------------------------------------------------------------------------------------------------------
+
+	msk = xr.full_like(zvar_ssh, fill_value=0.)
+	lonmsk = xr.full_like(zvar_ssh, fill_value=0.)
+	latmsk = xr.full_like(zvar_ssh, fill_value=0.)
+	maxmsk = xr.full_like(zvar_ssh, fill_value=0.)
+
 	timetype = 'monthly'
-	# For monthly variables 
-	for thism in range(0,12):
+	# For monthly mean 
+	for zmm in range(0,12):
 	
 		zincr = increment_in*1
-		
-		timestr = 'y'+str(zs_year)+'m'+str(thism+1).zfill(2)
-		#timestr = 'y'+str(zs_year)
+		timestr = 'y'+str(zs_year)+'m'+str(zmm+1).zfill(2)
+		ncoutname = './NETCDF/BeaufortGyre_'+zCASE+'_inc'+incstr+'_'+timetype+'_'+str(zs_year)+'-'+str(ze_year)+'fromSSH'
 
-		outname = './NETCDF/BeaufortGyre_'+zCASE+'_inc'+incstr+'_'+timetype+'_'+str(zs_year)+'-'+str(ze_year) ## TOEDIT
-		thisname_notime = outname+'fromSSH'
-
-		print('------- OUTNAME IS '+outname)
-
-		zssh = zvar_ssh.isel(time_counter=thism).values.squeeze()
+		# Select one month 
+		zssh = zvar_ssh.isel(time_counter=zmm).values.squeeze()
 
 		start_time = time.time()
-	
-		[ msk, lonmsk, latmsk, maxmsk ] = BFG_compute( zlon, zlat, zssh, zbathy, 'SSH', zincr, timestr, thisname_notime, [zs_year,thism+1,15], zarea, do_npz=0 )
-	
-		print('saved '+outname+'...'+timestr)
+		msk[zmm,:,:], lonmsk[zmm,:,:], latmsk[zmm,:,:], maxmsk[zmm,:,:] = BFG_compute( zlon, zlat, zssh, zbathy, 'SSH', zincr, timestr, ncoutname, [zs_year,zmm+1,15], zarea, do_npz=0 )
 		print(time.time() - start_time)
 	
-		### plot to check quickly (no projection)
-		plt.figure()
-		px = plt.pcolormesh(zssh,vmin=-0.2,vmax=0.2,cmap='RdYlBu_r')
-		plt.colorbar(px)
-		if npy.nansum(msk) > 0:
-		    msk_plot = msk*1
-		    msk_plot[npy.isnan(msk)] = 0
-		    plt.contour(msk_plot,colors='k')
-		[r,c] = npy.nonzero(msk*zssh==npy.nanmax(msk*zssh))
-		plt.plot(c,r,'k*')
-		plt.contour(zbathy,[0,500,1000,1500,2000],colors='0.5',linewidths=0.5)
-		plt.title(timestr)
+        # Plot the monthly closed contours as the BFG center as well 
+	cmap = plt.get_cmap('Spectral_r')
+	colors = [cmap(i) for i in npy.linspace(0, 1, 12)]
+
+	plt.subplot(212)
+	zoutmap, X, Y = Iso_Bat( ztype='isol1000' )	
+	zoutmap.drawparallels(npy.arange(-90.,91.,5.),labels=[False,False,False,False], size=5, linewidth=0.3)
+	zoutmap.drawmeridians(npy.arange(-180.,181.,20.),labels=[True,False,False,True], size=5, latmax=90.,linewidth=0.3)
+	zoutmap.fillcontinents(color='grey',lake_color='white')
+
+	for zmm in range(0,12):
+		if npy.nansum(msk[zmm,:,:]) > 0:
+			msk_plot = xr.where( npy.isnan(msk[zmm,:,:]), 0., msk[zmm,:,:]*1 )
+			CS2 = zoutmap.contour( X, Y, msk_plot, linewidths=0.5, colors=colors[zmm], label=' m'+str(zmm).zfill(2) )
+		# Get indices of the BFG center 
+		[r,c] = npy.nonzero( msk[zmm,:,:]*zvar_ssh.isel(time_counter=zmm) == npy.nanmax(msk[zmm,:,:]*zvar_ssh.isel(time_counter=zmm)) )
 		
-		zfile_ext='_BFGCenter_'
-		plt.savefig(zCONF+'-'+zCASE+zfile_ext+timestr+'.png',dpi=300)
-		plt.close()
+		clat = [zlat[r.values.item(),c.values.item()],]
+		clon = [zlon[r.values.item(),c.values.item()],]
+		cx,cy = zoutmap(clon,clat)
+		zoutmap.scatter(cx,cy, marker='*', color=colors[zmm])
 
-	#lgTS_ys=XXLGTSSXX
-	#lgTS_ye=XXLGTSEXX
-	#if lgTS_ye-lgTS_ys+1 > 1 :
 
+	plt.legend(loc='center right')
+	plt.title( ' monthly mean SSH '+str(zs_year), fontsize=6 )
+	plt.tight_layout()
+
+	zfile_ext='_BFGCenter_'+'y'+str(zs_year)
+	timestr = 'y'+str(zs_year)
+	plt.savefig(zCONF+'-'+zCASE+zfile_ext+'.png',dpi=300)
+
+	plt.close()
+	
 	#------------------------------------------------------------------------------------------------------------------------
 	########################################
 	# Plot LONG TIME-SERIES
 	########################################
 	#------------------------------------------------------------------------------------------------------------------------
-	print()
-	print('				##################################################################  ')
-	print('				##################################################################  ')
-	print('				######## PLOT BFG CENTER CARATERISTICS LONG TIME-SERIES ##########  ')
-	print('				##################################################################  ')
-	print('				##################################################################  ')
-	print()
 	
-	datafile = './DATA/BGmask_2003to2014.nc'
-	obs_max = npy.squeeze(npy.array(Dataset(datafile).variables["maxheight"]))
-	obs_area = npy.squeeze(npy.array(Dataset(datafile).variables["area_m2"]))
-	obs_maxhlat = npy.squeeze(npy.array(Dataset(datafile).variables["maxh_lat"]))
-	obs_maxhlon = npy.squeeze(npy.array(Dataset(datafile).variables["maxh_lon"]))
-	obs_time = npy.squeeze(npy.array(Dataset(datafile).variables["time"]))
+	if zlgTS_ye-zlgTS_ys+1 > 1 :
+
+		print()
+		print('				##################################################################  ')
+		print('				##################################################################  ')
+		print('				######## PLOT BFG CENTER CARATERISTICS LONG TIME-SERIES ##########  ')
+		print('				##################################################################  ')
+		print('				##################################################################  ')
+		print()
+		
+		# Read Obs. data set 
+		obs_datafile = './DATA/BGmask_2003to2014.nc'
+		ds_obsrssh = xr.open_dataset( obs_datafile, engine="netcdf4" ) 
+		obs_max = ds_obsrssh["maxheight"].values.squeeze()
+		obs_area = ds_obsrssh["area_m2"].values.squeeze()
+		obs_maxhlat = ds_obsrssh["maxh_lat"].values.squeeze()
+		obs_maxhlon = ds_obsrssh["maxh_lon"].values.squeeze()
+		obs_time = ds_obsrssh["time"]
+		
+		# Read model data set 
+		locpath = './NETCDF/'
+		locfile = 'BeaufortGyre_'+zCASE+'_inc'+incstr+'_monthly_????-????'+'fromSSH.nc' ## TOEDIT
+		ds_rssh = xr.open_mfdataset(locpath+locfile, engine="netcdf4", concat_dim=["time"], combine='nested', parallel=True)
+		mod_max = ds_rssh["BGmax"].values.squeeze()
+		mod_area = ds_rssh["BGarea"].values.squeeze()
+		mod_maxhlat = ds_rssh["BGmaxhlat"].values.squeeze()
+		mod_maxhlon = ds_rssh["BGmaxhlon"].values.squeeze()
+		mod_time = npy.arange(zlgTS_ys,zlgTS_ye+1,1./12)
 	
-	tlen = 12*(ze_year-zs_year+1)
-	mod_max = npy.nan*npy.ones([tlen,1])
-	mod_area = npy.nan*npy.ones([tlen,1])
-	mod_maxhlat = npy.nan*npy.ones([tlen,1])
-	mod_maxhlon = npy.nan*npy.ones([tlen,1])
-	mod_time = npy.nan*npy.ones([tlen,1])
-	
-	### if the file contains all of the desired data to plot, just load that file. If you have one per year, you'll need to loop over the files here
-	#for c_year in range(s_year,e_year+1):
-	
-	#outname = './BeaufortGyre_'+model_name+'_inc'+incstr+'_'+timetype+'_'+str(s_year)+'-'+str(e_year)+"fromSSH.nc" ## TOEDIT
-	outname = './NETCDF/BeaufortGyre_'+zCASE+'_inc'+incstr+'_'+timetype+'_'+str(zs_year)+'-'+str(ze_year)+'fromSSH.nc' ## TOEDIT
-	mod_max[:,0] = npy.squeeze(npy.array(Dataset(outname).variables["BGmax"]))
-	mod_area[:,0] = npy.squeeze(npy.array(Dataset(outname).variables["BGarea"]))
-	mod_maxhlat[:,0] = npy.squeeze(npy.array(Dataset(outname).variables["BGmaxhlat"]))
-	mod_maxhlon[:,0] = npy.squeeze(npy.array(Dataset(outname).variables["BGmaxhlon"]))
-	mod_time[:,0] = npy.arange(zs_year,ze_year+1,1./12)
-	
-	fig, ax = plt.subplots(4,1,figsize=(6,10))
-	ax[0].plot(obs_time,obs_max,"b*-",linewidth=0.6)
-	ax[1].plot(obs_time,obs_area/(1000*1000),"b*-",linewidth=0.6)
-	ax[2].plot(obs_time,obs_maxhlat,"b*-",linewidth=0.6)
-	ax[3].plot(obs_time,obs_maxhlon,"b*-",linewidth=0.6)
-	
-	ax[0].plot(mod_time,mod_max,"ro-",linewidth=0.6)
-	ax[1].plot(mod_time,mod_area/(1000*1000),"ro-",linewidth=0.6)
-	ax[2].plot(mod_time,mod_maxhlat,"ro-",linewidth=0.6)
-	ax[3].plot(mod_time,mod_maxhlon,"ro-",linewidth=0.6)
-	
-	ax[0].set_title("max ssh at gyre centre"); ax[0].set_xlabel("metres")
-	ax[1].set_title("gyre area"); ax[1].set_ylabel("km2")
-	ax[2].set_title("latitude of max ssh")
-	ax[3].set_title("longitude of max ssh")
-	
-	for axn in range(0,4):
-	  ax[axn].grid()
-	
-	plt.savefig('./BG_metrics.png')
+		# Do the plot 
+		fig, ax = plt.subplots(4,1,figsize=(6,10))
+		ax[0].plot(obs_time,obs_max,"b*-",linewidth=0.6)
+		ax[1].plot(obs_time,obs_area/(1000*1000),"b*-",linewidth=0.6)
+		ax[2].plot(obs_time,obs_maxhlat,"b*-",linewidth=0.6)
+		ax[3].plot(obs_time,obs_maxhlon,"b*-",linewidth=0.6)
+		
+		ax[0].plot(mod_time,mod_max,"ro-",linewidth=0.6)
+		ax[1].plot(mod_time,mod_area/(1000*1000),"ro-",linewidth=0.6)
+		ax[2].plot(mod_time,mod_maxhlat,"ro-",linewidth=0.6)
+		ax[3].plot(mod_time,mod_maxhlon,"ro-",linewidth=0.6)
+		
+		ax[0].set_title("max ssh at gyre centre"); ax[0].set_xlabel("metres")
+		ax[1].set_title("gyre area"); ax[1].set_ylabel("km2")
+		ax[2].set_title("latitude of max ssh")
+		ax[3].set_title("longitude of max ssh")
+		
+		for axn in range(0,4):
+		  ax[axn].grid()
+		plt.tight_layout()
+		
+		zfile_ext='_BFG_metrics_LGTS_y'+str(zs_year)+'LASTy'
+		plt.savefig(zCONF+'-'+zCASE+zfile_ext+'.png',dpi=300)
 
 	return
 
