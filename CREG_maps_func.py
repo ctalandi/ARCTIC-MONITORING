@@ -10,6 +10,13 @@ from checkfile import *
 import subprocess
 import xarray as xr 
 from datetime import datetime
+from cartopy import crs as ccrs
+import cartopy
+import matplotlib.path as mpath
+import pandas as pd
+import calendar
+import time
+
 
 # Matplotlib
 try:
@@ -31,9 +38,6 @@ except:
 def BFG_mapsf( zlon, zlat, zvar_ssh, zbathy, zarea, zCONF, zCASE, zs_year, ze_year, zlgTS_ys, zlgTS_ye, zncout ) :
 ################################################################################################################################
 
-	from netCDF4 import Dataset,num2date,date2num
-	import time
-
 	## This is the increment that will be iterated on for identifying closed contours
 	## smaller value = smaller increments, so takes longer, but less likely to miss small variations in contour edges so better for higher resolutions
 	increment_in = 0.05; incstr = '5cm' #TOEDIT
@@ -52,20 +56,43 @@ def BFG_mapsf( zlon, zlat, zvar_ssh, zbathy, zarea, zCONF, zCASE, zs_year, ze_ye
 	#------------------------------------------------------------------------------------------------------------------------
 
 	timetype = 'yearly'
-	
-	zincr = increment_in*1
-	timestr = 'y'+str(zs_year)
-	ncoutname = './NETCDF/BeaufortGyre_'+zCASE+'_inc'+incstr+'_'+timetype+'_'+str(zs_year)+'-'+str(ze_year)+'fromSSH'
 
 	# Compute the annual mean SSH
-	zssh = zvar_ssh.mean(dim='time_counter').values.squeeze()
+	zssh_ym = zvar_ssh.mean(dim='time_counter').values.squeeze()
+	zincr = increment_in*1
 
 	start_time = time.time()
-	msk, lonmsk, latmsk, maxmsk = BFG_compute( zlon, zlat, zssh, zbathy, 'SSH', zincr, timestr, ncoutname, [zs_year,1,15], zarea, do_npz=0 )
+	msk_ym, BG_maxval_ym, BG_minval_ym, BG_maxlat_ym, BG_maxlon_ym, BG_area_ym = BFG_compute( zlon, zlat, zssh_ym, zbathy, 'SSH', zincr, zarea )
+	print('			Computing wall time (s) : ',time.time() - start_time)
 
-	print(time.time() - start_time)
+	#------------------------------------------------------------------------------------------------------------------------
+
+	msk = xr.full_like(zvar_ssh, fill_value=0.)
+	BG_maxval =  xr.DataArray(npy.zeros(12), dims=['time'])
+	BG_minval = xr.DataArray(npy.zeros(12), dims=['time'])
+	BG_maxlat = xr.DataArray(npy.zeros(12), dims=['time'])
+	BG_maxlon = xr.DataArray(npy.zeros(12), dims=['time'])
+	BG_area = xr.DataArray(npy.zeros(12), dims=['time'])
+
+	timetype = 'monthly'
+	# For monthly mean 
+	for zmm in range(0,12):
 	
-        # Plot the monthly closed contours as the BFG center as well 
+		print()
+		print(' Considered month : ',calendar.month_name[zmm+1])
+
+		zincr = increment_in*1
+
+		# Select one month 
+		zssh = zvar_ssh.isel(time_counter=zmm).values.squeeze()
+
+		start_time = time.time()
+		msk[zmm,:,:], BG_maxval[zmm], BG_minval[zmm], BG_maxlat[zmm], BG_maxlon[zmm], BG_area[zmm] = BFG_compute( zlon, zlat, zssh, zbathy, 'SSH', zincr, zarea )
+		print('			Computing wall time (s) : ',time.time() - start_time)
+
+	#------------------------------------------------------------------------------------------------------------------------
+
+        # Plot the yearly closed contours as the BFG center as well 
 	plt.figure()
 	plt.subplot(211)
 	zoutmap, X, Y = Iso_Bat( ztype='isol1000' )	
@@ -73,11 +100,11 @@ def BFG_mapsf( zlon, zlat, zvar_ssh, zbathy, zarea, zCONF, zCASE, zs_year, ze_ye
 	zoutmap.drawmeridians(npy.arange(-180.,181.,20.),labels=[True,False,False,True], size=5, latmax=90.,linewidth=0.3)
 	zoutmap.fillcontinents(color='grey',lake_color='white')
 
-	if npy.nansum(msk) > 0:
-		msk_plot = xr.where( npy.isnan(msk), 0., msk*1 )
+	if npy.nansum(msk_ym) > 0:
+		msk_plot = xr.where( npy.isnan(msk_ym), 0., msk_ym*1 )
 		CS2 = zoutmap.contour( X, Y, msk_plot, linewidths=0.5, colors='k' )
 	# Get indices of the BFG center 
-	[r,c] = npy.nonzero( msk*zssh == npy.nanmax(msk*zssh) )
+	[r,c] = npy.nonzero( msk_ym*zssh_ym == npy.nanmax(msk_ym*zssh_ym) )
 	
 	clat = [zlat[r.item(),c.item()],]
 	clon = [zlon[r.item(),c.item()],]
@@ -85,28 +112,7 @@ def BFG_mapsf( zlon, zlat, zvar_ssh, zbathy, zarea, zCONF, zCASE, zs_year, ze_ye
 	zoutmap.scatter(cx,cy, marker='*', color='k')
 	plt.title( zCASE+' BFG SSH contours \n yearly mean SSH '+str(zs_year), fontsize=6 )
 
-	#------------------------------------------------------------------------------------------------------------------------
 
-	msk = xr.full_like(zvar_ssh, fill_value=0.)
-	lonmsk = xr.full_like(zvar_ssh, fill_value=0.)
-	latmsk = xr.full_like(zvar_ssh, fill_value=0.)
-	maxmsk = xr.full_like(zvar_ssh, fill_value=0.)
-
-	timetype = 'monthly'
-	# For monthly mean 
-	for zmm in range(0,12):
-	
-		zincr = increment_in*1
-		timestr = 'y'+str(zs_year)+'m'+str(zmm+1).zfill(2)
-		ncoutname = './NETCDF/BeaufortGyre_'+zCASE+'_inc'+incstr+'_'+timetype+'_'+str(zs_year)+'-'+str(ze_year)+'fromSSH'
-
-		# Select one month 
-		zssh = zvar_ssh.isel(time_counter=zmm).values.squeeze()
-
-		start_time = time.time()
-		msk[zmm,:,:], lonmsk[zmm,:,:], latmsk[zmm,:,:], maxmsk[zmm,:,:] = BFG_compute( zlon, zlat, zssh, zbathy, 'SSH', zincr, timestr, ncoutname, [zs_year,zmm+1,15], zarea, do_npz=0 )
-		print(time.time() - start_time)
-	
         # Plot the monthly closed contours as the BFG center as well 
 	cmap = plt.get_cmap('Spectral_r')
 	colors = [cmap(i) for i in npy.linspace(0, 1, 12)]
@@ -135,10 +141,86 @@ def BFG_mapsf( zlon, zlat, zvar_ssh, zbathy, zarea, zCONF, zCASE, zs_year, ze_ye
 	plt.tight_layout()
 
 	zfile_ext='_BFGCenter_'+'y'+str(zs_year)
-	timestr = 'y'+str(zs_year)
 	plt.savefig(zCONF+'-'+zCASE+zfile_ext+'.png',dpi=300)
 
 	plt.close()
+
+	#------------------------------------------------------------------------------------------------------------------------
+
+	if zncout:
+		ds_out = xr.Dataset()
+		
+		ds_out.coords['BGlat'] = (('y','x'), zlat.values.astype('float32')) 
+		ds_out.coords['BGlat'].attrs['long_name'] = 'latitude'
+		ds_out.coords['BGlat'].attrs['units'] = 'degrees_north'
+		
+		ds_out.coords['BGlon'] = (('y','x'), zlon.values.astype('float32')) 
+		ds_out.coords['BGlon'].attrs['long_name'] = 'longitude'
+		ds_out.coords['BGlon'].attrs['units'] = 'degrees_east'
+ 
+		# Save diags. based on yearly mean SSH
+		timevalue_ym = pd.to_datetime(str(zs_year)+'-06-30')
+		ds_out.coords['time_ym'] = (('time_ym'), [timevalue_ym] )
+		
+		ds_out['BGmask_ym'] = (('time_ym','y','x'), [msk_ym.astype('float32')]) 
+		ds_out['BGmask_ym'].attrs['long_name'] = 'Beaufort_Gyre_mask yearly mean'
+		ds_out['BGmask_ym'].attrs['units'] = '-'
+		
+		ds_out['BGmax_ym'] = (('time_ym'), [BG_maxval_ym.astype('float32')]) 
+		ds_out['BGmax_ym'].attrs['long_name'] = 'Maximum_ssh_in_gyre yearly mean'
+		ds_out['BGmax_ym'].attrs['units'] = 'metres'
+		
+		ds_out['BGmin_ym'] = (('time_ym'), [BG_minval_ym.astype('float32')]) 
+		ds_out['BGmin_ym'].attrs['long_name'] = 'Minimum_ssh_in_gyre yearly mean'
+		ds_out['BGmin_ym'].attrs['units'] = 'metres'
+		
+		ds_out['BGmaxhlat_ym'] = (('time_ym'), [BG_maxlat_ym.astype('float32')]) 
+		ds_out['BGmaxhlat_ym'].attrs['long_name'] = 'latitude_of_max_ssh_in_gyre yearly mean'
+		ds_out['BGmaxhlat_ym'].attrs['units'] = 'degrees'
+		
+		ds_out['BGmaxhlon_ym'] = (('time_ym'), [BG_maxlon_ym.astype('float32')]) 
+		ds_out['BGmaxhlon_ym'].attrs['long_name'] = 'longitude_of_max_ssh_in_gyre yearly mean'
+		ds_out['BGmaxhlon_ym'].attrs['units'] = 'degrees'
+		
+		ds_out['BGarea_ym'] = (('time_ym'), [BG_area_ym.astype('float32')]) 
+		ds_out['BGarea_ym'].attrs['long_name'] = 'area_of_gyre yearly mean'
+		ds_out['BGarea_ym'].attrs['units'] = 'metres_squared'
+		
+		# Save diags. based on monthly mean SSH
+		timevalue = pd.date_range(start=str(zs_year)+'-01',end=str(zs_year)+'-12',freq='MS')+ pd.DateOffset(days=14)
+		ds_out.coords['time'] = (('time'), timevalue )
+		
+		ds_out['BGmask'] = (('time','y','x'), msk.values.astype('float32')) 
+		ds_out['BGmask'].attrs['long_name'] = 'Beaufort_Gyre_mask'
+		ds_out['BGmask'].attrs['units'] = '-'
+		
+		ds_out['BGmax'] = (('time'), BG_maxval.values.astype('float32')) 
+		ds_out['BGmax'].attrs['long_name'] = 'Maximum_ssh_in_gyre'
+		ds_out['BGmax'].attrs['units'] = 'metres'
+		
+		ds_out['BGmin'] = (('time'), BG_minval.values.astype('float32')) 
+		ds_out['BGmin'].attrs['long_name'] = 'Minimum_ssh_in_gyre'
+		ds_out['BGmin'].attrs['units'] = 'metres'
+		
+		ds_out['BGmaxhlat'] = (('time'), BG_maxlat.values.astype('float32')) 
+		ds_out['BGmaxhlat'].attrs['long_name'] = 'latitude_of_max_ssh_in_gyre'
+		ds_out['BGmaxhlat'].attrs['units'] = 'degrees'
+		
+		ds_out['BGmaxhlon'] = (('time'), BG_maxlon.values.astype('float32')) 
+		ds_out['BGmaxhlon'].attrs['long_name'] = 'longitude_of_max_ssh_in_gyre'
+		ds_out['BGmaxhlon'].attrs['units'] = 'degrees'
+		
+		ds_out['BGarea'] = (('time'), BG_area.values.astype('float32')) 
+		ds_out['BGarea'].attrs['long_name'] = 'area_of_gyre'
+		ds_out['BGarea'].attrs['units'] = 'metres_squared'
+
+		#ds_out = ds_out.set_coords(['BGlat','BGlon','time'])
+		
+		# Write the NetCDF file 
+		ds_out.attrs['History'] = 'Diagnostics have been calculated using the Arctic monitoring tool '
+		ds_out.attrs['Date'] = datetime.now().strftime("%a %b %e %H:%M:%S GMT %Y")
+		nc_f = './NETCDF/'+zCONF+'-'+zCASE+'_BFGfromSSH_inc'+incstr+'_y'+str(zs_year)+'.nc'
+		ds_out.to_netcdf(nc_f,engine='netcdf4')
 	
 	#------------------------------------------------------------------------------------------------------------------------
 	########################################
@@ -157,46 +239,82 @@ def BFG_mapsf( zlon, zlat, zvar_ssh, zbathy, zarea, zCONF, zCASE, zs_year, ze_ye
 		print()
 		
 		# Read Obs. data set 
+		#######################################################################################################
 		obs_datafile = './DATA/BGmask_2003to2014.nc'
 		ds_obsrssh = xr.open_dataset( obs_datafile, engine="netcdf4" ) 
-		obs_max = ds_obsrssh["maxheight"].values.squeeze()
-		obs_area = ds_obsrssh["area_m2"].values.squeeze()
-		obs_maxhlat = ds_obsrssh["maxh_lat"].values.squeeze()
-		obs_maxhlon = ds_obsrssh["maxh_lon"].values.squeeze()
-		obs_time = ds_obsrssh["time"]
+		# Rebuild a proper new time axis 
+		timevalue = pd.date_range(start='2003-01',end='2014-12',freq='MS')+ pd.DateOffset(days=14)
+		ds_obs = xr.Dataset()
+		ds_obs.coords['time'] = (('time'), timevalue)
+		ds_obs['maxheight'] = (('time'), ds_obsrssh["maxheight"].values.squeeze())
+		ds_obs['area_m2'] = (('time'), ds_obsrssh["area_m2"].values.squeeze())
+		ds_obs['maxh_lat'] = (('time'), ds_obsrssh["maxh_lat"].values.squeeze())
+		ds_obs['maxh_lon'] = (('time'), ds_obsrssh["maxh_lon"].values.squeeze())
 		
 		# Read model data set 
+		#######################################################################################################
 		locpath = './NETCDF/'
-		locfile = 'BeaufortGyre_'+zCASE+'_inc'+incstr+'_monthly_????-????'+'fromSSH.nc' ## TOEDIT
-		ds_rssh = xr.open_mfdataset(locpath+locfile, engine="netcdf4", concat_dim=["time"], combine='nested', parallel=True)
+		locfile = zCONF+'-'+zCASE+'_BFGfromSSH_inc'+incstr+'_y????.nc'
+		ds_rssh = xr.open_mfdataset(locpath+locfile, engine='netcdf4', concat_dim=['time'], combine='nested', parallel=True)
 		mod_max = ds_rssh["BGmax"].values.squeeze()
 		mod_area = ds_rssh["BGarea"].values.squeeze()
 		mod_maxhlat = ds_rssh["BGmaxhlat"].values.squeeze()
 		mod_maxhlon = ds_rssh["BGmaxhlon"].values.squeeze()
-		mod_time = npy.arange(zlgTS_ys,zlgTS_ye+1,1./12)
 	
-		# Do the plot 
-		fig, ax = plt.subplots(4,1,figsize=(6,10))
-		ax[0].plot(obs_time,obs_max,"b*-",linewidth=0.6)
-		ax[1].plot(obs_time,obs_area/(1000*1000),"b*-",linewidth=0.6)
-		ax[2].plot(obs_time,obs_maxhlat,"b*-",linewidth=0.6)
-		ax[3].plot(obs_time,obs_maxhlon,"b*-",linewidth=0.6)
+		# Make plots 
+		#######################################################################################################
+		plt.clf()
+		xwind=410
 		
-		ax[0].plot(mod_time,mod_max,"ro-",linewidth=0.6)
-		ax[1].plot(mod_time,mod_area/(1000*1000),"ro-",linewidth=0.6)
-		ax[2].plot(mod_time,mod_maxhlat,"ro-",linewidth=0.6)
-		ax[3].plot(mod_time,mod_maxhlon,"ro-",linewidth=0.6)
-		
-		ax[0].set_title("max ssh at gyre centre"); ax[0].set_xlabel("metres")
-		ax[1].set_title("gyre area"); ax[1].set_ylabel("km2")
-		ax[2].set_title("latitude of max ssh")
-		ax[3].set_title("longitude of max ssh")
-		
-		for axn in range(0,4):
-		  ax[axn].grid()
+		# Max SSH 
+		################
+		ax=plt.subplot(xwind+1)
+		ax.set_title(zCASE,size=7)
+		ds_rssh['BGmax'].plot(color='k', linewidth=0.6, label='model')
+		ds_obs['maxheight'].plot(color='g', linewidth=0.6, label='obs')
+		plt.grid(True, linestyle='--', which='both', color='grey', alpha=0.50)
+		plt.xlabel('years' ,size=5)
+		plt.ylabel(' max ssh at gyre centre \n (metres)',size=6)
+		plt.setp(ax.get_xticklabels(),visible=False)
+		plt.yticks(size=6)
+		plt.legend(fontsize='small', ncol=2)
+
+		# Gyre area 
+		################
+		ax=plt.subplot(xwind+2)
+		(ds_rssh['BGarea']*1e-12).plot(color='k',  linewidth=0.6)
+		(ds_obs['area_m2']*1e-12).plot(color='g', linewidth=0.6)
+		plt.grid(True, linestyle='--', which='both', color='grey', alpha=0.50)
+		plt.xlabel('years' ,size=5)
+		plt.ylabel('gyre area \n'+'x10^6 (km^2)',size=6)
+		plt.setp(ax.get_xticklabels(),visible=False)
+		plt.yticks(size=6)
+	
+		# Latitude of Max SSH 
+		######################
+		ax=plt.subplot(xwind+3)
+		ds_rssh['BGmaxhlat'].plot(color='k', linewidth=0.6)
+		ds_obs['maxh_lat'].plot(color='g',linewidth=0.6)
+		plt.grid(True, linestyle='--', which='both', color='grey', alpha=0.50)
+		plt.xlabel('years' ,size=5)
+		plt.ylabel('latitude of max ssh',size=6)
+		plt.setp(ax.get_xticklabels(),visible=False)
+		plt.yticks(size=6)
+	
+		# Longitude of Max SSH 
+		######################
+		ax=plt.subplot(xwind+4)
+		ds_rssh['BGmaxhlon'].plot(color='k', linewidth=0.6)
+		ds_obs['maxh_lon'].plot(color='g', linewidth=0.6)
+		plt.grid(True, linestyle='--', which='both', color='grey', alpha=0.50)
+		plt.xlabel('years' ,size=5)
+		plt.ylabel('longitude of max ssh',size=6)
+		plt.xticks(size=5)
+		plt.yticks(size=6)
+	
 		plt.tight_layout()
-		
-		zfile_ext='_BFG_metrics_LGTS_y'+str(zs_year)+'LASTy'
+
+		zfile_ext='_BFG_metrics_LGTS_y'+str(zlgTS_ys)+'LASTy'
 		plt.savefig(zCONF+'-'+zCASE+zfile_ext+'.png',dpi=300)
 
 	return
@@ -381,7 +499,7 @@ def MLD_maps( zlon, zlat, zMy_var1SeasM, zMy_var1SeasS, zCONF, zCASE, zclimyear,
         return
 
 ################################################################################################################################
-def DYN_maps( zlon, zlat, zMy_var1, zMy_var1SeasM, zMy_var1SeasS, zdepth, zCONF, zCASE, zclimyear, zs_year, zncout ) :
+def ENE_maps( zlon, zlat, zMy_var1, zMy_var1SeasM, zMy_var1SeasS, zdepth, zCONF, zCASE, zclimyear, zs_year, zncout ) :
 ################################################################################################################################
 
         num_fram=220
@@ -399,9 +517,14 @@ def DYN_maps( zlon, zlat, zMy_var1, zMy_var1SeasM, zMy_var1SeasS, zdepth, zCONF,
         zMyvar='voeke'   ; fram=num_fram+3
         simple_maps( zlon, zlat, zCONF, zCASE, zMy_var1SeasS, zMyvar, zclimyear, slev=str(zd2), zfram=fram )
 
-        # EKE from observation
+        # EKE from DOT observations (Armitage et al. 2017)
         obs_eke, lon_obs, lat_obs = EKE_OBS( t_year=zs_year )
         obs_eke = xr.where( obs_eke >= 9e20, npy.nan, obs_eke )
+
+        # EKE inferred from Von Appen et al. VONAPPEN_EKE_OBS()
+        #obs_vonapeneke = VONAPPEN_EKE_OBS( )
+        dsVAD = VONAPPEN_EKE_OBS( )
+        #obs_vonapeneke = xr.where( obs_eke >= 9e20, npy.nan, obs_eke )
 
         zMyvar='voeke'   ; fram=num_fram+2
         simple_maps( lon_obs, lat_obs, zCONF, zCASE, obs_eke, zMyvar, zclimyear, slev=str(zd1), zfram=fram, plot_obs=1 )
@@ -409,6 +532,65 @@ def DYN_maps( zlon, zlat, zMy_var1, zMy_var1SeasM, zMy_var1SeasS, zdepth, zCONF,
 
         zfile_ext='_DYNClim_'
         plt.savefig(zCONF+'-'+zCASE+zfile_ext+'y'+zclimyear+'.png',dpi=300)
+
+	# TEST TEST 
+###########################@###########################@###########################@###########################@
+
+        #Plot 
+        def add_circle_boundary(ax):
+            # Compute a circle in axes coordinates, which we can use as a boundary
+            # for the map. We can pan/zoom as much as we like - the boundary will be
+            # permanently circular.
+            theta = npy.linspace(0, 2 * npy.pi, 100)
+            center, radius = [0.5, 0.5], 0.5
+            verts = npy.vstack([npy.sin(theta), npy.cos(theta)]).T
+            circle = mpath.Path(verts * radius + center)
+            ax.set_boundary(circle, transform=ax.transAxes)
+        
+        #plot EKE for period 95-2020  for the central arctic only
+        #dsKE_m = dsKE_c.isel(t = 3)
+        i_min_arctic = 70  ; i_max_arctic = 460
+        j_min_arctic = 200 ; j_max_arctic = 600
+        #i_min_arctic = 200; i_max_arctic = 1400
+        #j_min_arctic = 600; j_max_arctic = 1800
+        
+        plt.clf()
+        ##########################################
+        ##########################################
+        f = plt.figure(figsize = (8, 4))
+        fontitle = 14
+        fontlabel = 12
+        cmap = mpl.colormaps['RdYlBu_r']
+        cmap.set_bad('dimgray')
+        
+        #halocline EKE
+        de = 20; vmin = -6; vmax = -2
+        ax0 = f.add_subplot(1,2,1, projection = ccrs.NorthPolarStereo())
+        ax = ax0.inset_axes([-0.05, 0, 1, 1], projection = ccrs.NorthPolarStereo())
+        ax0.axis('off')
+        add_circle_boundary(ax)
+        ax.set_extent([-180, 180, 66, 90], crs=ccrs.PlateCarree())
+        #im = (npy.log10(dsKE_m.voeke)).isel(x_c = slice(i_min_arctic, i_max_arctic)).isel(y_c = slice(j_min_arctic, j_max_arctic))\
+        #.isel(z_c = de).plot.pcolormesh(ax= ax, x = 'glamt', y = 'gphit',transform = ccrs.PlateCarree(), \
+        #    vmin =vmin, vmax = vmax,cmap = cmap,levels= 30, add_colorbar = False)
+        ax.coastlines(); ax.gridlines()
+        ax.set_extent([-180, 180, 65, 90], crs=ccrs.PlateCarree())
+        ax.set_title('')
+        ax.add_feature(cartopy.feature.LAND, facecolor='dimgray')
+        #ax.text(-170, 62, str(int(dsKE_m.gdept_1d.values[de]))+' m', transform = ccrs.PlateCarree(), fontsize = 14)
+        ax.text(-134, 51, 'a)', fontsize = 12, transform = ccrs.PlateCarree())
+        #ax.text(-80, 58, 'Mean EKE', rotation = 90, transform = ccrs.PlateCarree(), fontsize = 14)
+        
+        im = ax.scatter(dsVAD.Longitude.where(npy.logical_and(dsVAD['Mean depth']>=50, dsVAD['Mean depth']<=100)),\
+                        dsVAD.Latitude.where(npy.logical_and(dsVAD['Mean depth']>=50, dsVAD['Mean depth']<=100)),\
+                        c = npy.log10(dsVAD.EKE.where(npy.logical_and(dsVAD['Mean depth']>=50, dsVAD['Mean depth']<=100))),\
+                        transform = ccrs.PlateCarree(), \
+                       cmap = cmap, vmin = vmin, vmax = vmax, edgecolors = 'k', linewidths = 0.5)
+        
+        zfile_ext='_EKEVAP_'
+        f.savefig(zCONF+'-'+zCASE+zfile_ext+'y'+zclimyear+'.png',dpi=300)
+
+###########################@###########################@###########################@###########################@
 
         if zncout:
                 ds_out = xr.Dataset()
@@ -942,7 +1124,7 @@ def MTS_maps( zlon, zlat, zCONF, zCASE, zMLD_M, zMLD_S, zMy_varM, zMy_varS, zgde
 	return
 
 ################################################################################################################################
-def AWT_maps( zlon, zlat, zMy_var1T, zMy_var1S, zdepth, zMyvar, zCONFIG, zCASE, zclimyear, zncout) :
+def AWT_maps( zlon, zlat, zMy_var1T, zMy_var1S, zdepth, zCONFIG, zCASE, zclimyear, zncout) :
 ################################################################################################################################
 
 	zCONFCASE=zCONFIG+'-'+zCASE
@@ -999,19 +1181,21 @@ def AWT_maps( zlon, zlat, zMy_var1T, zMy_var1S, zdepth, zMyvar, zCONFIG, zCASE, 
 	limits=[vmin,vmax,vint]			 
 	myticks=npy.arange(vmin,vmax+vint,vint) 
 	
-	ztitle=zCASE +' AW Max Temp over \n'+zclimyear
 	my_cblab=r'($^\circ$C)'
 	my_cmap= plt.get_cmap('jet')
 
 	plt.clf()
 	plt.figure()
 	plt.subplot(221)
+	ztitle=zCASE +' AW Max Temp over \n'+zclimyear
 	zoutmap = Iso_Bat( ztype='isol1000' )
+	zMyvar = 'votemper'	
 	Proj_plot( zlon, zlat, zAWTmax1, contours, limits, myticks, name=ztitle, zmy_cblab=my_cblab, zmy_cmap=my_cmap, zvar=zMyvar )
 
 	plt.subplot(222)
 	ztitle=' AW Max Temp from \n'+' PHC 3.0'
 	zoutmap = Iso_Bat( ztype='isol1000' )
+	zMyvar = 'votemper'	
 	Proj_plot( lon_obs, lat_obs, zAWTmaxI, contours, limits, myticks, name=ztitle, zmy_cblab=my_cblab, zmy_cmap=my_cmap, zvar=zMyvar ) 
 	
 	# Make the plot for the AW Max Temp depth
@@ -1532,17 +1716,12 @@ def simple_maps( zlon, zlat, zCONF, zCASE, zMy_var1, zMyvar, zclimyear, slev=Non
 	return
 
 ################################################################################################################################
-def BFG_compute( lon, lat, ssh_raw, depth, var_type, increment, timestr, outname, timearr, grid_area, rm_landbarrier=0, do_npz=1) :
+def BFG_compute( lon, lat, ssh_raw, depth, var_type, increment, grid_area, rm_landbarrier=0 ) :
 ################################################################################################################################
 
 	# History: This algorithme has been originaly developed by Heather Regan and slightly adapeted to be included into the MONARC
 	# 	   See Regan et al. JPO2020 ; https://doi.org/10.1175/JPO-D-19-0234.1
 
-	import time
-	import os
-	import datetime
-	from netCDF4 import Dataset,num2date,date2num
-	
 	## This function computes the largest closed contour in the Western Arctic basin
 	###### INPUTS:
 	##        lon:            longitude
@@ -1553,15 +1732,14 @@ def BFG_compute( lon, lat, ssh_raw, depth, var_type, increment, timestr, outname
 	##        increment:      the increment with which to iterate out from the maximum. Usually start at 10cm. 
 	##                        Higher resolution needs a smaller increment than lower resolution, because field varies more and so 
 	##                        larger increment may miss small features. But smaller increment takes longer
-	##        timestr:        a time string to use to name the .npz files (currently .nc does not have one, as all in one file)
-	##        outname:        the file name to output
 	##        rm_landbarrier  whether or not to use coastline as a valid edge of contour (e.g. set to 1 if using MSL, as atmospheric variable)
-	##        do_npz:         whether or not to save .npz files as well as .nc
 	###### OUTPUTS
 	##        mask_full:      the identified closed contour
-	##        lon:            longitude
+	##        BG_max_val:     Max. SSH value 
+	##        BGcalcmin:      Min. SSH value
 	##        lat:            latitude
-	##        BGcalcmin:      the ssh (or other variable) value at the edge of the closed contour
+	##        lon:            longitude
+	##        BG_area:        Surface area of the closed contour 
 	
 	## Step 1: set up coastline to determine when the contour is no longer closed
 	if rm_landbarrier==0: 
@@ -1598,7 +1776,7 @@ def BFG_compute( lon, lat, ssh_raw, depth, var_type, increment, timestr, outname
 	masked_shelf[masked_shelf==0] = npy.nan;
 	masked_shelf[npy.isnan(masked_shelf)] = npy.nan;
 	maxarr = npy.nanmax(masked_shelf);
-	print('max '+str(maxarr))
+	print('			max '+str(maxarr))
 	maxarr_whole = maxarr.copy();
 	
 	if var_type == 'MSL':
@@ -1631,7 +1809,7 @@ def BFG_compute( lon, lat, ssh_raw, depth, var_type, increment, timestr, outname
 	## LOOP #########################################
 	#################################################
 	if abs(maxarr) == 0:
-	    print('BG not found')
+	    print('		BG not found')
 	    all_met = 1;
 	else:
 	    all_met = 0;
@@ -1715,15 +1893,15 @@ def BFG_compute( lon, lat, ssh_raw, depth, var_type, increment, timestr, outname
 	            increment = increment/2;
 	            maxarr = maxarr - increment;
 	            maskarr_new = maskarr.copy();
-	            print('non-ocean cells. Try lower increment')
+	            print('		non-ocean cells. Try lower increment')
 	        elif npy.nansum(new_edges_withland) < npy.nansum(new_edges):
 	            maxarr = maxarr + increment;
 	            increment = increment/2;
 	            maxarr = maxarr - increment;
 	            maskarr_new = maskarr.copy();
-	            print('met a wall? reversing')
+	            print('		met a wall? reversing')
 	        elif size_of_new_mask > size_of_old_mask:
-	            print('continuing to increment out')
+	            print('		continuing to increment out')
 	            maxarr = maxarr - increment;
 	            maskarr = maskarr_new.copy();
 	            size_of_old_mask = size_of_new_mask.copy();
@@ -1732,11 +1910,11 @@ def BFG_compute( lon, lat, ssh_raw, depth, var_type, increment, timestr, outname
 	            increment = increment/2;
 	            maxarr = maxarr - increment;
 	            maskarr_new = maskarr.copy();
-	            print('other')
+	            print('		other')
 	    else:
 	        all_met = 1; maskarr_out = maskarr.copy();
 	    
-	    print('next '+str(while_loop)+'max '+str(maxarr)+'no vals '+str(npy.sum(maskarr_new))+'inc '+str(increment))
+	    print('		next '+str(while_loop)+' max '+str(maxarr)+' no vals '+str(npy.sum(maskarr_new))+' inc '+str(increment))
 	
 	############################
 	mask_full[x1:x2,y1:y2] = maskarr_out.copy();
@@ -1744,109 +1922,21 @@ def BFG_compute( lon, lat, ssh_raw, depth, var_type, increment, timestr, outname
 	BGcalcarr = mask_full*ssh_full;
 	BGcalcarr[BGcalcarr==0] = npy.nan
 	BGcalcmin = npy.nanmin(BGcalcarr)
-	print('saving in '+outname)
-	thisname_notime = outname
-	#thisname_notime = outname+'fromSSH'
-	if rm_landbarrier:
-	  thisname = thisname_notime+timestr+'nolandbarrier'
-	else:
-	  thisname = thisname_notime+timestr
 	
 	## final metrics for netcdf
 	mask_nan = mask_full*1
 	mask_nan[mask_full==0] = npy.nan
 	BG_max_val = npy.nanmax(mask_nan*ssh_full)
 	[r,c] = npy.where(mask_nan*ssh_full == BG_max_val)
-	print(r,c,len(r))
+	print('			',r,c,len(r))
 	BG_max_lat = lat[r[0],c[0]]
 	BG_max_lon = lon[r[0],c[0]]
 	BG_area = npy.nansum((grid_area*mask_nan)[:]) 
 	  
-	if do_npz:  
-	  npy.savez(thisname+'.npz',BGlon = lon, BGlat = lat, BGmask = mask_full,BGmin = BGcalcmin)
-	
 	## netcdf file output
 	mask_nan = mask_full*1; mask_full[mask_full!=1] = npy.nan
-	### set up netcdf to save into
-	outnetcdf = thisname_notime+'.nc'
-	timevalue = datetime.datetime(timearr[0],timearr[1],timearr[2])
-	time_unit_out = "seconds since 1979-01-01 00:00:00"
 	
-	if os.path.isfile(outnetcdf)==0:
-	    print('writing')
-	    ncfile = Dataset(outnetcdf,mode='w',format='NETCDF4_CLASSIC') 
-	
-	    y = ncfile.createDimension('y',npy.shape(lon)[0])
-	    x = ncfile.createDimension('x',npy.shape(lon)[1])
-	    time = ncfile.createDimension('time',None)
-	
-	    lat_var = ncfile.createVariable('BGlat', npy.float32, ('y','x'))
-	    lat_var.units = 'degrees_north'
-	    lat_var.long_name = 'latitude'
-	    lon_var = ncfile.createVariable('BGlon', npy.float32, ('y','x'))
-	    lon_var.units = 'degrees_east'
-	    lon_var.long_name = 'longitude'
-	    time = ncfile.createVariable('time', npy.float64, ('time',))
-	    time.units = time_unit_out
-	    time.long_name = 'time'
-	
-	    lat_var[:,:] = lat
-	    lon_var[:,:] = lon
-	    time[:] = date2num(timevalue,time_unit_out)  
-	
-	    msk_var = ncfile.createVariable('BGmask',npy.float64,('time','y','x')) 
-	    msk_var.units = '[]' 
-	    msk_var.standard_name = 'Beaufort_Gyre_mask' 
-	    BG_max = ncfile.createVariable('BGmax',npy.float64,('time')) 
-	    BG_max.units = 'metres' 
-	    BG_max.standard_name = 'Maximum_ssh_in_gyre'
-	    BG_min = ncfile.createVariable('BGmin',npy.float64,('time')) 
-	    BG_min.units = 'metres' 
-	    BG_min.standard_name = 'Minimum_ssh_in_gyre'
-	    BG_maxh_lat = ncfile.createVariable('BGmaxhlat',npy.float64,('time'))
-	    BG_maxh_lat.units = "degrees"
-	    BG_maxh_lat.standard_name = "longitude_of_max_ssh_in_gyre"
-	    BG_maxh_lon = ncfile.createVariable('BGmaxhlon',npy.float64,('time'))
-	    BG_maxh_lon.units = "degrees"
-	    BG_maxh_lon.standard_name = "longitude_of_max_ssh_in_gyre"
-	    BG_area_m2 = ncfile.createVariable('BGarea',npy.float64,('time'))
-	    BG_area_m2.units = "metres_squared"
-	    BG_area_m2.standard_name = "area_of_gyre"
-	
-	    msk_var[0,:,:] = mask_full
-	    BG_max[0] = BG_max_val #npy.nanmax(mask_full*ssh_full)
-	    BG_min[0] = BGcalcmin
-	    BG_maxh_lat[0] = BG_max_lat
-	    BG_maxh_lon[0] = BG_max_lon
-	    BG_area_m2[0] = BG_area
-	
-	    ncfile.close()
-	else:
-	    ## append to existing netcdf
-	    f = Dataset(outnetcdf,'a')
-	    ## first, append the time
-	    appendvar = f.variables['time']; 
-	    len_file = len(appendvar)
-	    if date2num(timevalue,time_unit_out) in appendvar:
-	          print('there is already an entry for this time - not appending')
-	      
-	    else:
-	
-	        print('appending')
-	    
-	        appendvar[len_file] = date2num(timevalue,time_unit_out)
-	
-	        ## now, save each variable
-	        appendvar = f.variables['BGmask']; appendvar[len_file,:,:] = mask_full
-	        appendvar = f.variables['BGmin']; appendvar[len_file] = BGcalcmin
-	        appendvar = f.variables['BGmax']; appendvar[len_file] = BG_max_val #npy.nanmax(mask_full*ssh_full)
-	        appendvar = f.variables['BGmaxhlat']; appendvar[len_file] = BG_max_lat
-	        appendvar = f.variables['BGmaxhlon']; appendvar[len_file] = BG_max_lon
-	        appendvar = f.variables['BGarea']; appendvar[len_file] = BG_area
-	
-	    f.close()
-	
-	return mask_full, lon, lat, BGcalcmin ### returns the full mask, longitude, latitude, and SSH at gyre edge
+	return mask_full, BG_max_val, BGcalcmin, BG_max_lat, BG_max_lon, BG_area  
 
 ################################################################################################################################
 def fn_getEdge( oldarr ) :

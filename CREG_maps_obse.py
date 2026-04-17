@@ -6,6 +6,7 @@ import xarray as xr
 import numpy as npy
 from datetime import datetime
 from checkfile import *
+import csv 
 
 ################################################################################################################################
 def SSH_OBS( t_year=1959 ) :
@@ -196,3 +197,32 @@ def PHC3_OBS() :
 		My_varSinit = xr.where(My_varSinit > 1.e9, npy.nan, My_varSinit)
 
 	return My_varTinit, My_varSinit, PHC_lon2D, PHC_lat2D
+
+
+################################################################################################################################
+def VONAPPEN_EKE_OBS() :
+################################################################################################################################
+
+	print('				Read Von Appen et al. EKE inferred from Obs. ')
+	locpath='./DATA/'
+	locfile='EKE_table_Pangaea_lon_sorted_zero_nan_depth.txt'
+	if chkfile(locpath+locfile) : 
+		with open(locpath+locfile, newline='\n') as csvfile:
+		    rd = csv.reader(csvfile, delimiter='\t')
+		    VAD = npy.zeros((29, 212))
+		    Names_VAD = ['' for k in range(212)]
+		    i = 0
+		    for row in rd:
+		        if i>=1:
+		            VAD[:, i-1] = row[1:]
+		            Names_VAD[i-1] = row[0]
+		        else:
+		            Headers = row
+		        i+=1
+		    print(i)
+		dsVAD = xr.Dataset(coords = {'mooring_loc':npy.arange(len(Names_VAD))})
+		dsVAD['Names'] = (('moorings_loc'), Names_VAD)
+		for i in range(1, len(Headers)):
+		    dsVAD[Headers[i]] = (('moorings_loc'), VAD[i-1, :])
+
+	return dsVAD

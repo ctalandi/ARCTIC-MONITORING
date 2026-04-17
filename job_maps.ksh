@@ -88,6 +88,7 @@ if [ $getfiles -eq 1 ] ; then
         ln -sf ${OBS_DIR}/OCEAN/MIMOC_ML_v2.2_PT_S_MLP_Clim.nc .
         ln -sf ${OBS_DIR}/OCEAN/BeaufortGyreFWC-Obs-Proshutinsky_GRL2018_y2003-2017.nc .
         ln -sf ${OBS_DIR}/OCEAN/BGmask_2003to2014.nc .
+        ln -sf ${OBS_DIR}/OCEAN/EKE_table_Pangaea_lon_sorted_zero_nan_depth.txt .
 
         ln -sf ${OBS_DIR}/ICE/NSIDC-0051_92585_monthly.nc
 	if  [ ${CONFIG} == 'CREG025.L75'   ]  ; then 
@@ -136,7 +137,7 @@ for ZMAPS in `echo ${MAPS} ` ; do
     mv ${CONFCASE}*???_MLDClimm03* ${OUTFIGS}/.
 done
 
-mv ./NETCDF/${CONFCASE}*.nc ${OUTNCDF}/.
+cp ./NETCDF/${CONFCASE}*.nc ${OUTNCDF}/.
 
 ls -lrt 
 

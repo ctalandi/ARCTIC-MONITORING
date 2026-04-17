@@ -268,8 +268,7 @@ if MTS_maps :
 # To plot the Atlantic Water maximum temperature as the associated depth
 # Use the salinity criteria S < 33.5
 if AW_Tmax_maps : 
-        zMyvar='votemper'
-        AWT_maps( lon, lat, My_var1T, My_var1S, gdept1d, zMyvar, CONFIG, CASE, climyear, NCDF_OUT )
+        AWT_maps( lon, lat, My_var1T, My_var1S, gdept1d, CONFIG, CASE, climyear, NCDF_OUT )
 
 # To plot SSH and FWC (based on a salinity ref of 34.8 PSU)
 if FWC_maps : 
@@ -285,7 +284,7 @@ if MLD_maps :
 
 # To plot DYN variables PSI and EKE 
 if DYN_maps : 
-        DYN_maps( lon, lat, My_var1, My_var1SeasM, My_var1SeasS, gdept1d, CONFIG, CASE, climyear, s_year, NCDF_OUT )
+        ENE_maps( lon, lat, My_var1, My_var1SeasM, My_var1SeasS, gdept1d, CONFIG, CASE, climyear, s_year, NCDF_OUT )
 
 # To plot T/S drift at the surface, ~100m, ~200m & ~300m
 if TSD_maps : 
