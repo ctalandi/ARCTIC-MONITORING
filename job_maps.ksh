@@ -56,6 +56,8 @@ if [ $getfiles -eq 1 ] ; then
 	            file_base=${ZCONFCASE}_y${cy}m*
 	            ln -sf  ${ZDATA_DIR}/${XIOS}/$cy/${file_base}_gridT.nc .
 	            ln -sf  ${ZDATA_DIR}/${XIOS}/$cy/${file_base}_icemod.nc .
+	            ln -sf  ${ZDATA_DIR}/${XIOS}/$cy/${file_base}_gridU.nc .
+	            ln -sf  ${ZDATA_DIR}/${XIOS}/$cy/${file_base}_gridV.nc .
 
 	            # Yearly files 
 	            file_base=${ZCONFCASE}_y${cy}.${XIOS}

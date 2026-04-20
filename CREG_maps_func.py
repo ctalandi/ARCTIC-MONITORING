@@ -16,6 +16,10 @@ import matplotlib.path as mpath
 import pandas as pd
 import calendar
 import time
+from pathlib import Path 
+from xnemogcm import open_domain_cfg, open_nemo, process_nemo, open_namelist, open_nemo_and_domain_cfg
+from xnemogcm import __version__ as xnemogcm_version
+import xgcm
 
 
 # Matplotlib
@@ -499,98 +503,66 @@ def MLD_maps( zlon, zlat, zMy_var1SeasM, zMy_var1SeasS, zCONF, zCASE, zclimyear,
         return
 
 ################################################################################################################################
-def ENE_maps( zlon, zlat, zMy_var1, zMy_var1SeasM, zMy_var1SeasS, zdepth, zCONF, zCASE, zclimyear, zs_year, zncout ) :
+def ENE_maps( zlon, zlat, zMy_var1, ds_eke, zdepth, zCONF, zCASE, zclimyear, zs_year, zncout ) :
 ################################################################################################################################
 
-        num_fram=220
+        num_fram=320
         # mean PSI
-        zMyvar='sobarstf'   ; fram=num_fram+4
+        zMyvar='sobarstf'   ; fram=num_fram+6
         simple_maps( zlon, zlat, zCONF, zCASE, zMy_var1, zMyvar, zclimyear, zfram=fram )
 
         # Get the model depth at the surface and at ~100m 
-        zd1 = int(zdepth.isel(nav_lev=0).values.item())  ; zd2 = int(zdepth.isel(nav_lev=23).values.item())
+        lev0 =  0 # ~  0m in the model
+        lev1 = 20 # ~ 69m in the model; corresponds to the halocline depth 
+        lev2 = 39 # ~503m in the model; corresponds to the AW depth 
+        zd0 = int(zdepth.isel(nav_lev=lev0).values.item()) ;  zd1 = int(zdepth.isel(nav_lev=lev1).values.item())  ; zd2 = int(zdepth.isel(nav_lev=lev2).values.item())
 
-        # Surface mean EKE
+        # EKE inferred from Von Appen et al. VONAPPEN_EKE_OBS()
+        obs_VonAppeneke = VONAPPEN_EKE_OBS( )
+        #obs_vonapeneke = xr.where( obs_eke >= 9e20, npy.nan, obs_eke )
+
+        # Mean EKE at the surface 
         zMyvar='voeke'   ; fram=num_fram+1
-        simple_maps( zlon, zlat, zCONF, zCASE, zMy_var1SeasM, zMyvar, zclimyear, slev=str(zd1) , zfram=fram )
-        # ~100m depth mean EKE
+        m = simple_maps( zlon, zlat, zCONF, zCASE, npy.log10(ds_eke[zMyvar].isel(z=lev0)), zMyvar, zclimyear, slev=str(zd0) , zfram=fram )
+
+        # Mean EKE at 69m 
         zMyvar='voeke'   ; fram=num_fram+3
-        simple_maps( zlon, zlat, zCONF, zCASE, zMy_var1SeasS, zMyvar, zclimyear, slev=str(zd2), zfram=fram )
+        m = simple_maps( zlon, zlat, zCONF, zCASE, npy.log10(ds_eke[zMyvar].isel(z=lev1)), zMyvar, zclimyear, slev=str(zd1) , zfram=fram )
+	# Select data in the halocline depth
+        mask_halo = npy.logical_and(obs_VonAppeneke['Mean depth'] >= 50, obs_VonAppeneke['Mean depth'] <= 100)
+        lons_halo = obs_VonAppeneke.Longitude.where(mask_halo)
+        lats_halo = obs_VonAppeneke.Latitude.where(mask_halo)
+        X_halo, Y_halo = m(lons_halo, lats_halo)
+        eke_halo = obs_VonAppeneke.EKE.where(mask_halo)
+
+        vmin = -6; vmax = -2
+        cmap = plt.get_cmap('RdYlBu_r')
+        plt.scatter(X_halo, Y_halo, s = 10, c = npy.log10(eke_halo), cmap = cmap, vmin = vmin, vmax = vmax, edgecolors = 'k', linewidths = 0.5)
+
+        # Mean EKE at 508m 
+        zMyvar='voeke'   ; fram=num_fram+5
+        m = simple_maps( zlon, zlat, zCONF, zCASE, npy.log10(ds_eke[zMyvar].isel(z=lev2)), zMyvar, zclimyear, slev=str(zd2), zfram=fram )
+        # Select data in the AW layer 
+        mask_aw = ~npy.isnan(obs_VonAppeneke['EKE at depth'])
+        lons_aw = obs_VonAppeneke.Longitude.where(mask_aw)
+        lats_aw = obs_VonAppeneke.Latitude.where(mask_aw)
+        X_aw, Y_aw = m(lons_aw, lats_aw)
+        eke_aw = obs_VonAppeneke['EKE at depth'].where(mask_aw)
+
+        vmin = -6; vmax = -2
+        cmap = plt.get_cmap('RdYlBu_r')
+        plt.scatter(X_aw, Y_aw, s = 10, c = npy.log10(eke_aw), cmap = cmap, vmin = vmin, vmax = vmax, edgecolors = 'k', linewidths = 0.5)
 
         # EKE from DOT observations (Armitage et al. 2017)
         obs_eke, lon_obs, lat_obs = EKE_OBS( t_year=zs_year )
         obs_eke = xr.where( obs_eke >= 9e20, npy.nan, obs_eke )
 
-        # EKE inferred from Von Appen et al. VONAPPEN_EKE_OBS()
-        #obs_vonapeneke = VONAPPEN_EKE_OBS( )
-        dsVAD = VONAPPEN_EKE_OBS( )
-        #obs_vonapeneke = xr.where( obs_eke >= 9e20, npy.nan, obs_eke )
-
         zMyvar='voeke'   ; fram=num_fram+2
-        simple_maps( lon_obs, lat_obs, zCONF, zCASE, obs_eke, zMyvar, zclimyear, slev=str(zd1), zfram=fram, plot_obs=1 )
+        simple_maps( lon_obs, lat_obs, zCONF, zCASE, npy.log10(obs_eke), zMyvar, zclimyear, slev=str(zd0), zfram=fram, plot_obs=1 )
         plt.tight_layout()
 
         zfile_ext='_DYNClim_'
         plt.savefig(zCONF+'-'+zCASE+zfile_ext+'y'+zclimyear+'.png',dpi=300)
-
-	# TEST TEST 
-###########################@###########################@###########################@###########################@
-
-        #Plot 
-        def add_circle_boundary(ax):
-            # Compute a circle in axes coordinates, which we can use as a boundary
-            # for the map. We can pan/zoom as much as we like - the boundary will be
-            # permanently circular.
-            theta = npy.linspace(0, 2 * npy.pi, 100)
-            center, radius = [0.5, 0.5], 0.5
-            verts = npy.vstack([npy.sin(theta), npy.cos(theta)]).T
-            circle = mpath.Path(verts * radius + center)
-            ax.set_boundary(circle, transform=ax.transAxes)
-        
-        #plot EKE for period 95-2020  for the central arctic only
-        #dsKE_m = dsKE_c.isel(t = 3)
-        i_min_arctic = 70  ; i_max_arctic = 460
-        j_min_arctic = 200 ; j_max_arctic = 600
-        #i_min_arctic = 200; i_max_arctic = 1400
-        #j_min_arctic = 600; j_max_arctic = 1800
-        
-        plt.clf()
-        ##########################################
-        ##########################################
-        f = plt.figure(figsize = (8, 4))
-        fontitle = 14
-        fontlabel = 12
-        cmap = mpl.colormaps['RdYlBu_r']
-        cmap.set_bad('dimgray')
-        
-        #halocline EKE
-        de = 20; vmin = -6; vmax = -2
-        ax0 = f.add_subplot(1,2,1, projection = ccrs.NorthPolarStereo())
-        ax = ax0.inset_axes([-0.05, 0, 1, 1], projection = ccrs.NorthPolarStereo())
-        ax0.axis('off')
-        add_circle_boundary(ax)
-        ax.set_extent([-180, 180, 66, 90], crs=ccrs.PlateCarree())
-        #im = (npy.log10(dsKE_m.voeke)).isel(x_c = slice(i_min_arctic, i_max_arctic)).isel(y_c = slice(j_min_arctic, j_max_arctic))\
-        #.isel(z_c = de).plot.pcolormesh(ax= ax, x = 'glamt', y = 'gphit',transform = ccrs.PlateCarree(), \
-        #    vmin =vmin, vmax = vmax,cmap = cmap,levels= 30, add_colorbar = False)
-        ax.coastlines(); ax.gridlines()
-        ax.set_extent([-180, 180, 65, 90], crs=ccrs.PlateCarree())
-        ax.set_title('')
-        ax.add_feature(cartopy.feature.LAND, facecolor='dimgray')
-        #ax.text(-170, 62, str(int(dsKE_m.gdept_1d.values[de]))+' m', transform = ccrs.PlateCarree(), fontsize = 14)
-        ax.text(-134, 51, 'a)', fontsize = 12, transform = ccrs.PlateCarree())
-        #ax.text(-80, 58, 'Mean EKE', rotation = 90, transform = ccrs.PlateCarree(), fontsize = 14)
-        
-        im = ax.scatter(dsVAD.Longitude.where(npy.logical_and(dsVAD['Mean depth']>=50, dsVAD['Mean depth']<=100)),\
-                        dsVAD.Latitude.where(npy.logical_and(dsVAD['Mean depth']>=50, dsVAD['Mean depth']<=100)),\
-                        c = npy.log10(dsVAD.EKE.where(npy.logical_and(dsVAD['Mean depth']>=50, dsVAD['Mean depth']<=100))),\
-                        transform = ccrs.PlateCarree(), \
-                       cmap = cmap, vmin = vmin, vmax = vmax, edgecolors = 'k', linewidths = 0.5)
-        
-        zfile_ext='_EKEVAP_'
-        f.savefig(zCONF+'-'+zCASE+zfile_ext+'y'+zclimyear+'.png',dpi=300)
-
-###########################@###########################@###########################@###########################@
 
         if zncout:
                 ds_out = xr.Dataset()
@@ -601,20 +573,24 @@ def ENE_maps( zlon, zlat, zMy_var1, zMy_var1SeasM, zMy_var1SeasS, zdepth, zCONF,
                 ds_out['PSI_mod'].attrs['long_name']='Model annual mean barotropic streamfunction '
                 ds_out['PSI_mod'].attrs['units']='Sv'
 
-                ds_out['EKESurf_mod']= (('y','x'), zMy_var1SeasM.values.astype('float32')) 
+                ds_out['EKESurf_mod']= (('y','x'), ds_eke['voeke'].isel(z=lev0).values.astype('float32')) 
                 ds_out['EKESurf_mod'].attrs['long_name']='Model annual mean EKE at the surface'
-                ds_out['EKESurf_mod'].attrs['units']='cm2/s2'
+                ds_out['EKESurf_mod'].attrs['units']='m2/s2'
 
-                ds_out['EKEz100_mod']= (('y','x'), zMy_var1SeasS.values.astype('float32')) 
-                ds_out['EKEz100_mod'].attrs['long_name']='Model annual mean EKE @ ~100m depth'
-                ds_out['EKEz100_mod'].attrs['units']='cm2/s2'
+                ds_out['EKEz69_mod']= (('y','x'), ds_eke['voeke'].isel(z=lev1).values.astype('float32')) 
+                ds_out['EKEz69_mod'].attrs['long_name']='Model annual mean EKE @ ~69m depth'
+                ds_out['EKEz69_mod'].attrs['units']='m2/s2'
+
+                ds_out['EKEz508_mod']= (('y','x'), ds_eke['voeke'].isel(z=lev2).values.astype('float32')) 
+                ds_out['EKEz508_mod'].attrs['long_name']='Model annual mean EKE @ ~508m depth'
+                ds_out['EKEz508_mod'].attrs['units']='m2/s2'
 
                 ds_out['EKESurf_obs']= (('yobs','xobs'), obs_eke.values.astype('float32')) 
                 if zs_year >= 2003 and zs_year <= 2014 :
                         ds_out['EKESurf_obs'].attrs['long_name']='EKE annual mean derived from DOT field (Armitage et al. 2017) in '+str(zs_year)
                 else :
                         ds_out['EKESurf_obs'].attrs['long_name']='EKE climatological mean derived from DOT field (Armitage et al. 2017) over 2003-2014'
-                ds_out['EKESurf_obs'].attrs['units']='cm2/s2'
+                ds_out['EKESurf_obs'].attrs['units']='m2/s2'
 
                 ds_out['lat_obs']= (('yobs','xobs'), lat_obs.astype('float32')) 
                 ds_out['lat_obs'].attrs['long_name']='Degrees north'
@@ -1682,7 +1658,7 @@ def Proj_plot( lon, lat, tab, contours, limits, myticks=None, name=None, zmy_cbl
 		if myticks is None:
 			cbar = plt.colorbar(C,format='%.2f',orientation='vertical',shrink=0.8)
 		else:
-			if zvar == 'votemper' or zvar == 'vosaline' or zvar == 'sivolu' or zvar == 'sobarstf' :
+			if zvar == 'votemper' or zvar == 'vosaline' or zvar == 'sivolu' or zvar == 'sobarstf' or zvar == 'voeke' :
 				cbar = plt.colorbar(C,format='%.2f',orientation='vertical',shrink=0.8,drawedges=True)
 			elif zvar == 'MLTSS' :
 				cbar = plt.colorbar(C,ticks=myticks,format='%.0f',orientation='vertical',shrink=0.8,drawedges=True)
@@ -1695,7 +1671,7 @@ def Proj_plot( lon, lat, tab, contours, limits, myticks=None, name=None, zmy_cbl
 	
 	plt.title(name,fontsize=zfontsize)
 	
-	return 
+	return m
 
 ################################################################################################################################
 def simple_maps( zlon, zlat, zCONF, zCASE, zMy_var1, zMyvar, zclimyear, slev=None, seas='', zfram=111, plot_obs=0, ano=0 ) :
@@ -1711,9 +1687,9 @@ def simple_maps( zlon, zlat, zCONF, zCASE, zMy_var1, zMyvar, zclimyear, slev=Non
 	plt.subplot(zfram)
 	contours, limits, myticks, ztitle, zfile_ext, my_cblab, my_cmap, m_alpha = SET_ARC_CNT( zCASE, zclimyear, seas, zMyvar, zslev=slev, zplot_obs=plot_obs, zdiff=ano )
 	zoutmap = Iso_Bat( ztype='isol1000' )
-	Proj_plot( zlon, zlat, zMy_var1[:,:]*m_alpha, contours, limits, myticks, name=ztitle, zmy_cblab=my_cblab, zmy_cmap=my_cmap, zvar=zMyvar )
+	m = Proj_plot( zlon, zlat, zMy_var1[:,:]*m_alpha, contours, limits, myticks, name=ztitle, zmy_cblab=my_cblab, zmy_cmap=my_cmap, zvar=zMyvar )
 
-	return
+	return m 
 
 ################################################################################################################################
 def BFG_compute( lon, lat, ssh_raw, depth, var_type, increment, grid_area, rm_landbarrier=0 ) :
@@ -1975,3 +1951,73 @@ def fn_getEdge( oldarr ) :
 	newarr[newmask_x+newmask_y > 0] = 1; 
 	    
 	return newarr
+
+################################################################################################################################
+def EKE_compute( zlon, zlat, zCONF, zCASE, xiosfreq, zc_year, zdatadir, zncout ) :
+################################################################################################################################
+
+	# Prepare all metrics 
+	datadir = Path('./'+zCONF+'/GRID/')
+	domcfg = open_domain_cfg(datadir=datadir, files=[zCONF+'_domain_cfg.nc'])
+	
+	metrics = { #define the name of the scaling factors
+	    ('X',): ['e1t', 'e1u', 'e1v', 'e1f'], # X distances
+	    ('Y',): ['e2t', 'e2u', 'e2v', 'e2f'], # Y distances
+	    ('Z',): ['e3t_0', 'e3u_0', 'e3v_0', 'e3f_0', 'e3w_0'], # Z distances
+	}   
+	grid = xgcm.Grid(domcfg, metrics=metrics, periodic=False) #create the grid
+	
+	# Read one file with T-point variables 
+	#locpath=Path(zdatadir+'/'+str(zc_year)+'/'+xiosfreq+'/')
+	zpath=zdatadir+'/'+str(zc_year)+'/'+xiosfreq+'/'
+	locfile=zCONF+'-'+zCASE+'_y'+str(zc_year)+'.'+xiosfreq+'_gridT.nc'
+	nemoT = xr.open_dataset(zpath+locfile, engine="netcdf4")[['nav_lon','nav_lat','deptht','time_counter']]
+	nemoT = nemoT.rename({'deptht':'z'})
+
+	# Read yearly [UV] files 
+	nemo_yyUV = process_nemo(
+	    positions=[
+	        (xr.open_mfdataset(zpath+zCONF+'-'+zCASE+'_y'+str(zc_year)+'.'+xiosfreq+'_gridU.nc',concat_dim=["time_counter"], combine='nested', parallel=True)[['vozocrtx']], 'U'),
+	        (xr.open_mfdataset(zpath+zCONF+'-'+zCASE+'_y'+str(zc_year)+'.'+xiosfreq+'_gridV.nc',concat_dim=["time_counter"], combine='nested', parallel=True)[['vomecrty']], 'V'),
+	    ],
+	    domcfg=domcfg
+	)
+	
+	# Read all monthly [UV] files 
+	#locpath=Path(zdatadir+'/'+str(c_year)+'/'+xiosfreq+'/')
+	zpath=zdatadir+'/'+str(zc_year)+'/'+xiosfreq+'/'
+	#locfile=zCONF+'-'+zCASE+'_y'+str(zc_year)+'m*.'+xiosfreq+'_grid[UV].nc'
+	#if chkfile(locpath+locfile) : 
+	#	nemo_mmUV = open_nemo(domcfg=domcfg, files=locpath.glob(locfile))
+	#	nemo_mmUV
+	nemo_mmUV = process_nemo(
+	    positions=[
+	        (xr.open_mfdataset(zpath+zCONF+'-'+zCASE+'_y'+str(zc_year)+'m*.'+xiosfreq+'_gridU.nc',concat_dim=["time_counter"], combine='nested', parallel=True)[['vozocrtx']], 'U'),
+	        (xr.open_mfdataset(zpath+zCONF+'-'+zCASE+'_y'+str(zc_year)+'m*.'+xiosfreq+'_gridV.nc',concat_dim=["time_counter"], combine='nested', parallel=True)[['vomecrty']], 'V'),
+	    ],
+	    domcfg=domcfg
+	)
+	
+	# Compute the annual mean EKE using monthly mean velocities
+	###############################################################
+	# Velocities anomalies against annual mean (The following syntax is for keeping the dimensions order as [t,z,y,x] )
+	Up_mmU = -1.*(nemo_mmUV['vozocrtx'] - nemo_yyUV['vozocrtx'].squeeze())
+	Vp_mmV = -1.*(nemo_mmUV['vomecrty'] - nemo_yyUV['vomecrty'].squeeze())
+	
+	# Velocity squared at [UV]-point
+	Up2_mmU = Up_mmU**2 
+	Vp2_mmV = Vp_mmV**2
+	
+	# Velocity squared at T-point
+	Up2_mmT = grid.interp(Up2_mmU,axis='X')
+	Vp2_mmT = grid.interp(Vp2_mmV,axis='Y')
+	
+	# Monthly EKE at T-point 
+	EKE_mmT = 0.5 * ( Up2_mmT + Vp2_mmT )
+	
+	# Save EKE annual mean in a dataset with appropriate coordinates 
+	ds_eke = xr.Dataset()
+	ds_eke = ds_eke.assign_coords( z=nemoT.z, y=nemoT.y, x=nemoT.x, glamt=zlon, gphit=zlat )
+	ds_eke['voeke'] = (('z','y','x'), EKE_mmT.mean(dim='t').values)
+
+	return ds_eke 

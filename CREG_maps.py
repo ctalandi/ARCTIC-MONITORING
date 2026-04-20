@@ -139,7 +139,7 @@ while c_year <= e_year:
              ICE_files = [f for f in fs.glob(locpath+locfile)]
              
              if chkfile(locpath+locfile)   :      
-                ds_Idata = xr.open_dataset(locpath+locfile, engine="netcdf4")[[zMyvar]]
+                s_Idata = xr.open_dataset(locpath+locfile, engine="netcdf4")[[zMyvar]]
                 My_var1 = ds_Idata[zMyvar]
                 if c_year == e_year : 
                         My_var1 = xr.where( tmask[0,:,:] < 1, npy.nan, My_var1 ).squeeze()
@@ -204,19 +204,16 @@ while c_year <= e_year:
              zd1 = npy.round(gdept1d.isel(nav_lev=0).values,2).item()  ; zd2 = npy.round(gdept1d.isel(nav_lev=23).values,2).item()
              print('                    Read EKE variable @ depth ' + str(zd1) + ' m & ' + str(zd2) + ' m' )
              
-             # List files to be read
+             # List files to read
              # Read annual mean
              locfile=CONFCASE+'_y'+str(c_year)+'.'+xiosfreq+'_EKE.nc'
+             lev1 = 20 # ~ 69m in the model; corresponds to the halocline depth 
+             lev2 = 39 # ~503m in the model; corresponds to the AW depth 
              if chkfile(locpath+locfile) : 
                 ds_eke = xr.open_dataset(locpath+locfile, engine="netcdf4")[[zMyvar]]
-                My_var1SeasM = ds_eke[zMyvar].isel(z=0)
-                My_var1SeasS = ds_eke[zMyvar].isel(z=23)
-                if c_year == e_year : 
-                        My_var1SeasM = xr.where( tmask[0,:,:]  < 1, npy.nan, My_var1SeasM ).squeeze()
-                        My_var1SeasS = xr.where( tmask[23,:,:] < 1, npy.nan, My_var1SeasS ).squeeze()
              else : 
-                My_var1SeasM = xr.full_like(My_var1, fill_value=npy.nan)
-                My_var1SeasS = xr.full_like(My_var1, fill_value=npy.nan)
+                # Compute annual mean EKE using monthly mean velocities 
+                ds_eke = EKE_compute( lon, lat, CONFIG, CASE, xiosfreq, c_year, data_dir, NCDF_OUT )
 
         #########################################################################################################################################
         if ( AW_Tmax_maps or FWC_maps or TSD_maps or ATL_maps ) :
@@ -284,7 +281,7 @@ if MLD_maps :
 
 # To plot DYN variables PSI and EKE 
 if DYN_maps : 
-        ENE_maps( lon, lat, My_var1, My_var1SeasM, My_var1SeasS, gdept1d, CONFIG, CASE, climyear, s_year, NCDF_OUT )
+        ENE_maps( lon, lat, My_var1, ds_eke, gdept1d, CONFIG, CASE, climyear, s_year, NCDF_OUT )
 
 # To plot T/S drift at the surface, ~100m, ~200m & ~300m
 if TSD_maps : 

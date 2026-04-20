@@ -106,22 +106,22 @@ def SET_ARC_CNT(zCASE,zclimyear,seas,zMyvar,zslev=0,zplot_obs=0,zdiff=0):
 
 	######### EKE #########
 	if zMyvar == 'voeke' :
-	   my_cblab=r'($cm^2s^{-2}$)'
-	   m_alpha=1.e+4
-	   my_cmap=plt.get_cmap('YlOrRd')
+	   my_cblab=r'($m^2s^{-2}$)'
+	   m_alpha=1.
+	   my_cmap=plt.get_cmap('RdYlBu_r')
 	   
 	   zfile_ext='_EKEClim_'
 	   if zslev == '0' : 
-	        vmin=0. ; vmax=10. ; vint=1.
+	        vmin=-6. ; vmax=-2. ; vint=0.2
 	        if zplot_obs == 0 :
-		        ztitle=zCASE +' mean EKE @ '+zslev+' m over \n'+zclimyear
+		        ztitle=zCASE +' - '+zclimyear+' mean EKE @ '+zslev+' m \n patches from Von Appen et al. 2022'
 	        else:
 		        if int(zclimyear[0:4]) >= 2003 and int(zclimyear[0:4]) <= 2014 : 
 			        ztitle=' Mean EKE from Armitage et al. 2017 \n '+zclimyear[0:4]
 		        else:
 			        ztitle=' Mean EKE from Armitage et al. 2017 \n 2003-2014'
-	   if zslev == '97' : 
-	        vmin=0. ; vmax=10. ; vint=1.
+	   else : 
+	        vmin=-6. ; vmax=-2. ; vint=0.2
 	        ztitle=' mean EKE @ '+zslev+' m '
 
 	   contours=npy.arange(vmin,vmax+vint,vint)  # optional contours
