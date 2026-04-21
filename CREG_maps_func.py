@@ -13,6 +13,7 @@ from datetime import datetime
 from cartopy import crs as ccrs
 import cartopy
 import matplotlib.path as mpath
+from matplotlib.lines import Line2D
 import pandas as pd
 import calendar
 import time
@@ -99,9 +100,9 @@ def BFG_mapsf( zlon, zlat, zvar_ssh, zbathy, zarea, zCONF, zCASE, zs_year, ze_ye
         # Plot the yearly closed contours as the BFG center as well 
 	plt.figure()
 	plt.subplot(211)
-	zoutmap, X, Y = Iso_Bat( ztype='isol1000' )	
-	zoutmap.drawparallels(npy.arange(-90.,91.,5.),labels=[False,False,False,False], size=5, linewidth=0.3)
-	zoutmap.drawmeridians(npy.arange(-180.,181.,20.),labels=[True,False,False,True], size=5, latmax=90.,linewidth=0.3)
+	zoutmap, X, Y = Iso_Bat( ztype='isol1000', zarea='cassis_BGZoom' )	
+	zoutmap.drawparallels(npy.arange(-90.,91.,2.),labels=[True,False,False,False], size=5, linewidth=0.3)
+	zoutmap.drawmeridians(npy.arange(-180.,181.,10.),labels=[False,False,False,True], size=5, latmax=90.,linewidth=0.3)
 	zoutmap.fillcontinents(color='grey',lake_color='white')
 
 	if npy.nansum(msk_ym) > 0:
@@ -113,7 +114,7 @@ def BFG_mapsf( zlon, zlat, zvar_ssh, zbathy, zarea, zCONF, zCASE, zs_year, ze_ye
 	clat = [zlat[r.item(),c.item()],]
 	clon = [zlon[r.item(),c.item()],]
 	cx,cy = zoutmap(clon,clat)
-	zoutmap.scatter(cx,cy, marker='*', color='k')
+	zoutmap.scatter(cx,cy, s=10, marker='o', color='k')
 	plt.title( zCASE+' BFG SSH contours \n yearly mean SSH '+str(zs_year), fontsize=6 )
 
 
@@ -122,25 +123,25 @@ def BFG_mapsf( zlon, zlat, zvar_ssh, zbathy, zarea, zCONF, zCASE, zs_year, ze_ye
 	colors = [cmap(i) for i in npy.linspace(0, 1, 12)]
 
 	plt.subplot(212)
-	zoutmap, X, Y = Iso_Bat( ztype='isol1000' )	
-	zoutmap.drawparallels(npy.arange(-90.,91.,5.),labels=[False,False,False,False], size=5, linewidth=0.3)
-	zoutmap.drawmeridians(npy.arange(-180.,181.,20.),labels=[True,False,False,True], size=5, latmax=90.,linewidth=0.3)
+	zoutmap, X, Y = Iso_Bat( ztype='isol1000', zarea='cassis_BGZoom' )	
+	zoutmap.drawparallels(npy.arange(-90.,91.,2.),labels=[True,False,False,False], size=5, linewidth=0.3)
+	zoutmap.drawmeridians(npy.arange(-180.,181.,10.),labels=[False,False,False,True], size=5, latmax=90.,linewidth=0.3)
 	zoutmap.fillcontinents(color='grey',lake_color='white')
 
 	for zmm in range(0,12):
 		if npy.nansum(msk[zmm,:,:]) > 0:
 			msk_plot = xr.where( npy.isnan(msk[zmm,:,:]), 0., msk[zmm,:,:]*1 )
-			CS2 = zoutmap.contour( X, Y, msk_plot, linewidths=0.5, colors=colors[zmm], label=' m'+str(zmm).zfill(2) )
+			CS2 = zoutmap.contour( X, Y, msk_plot, linewidths=0.5, colors=colors[zmm] )
 		# Get indices of the BFG center 
 		[r,c] = npy.nonzero( msk[zmm,:,:]*zvar_ssh.isel(time_counter=zmm) == npy.nanmax(msk[zmm,:,:]*zvar_ssh.isel(time_counter=zmm)) )
 		
 		clat = [zlat[r.values.item(),c.values.item()],]
 		clon = [zlon[r.values.item(),c.values.item()],]
 		cx,cy = zoutmap(clon,clat)
-		zoutmap.scatter(cx,cy, marker='*', color=colors[zmm])
+		zoutmap.scatter(cx,cy, s=10, marker='o', color=colors[zmm])
 
-
-	plt.legend(loc='center right')
+	legend_elements = [ Line2D([0], [0], color=colors[i], lw=1, label=calendar.month_name[i+1]) for i in range(len(colors)) ]
+	plt.legend(handles=legend_elements, bbox_to_anchor=(1.05, 0.85), ncol=1, fontsize=6, handlelength=1.5, handletextpad=0.5, borderpad=0.2, labelspacing=0.2)
 	plt.title( ' monthly mean SSH '+str(zs_year), fontsize=6 )
 	plt.tight_layout()
 
@@ -1553,6 +1554,15 @@ def Iso_Bat( ztype='isol1000', zarea='arctic' ) :
 		############################################################################################################
 	elif zarea == 'ginsea': # Focus on GIN Seas
 		m = Basemap(width=1400000,height=1600000,lat_1=50.,lat_2=65,lon_0=0,lat_0=74.,projection='aea',resolution='i')
+	############################################################################################################
+	elif zarea == 'cassis_BGZoom' :
+		m = Basemap(llcrnrlon=-180,llcrnrlat=66,urcrnrlon=-80,urcrnrlat=80, resolution='i',\
+		            projection='cass',lon_0=-140,lat_0=60)    
+	############################################################################################################
+	elif zarea == 'cassis_BGZoom_HR' :
+		m = Basemap(llcrnrlon=-80,llcrnrlat=80,urcrnrlon=-180,urcrnrlat=60, resolution='i',\
+		            projection='cass',lon_0=0,lat_0=80)    
+	############################################################################################################
 	else: # Focus on North Atlantic sector
 		m = Basemap(width=6100000,height=5000000,lat_1=30.,lat_2=70,lon_0=-45,lat_0=45,projection='aea',resolution='i')
 		zcolorbat='grey'   ;  zalpha=0.7
@@ -1604,6 +1614,14 @@ def Proj_plot( lon, lat, tab, contours, limits, myticks=None, name=None, zmy_cbl
 			lons = [box['lon_min'],box['lon_max']]
 			x,y = m(lons,lats)
 			m.scatter(x,y,1,marker='o', color='r')
+	############################################################################################################
+	elif zarea == 'cassis_BGZoom' :
+		m = Basemap(llcrnrlon=-180,llcrnrlat=66,urcrnrlon=-80,urcrnrlat=80, resolution='i',\
+		            projection='cass',lon_0=-140,lat_0=60)    
+	############################################################################################################
+	elif zarea == 'cassis_BGZoom_HR' :
+		m = Basemap(llcrnrlon=-80,llcrnrlat=80,urcrnrlon=-180,urcrnrlat=60, resolution='i',\
+		            projection='cass',lon_0=0,lat_0=80)    
 	############################################################################################################
 	elif zarea == 'ginsea': # Focus on GIN Seas
 		m = Basemap(width=1400000,height=1600000,lat_1=50.,lat_2=65,lon_0=0,lat_0=74.,projection='aea',resolution='i')
