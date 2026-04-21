@@ -506,9 +506,9 @@ def MLD_maps( zlon, zlat, zMy_var1SeasM, zMy_var1SeasS, zCONF, zCASE, zclimyear,
 def ENE_maps( zlon, zlat, zMy_var1, ds_eke, zdepth, zCONF, zCASE, zclimyear, zs_year, zncout ) :
 ################################################################################################################################
 
-        num_fram=320
+        num_fram=220
         # mean PSI
-        zMyvar='sobarstf'   ; fram=num_fram+6
+        zMyvar='sobarstf'   ; fram=num_fram+4
         simple_maps( zlon, zlat, zCONF, zCASE, zMy_var1, zMyvar, zclimyear, zfram=fram )
 
         # Get the model depth at the surface and at ~100m 
@@ -525,8 +525,23 @@ def ENE_maps( zlon, zlat, zMy_var1, ds_eke, zdepth, zCONF, zCASE, zclimyear, zs_
         zMyvar='voeke'   ; fram=num_fram+1
         m = simple_maps( zlon, zlat, zCONF, zCASE, npy.log10(ds_eke[zMyvar].isel(z=lev0)), zMyvar, zclimyear, slev=str(zd0) , zfram=fram )
 
+        # EKE from DOT observations (Armitage et al. 2017)
+        obs_eke, lon_obs, lat_obs = EKE_OBS( t_year=zs_year )
+        obs_eke = xr.where( obs_eke >= 9e20, npy.nan, obs_eke )
+
+        zMyvar='voeke'   ; fram=num_fram+2
+        simple_maps( lon_obs, lat_obs, zCONF, zCASE, npy.log10(obs_eke), zMyvar, zclimyear, slev=str(zd0), zfram=fram, plot_obs=1 )
+        #plt.tight_layout()
+        #plt.subplots_adjust(wspace=0.05)
+
+        zfile_ext='_DYNPSIClim_'
+        plt.savefig(zCONF+'-'+zCASE+zfile_ext+'y'+zclimyear+'.png',dpi=300)
+
+
+        plt.clf()
+        num_fram=120
         # Mean EKE at 69m 
-        zMyvar='voeke'   ; fram=num_fram+3
+        zMyvar='voeke'   ; fram=num_fram+1
         m = simple_maps( zlon, zlat, zCONF, zCASE, npy.log10(ds_eke[zMyvar].isel(z=lev1)), zMyvar, zclimyear, slev=str(zd1) , zfram=fram )
 	# Select data in the halocline depth
         mask_halo = npy.logical_and(obs_VonAppeneke['Mean depth'] >= 50, obs_VonAppeneke['Mean depth'] <= 100)
@@ -540,7 +555,7 @@ def ENE_maps( zlon, zlat, zMy_var1, ds_eke, zdepth, zCONF, zCASE, zclimyear, zs_
         plt.scatter(X_halo, Y_halo, s = 10, c = npy.log10(eke_halo), cmap = cmap, vmin = vmin, vmax = vmax, edgecolors = 'k', linewidths = 0.5)
 
         # Mean EKE at 508m 
-        zMyvar='voeke'   ; fram=num_fram+5
+        zMyvar='voeke'   ; fram=num_fram+2
         m = simple_maps( zlon, zlat, zCONF, zCASE, npy.log10(ds_eke[zMyvar].isel(z=lev2)), zMyvar, zclimyear, slev=str(zd2), zfram=fram )
         # Select data in the AW layer 
         mask_aw = ~npy.isnan(obs_VonAppeneke['EKE at depth'])
@@ -553,15 +568,9 @@ def ENE_maps( zlon, zlat, zMy_var1, ds_eke, zdepth, zCONF, zCASE, zclimyear, zs_
         cmap = plt.get_cmap('RdYlBu_r')
         plt.scatter(X_aw, Y_aw, s = 10, c = npy.log10(eke_aw), cmap = cmap, vmin = vmin, vmax = vmax, edgecolors = 'k', linewidths = 0.5)
 
-        # EKE from DOT observations (Armitage et al. 2017)
-        obs_eke, lon_obs, lat_obs = EKE_OBS( t_year=zs_year )
-        obs_eke = xr.where( obs_eke >= 9e20, npy.nan, obs_eke )
-
-        zMyvar='voeke'   ; fram=num_fram+2
-        simple_maps( lon_obs, lat_obs, zCONF, zCASE, npy.log10(obs_eke), zMyvar, zclimyear, slev=str(zd0), zfram=fram, plot_obs=1 )
         plt.tight_layout()
 
-        zfile_ext='_DYNClim_'
+        zfile_ext='_DYNEKEClim_'
         plt.savefig(zCONF+'-'+zCASE+zfile_ext+'y'+zclimyear+'.png',dpi=300)
 
         if zncout:
@@ -1559,7 +1568,7 @@ def Iso_Bat( ztype='isol1000', zarea='arctic' ) :
 	return m, X, Y
 
 ################################################################################################################################
-def Proj_plot( lon, lat, tab, contours, limits, myticks=None, name=None, zmy_cblab=None, zmy_cmap=None, filename='test.png', zvar=None, zarea='arctic', data_ref=False ) :
+def Proj_plot( lon, lat, tab, contours, limits, myticks=None, name=None, zmy_cblab=None, zmy_cmap=None, filename='test.png', zvar=None, ztickslabels=None, zarea='arctic', data_ref=False ) :
 ################################################################################################################################
 	#
 	plt.rcParams['text.usetex']=False
@@ -1602,7 +1611,7 @@ def Proj_plot( lon, lat, tab, contours, limits, myticks=None, name=None, zmy_cbl
 	else: # Focus on North Atlantic sector
 		 m = Basemap(width=6100000,height=5000000,lat_1=30.,lat_2=70,lon_0=-45,lat_0=45,projection='aea',resolution='i')
 	
-	if zvar == 'sivolu' or zvar == 'siconc'  or zvar == 'ssh' or zvar == 'FWC' :
+	if zvar == 'sivolu' or zvar == 'siconc'  or zvar == 'ssh' or zvar == 'FWC' or zvar == 'voeke' or zvar == 'sobarstf' :
 		zfontsize=4.
 	else:
 		zfontsize=6.
@@ -1658,8 +1667,10 @@ def Proj_plot( lon, lat, tab, contours, limits, myticks=None, name=None, zmy_cbl
 		if myticks is None:
 			cbar = plt.colorbar(C,format='%.2f',orientation='vertical',shrink=0.8)
 		else:
-			if zvar == 'votemper' or zvar == 'vosaline' or zvar == 'sivolu' or zvar == 'sobarstf' or zvar == 'voeke' :
+			if zvar == 'votemper' or zvar == 'vosaline' or zvar == 'sivolu' or zvar == 'sobarstf' : 
 				cbar = plt.colorbar(C,format='%.2f',orientation='vertical',shrink=0.8,drawedges=True)
+			elif zvar == 'voeke' :
+				cbar = plt.colorbar(C,format='%.2f',orientation='vertical',shrink=0.6,drawedges=True)
 			elif zvar == 'MLTSS' :
 				cbar = plt.colorbar(C,ticks=myticks,format='%.0f',orientation='vertical',shrink=0.8,drawedges=True)
 			else:
@@ -1668,6 +1679,10 @@ def Proj_plot( lon, lat, tab, contours, limits, myticks=None, name=None, zmy_cbl
 			cbar.set_label(zmy_cblab,fontsize=zfontsize)
 			cl = plt.getp(cbar.ax, 'ymajorticklabels')
 			plt.setp(cl, fontsize=zfontsize)
+			#if ztickslabels != None and zvar == 'voeke' : 
+			#	zticks = npy.linspace(1e-6, 1e-2, 5)
+			#	cbar.set_ticks(10**zticks)
+			#	cbar.ax.set_yticklabels(ztickslabels)
 	
 	plt.title(name,fontsize=zfontsize)
 	
@@ -1685,9 +1700,9 @@ def simple_maps( zlon, zlat, zCONF, zCASE, zMy_var1, zMyvar, zclimyear, slev=Non
 	print() 
 	
 	plt.subplot(zfram)
-	contours, limits, myticks, ztitle, zfile_ext, my_cblab, my_cmap, m_alpha = SET_ARC_CNT( zCASE, zclimyear, seas, zMyvar, zslev=slev, zplot_obs=plot_obs, zdiff=ano )
+	contours, limits, myticks, ztitle, zfile_ext, my_cblab, my_cmap, m_alpha, mytickslabels = SET_ARC_CNT( zCASE, zclimyear, seas, zMyvar, zslev=slev, zplot_obs=plot_obs, zdiff=ano )
 	zoutmap = Iso_Bat( ztype='isol1000' )
-	m = Proj_plot( zlon, zlat, zMy_var1[:,:]*m_alpha, contours, limits, myticks, name=ztitle, zmy_cblab=my_cblab, zmy_cmap=my_cmap, zvar=zMyvar )
+	m = Proj_plot( zlon, zlat, zMy_var1[:,:]*m_alpha, contours, limits, myticks, name=ztitle, zmy_cblab=my_cblab, zmy_cmap=my_cmap, zvar=zMyvar, ztickslabels=mytickslabels )
 
 	return m 
 

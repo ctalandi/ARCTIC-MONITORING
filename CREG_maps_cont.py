@@ -106,7 +106,7 @@ def SET_ARC_CNT(zCASE,zclimyear,seas,zMyvar,zslev=0,zplot_obs=0,zdiff=0):
 
 	######### EKE #########
 	if zMyvar == 'voeke' :
-	   my_cblab=r'($m^2s^{-2}$)'
+	   my_cblab=r'(log10 $m^2s^{-2}$)'
 	   m_alpha=1.
 	   my_cmap=plt.get_cmap('RdYlBu_r')
 	   
@@ -114,7 +114,7 @@ def SET_ARC_CNT(zCASE,zclimyear,seas,zMyvar,zslev=0,zplot_obs=0,zdiff=0):
 	   if zslev == '0' : 
 	        vmin=-6. ; vmax=-2. ; vint=0.2
 	        if zplot_obs == 0 :
-		        ztitle=zCASE +' - '+zclimyear+' mean EKE @ '+zslev+' m \n patches from Von Appen et al. 2022'
+		        ztitle=zCASE +' - '+zclimyear+' mean EKE @ '+zslev+' m '
 	        else:
 		        if int(zclimyear[0:4]) >= 2003 and int(zclimyear[0:4]) <= 2014 : 
 			        ztitle=' Mean EKE from Armitage et al. 2017 \n '+zclimyear[0:4]
@@ -122,7 +122,7 @@ def SET_ARC_CNT(zCASE,zclimyear,seas,zMyvar,zslev=0,zplot_obs=0,zdiff=0):
 			        ztitle=' Mean EKE from Armitage et al. 2017 \n 2003-2014'
 	   else : 
 	        vmin=-6. ; vmax=-2. ; vint=0.2
-	        ztitle=' mean EKE @ '+zslev+' m '
+	        ztitle=zCASE +' - '+zclimyear+' mean EKE @ '+zslev+' m \n patches from Von Appen et al. 2022'
 
 	   contours=npy.arange(vmin,vmax+vint,vint)  # optional contours
 	   limits=[vmin,vmax,vint]			  # limits for eke
@@ -170,4 +170,4 @@ def SET_ARC_CNT(zCASE,zclimyear,seas,zMyvar,zslev=0,zplot_obs=0,zdiff=0):
 	   limits=[vmin,vmax,vint]			  # limits for eke
 	   myticks=npy.arange(vmin,vmax+vint,vint)   # optional colorbar ticks (None)
 
-	return contours, limits, myticks, ztitle, zfile_ext, my_cblab, my_cmap, m_alpha
+	return contours, limits, myticks, ztitle, zfile_ext, my_cblab, my_cmap, m_alpha, mytickslabels
