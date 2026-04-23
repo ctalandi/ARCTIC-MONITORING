@@ -107,7 +107,7 @@ def BFG_mapsf( zlon, zlat, zvar_ssh, zbathy, zarea, zCONF, zCASE, zs_year, ze_ye
 
 	if npy.nansum(msk_ym) > 0:
 		msk_plot = xr.where( npy.isnan(msk_ym), 0., msk_ym*1 )
-		CS2 = zoutmap.contour( X, Y, msk_plot, linewidths=0.5, colors='k' )
+		CS2 = zoutmap.contour( X, Y, msk_plot, linewidths=0.3, colors='k' )
 	# Get indices of the BFG center 
 	[r,c] = npy.nonzero( msk_ym*zssh_ym == npy.nanmax(msk_ym*zssh_ym) )
 	
@@ -131,7 +131,7 @@ def BFG_mapsf( zlon, zlat, zvar_ssh, zbathy, zarea, zCONF, zCASE, zs_year, ze_ye
 	for zmm in range(0,12):
 		if npy.nansum(msk[zmm,:,:]) > 0:
 			msk_plot = xr.where( npy.isnan(msk[zmm,:,:]), 0., msk[zmm,:,:]*1 )
-			CS2 = zoutmap.contour( X, Y, msk_plot, linewidths=0.5, colors=colors[zmm] )
+			CS2 = zoutmap.contour( X, Y, msk_plot, linewidths=0.3, colors=colors[zmm] )
 		# Get indices of the BFG center 
 		[r,c] = npy.nonzero( msk[zmm,:,:]*zvar_ssh.isel(time_counter=zmm) == npy.nanmax(msk[zmm,:,:]*zvar_ssh.isel(time_counter=zmm)) )
 		
@@ -325,7 +325,7 @@ def BFG_mapsf( zlon, zlat, zvar_ssh, zbathy, zarea, zCONF, zCASE, zs_year, ze_ye
 	return
 
 ################################################################################################################################
-def ICE_maps( zlon, zlat, zMy_var1, zMy_var1frld_SeasM, zMy_var1frld_SeasS, zCONF, zCASE, zclimyear, zs_year, zc_year, zncout ) :
+def ICE_mapsf( zlon, zlat, zMy_var1, zMy_var1frld_SeasM, zMy_var1frld_SeasS, zCONF, zCASE, zclimyear, zs_year, zc_year, zncout ) :
 ################################################################################################################################
 
         num_fram=320
@@ -1211,7 +1211,7 @@ def AWT_maps( zlon, zlat, zMy_var1T, zMy_var1S, zdepth, zCONFIG, zCASE, zclimyea
 	if zncout:
 		ds_out = xr.Dataset()
 		
-		# FWC field 
+		# AWT field 
 		#######################
 		ds_out['AWTmax_mod']= (('y','x'), zAWTmax1.values.astype('float32')) 
 		ds_out['AWTmax_mod'].attrs['long_name']='Model AWT max calculated using a salinity criteria value Sref=33.5'

@@ -139,7 +139,7 @@ while c_year <= e_year:
              ICE_files = [f for f in fs.glob(locpath+locfile)]
              
              if chkfile(locpath+locfile)   :      
-                s_Idata = xr.open_dataset(locpath+locfile, engine="netcdf4")[[zMyvar]]
+                ds_Idata = xr.open_dataset(locpath+locfile, engine="netcdf4")[[zMyvar]]
                 My_var1 = ds_Idata[zMyvar]
                 if c_year == e_year : 
                         My_var1 = xr.where( tmask[0,:,:] < 1, npy.nan, My_var1 ).squeeze()
@@ -273,7 +273,7 @@ if FWC_maps :
 
 # To plot ICE variables
 if ICE_maps : 
-        ICE_maps( lon, lat, My_var1, My_var1frld_SeasM, My_var1frld_SeasS, CONFIG, CASE, climyear, s_year, c_year, NCDF_OUT )
+        ICE_mapsf( lon, lat, My_var1, My_var1frld_SeasM, My_var1frld_SeasS, CONFIG, CASE, climyear, s_year, c_year, NCDF_OUT )
 
 # To plot MLD variable
 if MLD_maps : 

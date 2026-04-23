@@ -89,16 +89,11 @@ if [ $getfiles -eq 1 ] ; then
         ln -sf ${OBS_DIR}/OCEAN/MLD_MIMOC_based_monthlyClim_rhocrit0.01.nc .
         ln -sf ${OBS_DIR}/OCEAN/MIMOC_ML_v2.2_PT_S_MLP_Clim.nc .
         ln -sf ${OBS_DIR}/OCEAN/BeaufortGyreFWC-Obs-Proshutinsky_GRL2018_y2003-2017.nc .
+        ln -sf ${OBS_DIR}/OCEAN/BGFWC_OI_2023.nc .
         ln -sf ${OBS_DIR}/OCEAN/BGmask_2003to2014.nc .
         ln -sf ${OBS_DIR}/OCEAN/EKE_table_Pangaea_lon_sorted_zero_nan_depth.txt .
-
-        ln -sf ${OBS_DIR}/ICE/NSIDC-0051_92585_monthly.nc
-	if  [ ${CONFIG} == 'CREG025.L75'   ]  ; then 
-        	ln -sf ${OBS_DIR}/ICE/PIOMAS_icethic_interpCREG025.L75_1-12_1979-2020.nc
-        	#ln -sf ${OBS_DIR}/ICE/PIOMAS_icethic_interpCREG025.L75_1-12_1979-2018.nc
-	elif [ ${CONFIG} == 'CREG12.L75'   ]  ; then
-        	ln -sf ${OBS_DIR}/ICE/PIOMAS_icethic_interpCREG12.L75_1-12_1979-2018.nc
-	fi
+        ln -sf ${OBS_DIR}/ICE/NSIDC-G02202-V4_cdr_seaice_conc_y1978-11-2022-12.nc .
+        ln -sf ${OBS_DIR}/ICE/PIOMAS_icethic_interp${CONFIG}_1-12_1979-2024.nc
         cd ../
 
 	# link the bathymetry file

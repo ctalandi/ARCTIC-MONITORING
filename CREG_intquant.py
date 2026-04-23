@@ -504,7 +504,7 @@ if lgTS_ye-lgTS_ys+1 > 1 :
 	(Sept_sice_ext*1e-12).plot(color='k', linewidth=0.7 )
 	(LongTS_OBS_Septiceext*1e-12).plot(color='g', linewidth=0.7 )
 	#plt.plot(time_axis_obs, IABPObservations*100 , 'g', label='Obs.', linewidth=0.7  )
-	plt.ylim([3,8])
+	plt.ylim([3,9])
 	plt.setp(ax.get_xticklabels(),rotation=90, fontsize=5)
 	plt.yticks(size=6)
 	plt.grid(True, linestyle='--', which='both', color='grey', alpha=0.50)

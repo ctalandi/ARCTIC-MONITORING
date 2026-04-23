@@ -7,6 +7,7 @@ import matplotlib.pylab as plt
 def SET_ARC_CNT(zCASE,zclimyear,seas,zMyvar,zslev=0,zplot_obs=0,zdiff=0):
 
 	m_alpha=1.
+	mytickslabels=None
 
 	# Plot information 
 	######### SSH #########

@@ -30,7 +30,7 @@ chkdir ${OUTNCDF}
 cd ${WPDIR}/MONARC/INTQUANT
 
 cp ${INITDIR}/INTQUANT/CREG_intquant_func.py .
-cp ${DMONTOOLS}/MONARC/checkfile.py .
+cp ${DMONTOOLS}/checkfile.py .
 
 
 getfiles=XXGETFILEXX
@@ -62,19 +62,16 @@ if [ $getfiles -eq 1 ] ; then
 	
 	cd ../..
 
-	# Get In-situ data
-	if [ ${CONFIG} == 'CREG025.L75' ] ; then 
-		ln -sf ${OBS_DIR}/ICE/PIOMAS_icevol_maskedBeringSea_interpCREG025.L75_1-12_1979-2020.nc .
-		#ln -sf ${OBS_DIR}/ICE/PIOMAS_icevol_maskedBeringSea_interpCREG025.L75_1-12_1979-2018.nc .
-	elif [ ${CONFIG} == 'CREG12.L75' ] ; then
-		ln -sf ${OBS_DIR}/ICE/PIOMAS_icevol_maskedBeringSea_interpCREG12.L75_1-12_1979-2018.nc .
-        fi
 
-	ln -sf ${OBS_DIR}/ICE/NSIDC_ice_area_and_extent_maskBeringSea_fullPoleGap.nc .
+	# Get In-situ data
+	chkdir DATA  ;  cd DATA
+	ln -sf ${OBS_DIR}/ICE/PIOMAS_icevol_maskedBeringSea_interp${CONFIG}_1-12_1979-2024.nc .
+	ln -sf ${OBS_DIR}/ICE/NSIDC-G02202-V4_ice_area_and_extent_TiSe_y1978-11-2022-12_maskBeringSea_fullPoleGap.nc .
         ln -sf ${OBS_DIR}/OCEAN/FRAM_inflow.mat .
         ln -sf ${OBS_DIR}/ICE/ice_drift_BG_1979-2011.mat .
-        ln -sf ${OBS_DIR}/OCEAN/BeaufortGyreFWC-Obs-Proshutinsky_GRL2018_y2003-2017.nc .
+        ln -sf ${OBS_DIR}/OCEAN/BGFWC_OI_2023.nc .
         ln -sf ${OBS_DIR}/OCEAN/ArcticEkmanPumping_MonthlyMean.nc .
+	cd ../
 
 	# link the bathymetry file
 	ln -sf ${GRID_DIR}/${BATH_FILE} Bathymetry.nc 
