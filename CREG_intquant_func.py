@@ -69,7 +69,7 @@ def READ_OBS_LGTS_DATA(CONFIG,lgTS_ys,lgTS_ye) :
         # Ice drift from IABP
         # Data start in 18/01/1979, with 784 Buoys and 2 smapling / day : 0 & 12 
         locpath='./DATA/'
-        locfile='ice_drift_BG_1979-2011.mat'
+        locfile='IABP_ice_drift_BG_1979-2016.mat'
         if chkfile(locpath+locfile) :
                 IABPObservations_read = sio.loadmat(locpath+locfile,squeeze_me=True)
                 IABPObservations = npy.array(IABPObservations_read['time_series'])
@@ -78,7 +78,7 @@ def READ_OBS_LGTS_DATA(CONFIG,lgTS_ys,lgTS_ye) :
         
         # Set the time axis for observations
         lgts_year=1979    ;      start = 1
-        while  lgts_year <= 2011  :
+        while  lgts_year <= 2016  :
                 y_years=npy.tile(lgts_year,12)+t_months
                 if start == 1:
                         time_axis_obs=y_years

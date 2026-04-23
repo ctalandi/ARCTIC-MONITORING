@@ -269,7 +269,7 @@ if AW_Tmax_maps :
 
 # To plot SSH and FWC (based on a salinity ref of 34.8 PSU)
 if FWC_maps : 
-        FWC_maps( lon, lat, My_var1S, My_varSinit, var_ssh, CONFIG, CASE, climyear, ze3, tmask, NCDF_OUT )
+        FWC_mapsf( lon, lat, My_var1S, My_varSinit, var_ssh, CONFIG, CASE, climyear, ze3, tmask, NCDF_OUT )
 
 # To plot ICE variables
 if ICE_maps : 

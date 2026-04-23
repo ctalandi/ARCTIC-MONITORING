@@ -63,6 +63,8 @@ if [ $getfiles -eq 1 ] ; then
 	            file_base=${ZCONFCASE}_y${cy}.${XIOS}
 	            ln -sf  ${ZDATA_DIR}/${XIOS}/$cy/${file_base}_gridT.nc .
 	            ln -sf  ${ZDATA_DIR}/${XIOS}/$cy/${file_base}_icemod.nc .
+	            ln -sf  ${ZDATA_DIR}/${XIOS}/$cy/${file_base}_gridU.nc .
+	            ln -sf  ${ZDATA_DIR}/${XIOS}/$cy/${file_base}_gridV.nc .
 	            ln -sf  ${ZDATA_DIR}/${XIOS}/$cy/${file_base}_PSI.nc .
 	            ln -sf  ${ZDATA_DIR}/${XIOS}/$cy/${file_base}_EKE.nc .
 	            ln -sf  ${ZDATA_DIR}/${XIOS}/$cy/${file_base}_MOC.nc .
@@ -86,6 +88,7 @@ if [ $getfiles -eq 1 ] ; then
         chkdir DATA  ;  cd DATA
         ln -sf ${OBS_DIR}/OCEAN/phc3.0_annual.nc .
         ln -sf ${OBS_DIR}/OCEAN/EKE_DOT_based_2003-2014.nc .
+        ln -sf ${OBS_DIR}/OCEAN/Full_DOT_data_Arco_2025_09.nc .
         ln -sf ${OBS_DIR}/OCEAN/MLD_MIMOC_based_monthlyClim_rhocrit0.01.nc .
         ln -sf ${OBS_DIR}/OCEAN/MIMOC_ML_v2.2_PT_S_MLP_Clim.nc .
         ln -sf ${OBS_DIR}/OCEAN/BeaufortGyreFWC-Obs-Proshutinsky_GRL2018_y2003-2017.nc .

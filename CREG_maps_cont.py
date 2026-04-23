@@ -19,10 +19,10 @@ def SET_ARC_CNT(zCASE,zclimyear,seas,zMyvar,zslev=0,zplot_obs=0,zdiff=0):
 	   
 	   zfile_ext='_SSHClim_'
 	   if zplot_obs == 1 :
-	        if int(zclimyear[0:4]) >= 2003 and int(zclimyear[0:4]) <= 2014 : 
-		        ztitle=' Mean DOT from Armitage et al. 2017 \n '+str(zclimyear[0:4])
-	        else:
+	        if int(zclimyear[0:4]) < 2003 :
 		        ztitle=' Mean DOT from Armitage et al. 2017 \n 2003-2014'
+	        else : 
+		        ztitle=' Mean DOT from Armitage et al. 2017 \n '+str(zclimyear[0:4])
 	        vmin=-40. ; vmax=40. ; vint=2.
 	   else:
 	        ztitle=zCASE +' mean SSH anomaly '

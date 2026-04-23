@@ -1256,13 +1256,13 @@ def AWT_maps( zlon, zlat, zMy_var1T, zMy_var1S, zdepth, zCONFIG, zCASE, zclimyea
 	return
 
 ################################################################################################################################
-def FWC_maps( zlon, zlat, zMy_var1S, zMy_varSinit, zMy_var1ssh, zCONFIG, zCASE, zclimyear, ze3, ztmask, zncout ) :
+def FWC_mapsf( zlon, zlat, zMy_var1S, zMy_varSinit, zMy_var1ssh, zCONFIG, zCASE, zclimyear, ze3, ztmask, zncout ) :
 ################################################################################################################################
 
 	# FWC calculation over the year
 	###########################################
-	Sref=34.80*1.004715
-	#Sref=34.80 
+	#Sref=34.80*1.004715
+	Sref=34.80 
 	 
 	print('				FWC calculation & plot ')
 
@@ -1356,14 +1356,14 @@ def FWC_maps( zlon, zlat, zMy_var1S, zMy_varSinit, zMy_var1ssh, zCONFIG, zCASE, 
 	plt.subplot(234)
 	zMyvar='ssh'
 	seas=''
-	contours, limits, myticks, ztitle, zfile_ext, my_cblab, my_cmap, m_alpha = SET_ARC_CNT( zCASE, zclimyear, seas, zMyvar )
+	contours, limits, myticks, ztitle, zfile_ext, my_cblab, my_cmap, m_alpha, mytickslabels = SET_ARC_CNT( zCASE, zclimyear, seas, zMyvar )
 	zoutmap = Iso_Bat( ztype='isol1000' )
 	Proj_plot( zlon, zlat, zMy_var1ssh*m_alpha, contours, limits, myticks, name=ztitle, zmy_cblab=my_cblab, zmy_cmap=my_cmap, zvar=zMyvar )
 
 	plt.subplot(235)
 	zMyvar='ssh'
 	seas=''
-	contours, limits, myticks, ztitle, zfile_ext, my_cblab, my_cmap, m_alpha = SET_ARC_CNT( zCASE, zclimyear, seas, zMyvar, zplot_obs=1 )
+	contours, limits, myticks, ztitle, zfile_ext, my_cblab, my_cmap, m_alpha, mytickslabels = SET_ARC_CNT( zCASE, zclimyear, seas, zMyvar, zplot_obs=1 )
 	zoutmap = Iso_Bat( ztype='isol1000' )
 	Proj_plot( lon_obs, lat_obs, obs_ssh*m_alpha, contours, limits, myticks, name=ztitle, zmy_cblab=my_cblab, zmy_cmap=my_cmap, zvar=zMyvar )
 	#plt.tight_layout()
