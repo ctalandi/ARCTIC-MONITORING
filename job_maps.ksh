@@ -95,7 +95,7 @@ if [ $getfiles -eq 1 ] ; then
         ln -sf ${OBS_DIR}/OCEAN/BGFWC_OI_2023.nc .
         ln -sf ${OBS_DIR}/OCEAN/BGmask_2003to2014.nc .
         ln -sf ${OBS_DIR}/OCEAN/EKE_table_Pangaea_lon_sorted_zero_nan_depth.txt .
-        ln -sf ${OBS_DIR}/ICE/NSIDC-G02202-V4_cdr_seaice_conc_y1978-11-2022-12.nc .
+        ln -sf ${OBS_DIR}/ICE/NSIDC-G02202-v6_sic_psn25_197811-202603_v06r00.nc .
         ln -sf ${OBS_DIR}/ICE/PIOMAS_icethic_interp${CONFIG}_1-12_1979-2024.nc
         cd ../
 

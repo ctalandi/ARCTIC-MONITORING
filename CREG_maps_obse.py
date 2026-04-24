@@ -5,6 +5,7 @@ import subprocess
 import xarray as xr 
 import numpy as npy
 from datetime import datetime
+import pandas as pd 
 from checkfile import *
 import csv 
 
@@ -12,29 +13,77 @@ import csv
 def SSH_OBS( t_year=1959 ) :
 ################################################################################################################################
 
-	locpath='./DATA/'
-	locfile='EKE_DOT_based_2003-2014.nc'
-	if chkfile(locpath+locfile,zstop=True) :
-		ds_sshobs = xr.open_dataset(locpath+locfile)
-		lon = ds_sshobs['lon']
-		lat = ds_sshobs['lat']
-		ssh_init = ds_sshobs['DOT']
+	# DOT data set his based on the following satelite:
+	# From 2003 - 2011 : Envisat 
+	# From 2012 - 2025 : Cryosat-2 
 
-		SSH_lon2D=npy.tile(lon,(lat.size,1))
-		SSH_lat2D=npy.tile(lat,(lon.size,1)).T
+	# Focus on the ENVISAT observation period 
+	##########################################
+	if t_year < 2003 : 
+		locpath='./DATA/'
+		locfile='EKE_DOT_based_2003-2014.nc'
+		if chkfile(locpath+locfile,zstop=True) :
+			ds_sshobs = xr.open_dataset(locpath+locfile)
+			lon = ds_sshobs['lon']
+			lat = ds_sshobs['lat']
+			ssh_init = ds_sshobs['DOT']
+	
+			SSH_lon2D=npy.tile(lon,(lat.size,1))
+			SSH_lat2D=npy.tile(lat,(lon.size,1)).T
+	
+		# Compute the mean over the obs. monthly period 2003-2014
+		out_ssh_OBS = ssh_init.mean(dim='date').squeeze()
+		ssh_OBS_obsper = 'Envisat 2003-2014'
+	
+		# Remove the domain mean to get an anomaly
+		out_ssh_OBS = out_ssh_OBS - ssh_init.mean()
 
-	if t_year >= 2003 and t_year <=2014 :
+	elif t_year >= 2003 and t_year <=2014 :
+		locpath='./DATA/'
+		locfile='EKE_DOT_based_2003-2014.nc'
+		if chkfile(locpath+locfile,zstop=True) :
+			ds_sshobs = xr.open_dataset(locpath+locfile)
+			lon = ds_sshobs['lon']
+			lat = ds_sshobs['lat']
+			ssh_init = ds_sshobs['DOT']
+	
+			SSH_lon2D=npy.tile(lon,(lat.size,1))
+			SSH_lat2D=npy.tile(lat,(lon.size,1)).T
+
 		# Get the specific year
 		s_ind=(t_year-2003)*12	 
 		out_ssh_OBS = ssh_init.isel(date=slice(s_ind,s_ind+12)).mean(dim='date').squeeze()
-		ssh_OBS_obsper = str(t_year)
-	else:
-		# Compute the mean over the obs. monthly period 2003-2014
-		out_ssh_OBS = ssh_init.mean(dim='date').squeeze()
-		ssh_OBS_obsper = '2003-2014'
+		ssh_OBS_obsper = 'Envisat '+str(t_year)
 
-	# Remove the domain mean to get an anomaly
-	out_ssh_OBS = out_ssh_OBS - ssh_init.mean()
+		# Remove the domain mean to get an anomaly
+		out_ssh_OBS = out_ssh_OBS - ssh_init.mean()
+
+	# Focus on the CRYOSAT-2 observation period 
+	############################################
+	elif t_year > 2014 and t_year <=2024 : 
+
+		# Focus on the Cryosat-2 observation period 
+		locpath='./DATA/'
+		locfile='Full_DOT_data_Arco_2025_09.nc'
+		if chkfile(locpath+locfile,zstop=True) :
+			ds_sshobs = xr.open_dataset(locpath+locfile)
+			SSH_lon2D = ds_sshobs['lons']
+			SSH_lat2D = ds_sshobs['lats']
+			ssh_init = ds_sshobs['DOT_smoothed']
+			# Redefine a new time axis to manage data easily
+			time_values = ds_sshobs.time.values
+	
+			# Build a DatetimeIndex starting January 1st 2000 and adding days
+			datetime_index = pd.to_datetime('2000-01-01') + pd.to_timedelta(time_values, unit='D')
+			# Associate this new time axis to the data	
+			ssh_init['time'] = datetime_index
+	
+		# Remove all data before 2015 and after 2024 (2025 is from January to September)
+		ssh_20152024 = ssh_init.where(ssh_init.time.dt.year >= 2015, drop=True)
+		ssh_20152024 = ssh_20152024.where(ssh_20152024.time.dt.year <= 2024, drop=True)
+		out_ssh_OBS = ssh_20152024.sel(time=str(t_year)).mean(dim='time') - ssh_20152024.mean()
+		#out_ssh_OBS = out_ssh_OBS.squeeze()
+		ssh_OBS_obsper = 'Cryosat-2 '+str(t_year)
 
 	return out_ssh_OBS, SSH_lon2D, SSH_lat2D, ssh_OBS_obsper
 
@@ -112,15 +161,12 @@ def ICE_THICK_OBS( zconfig='CREG025.L75', t_year=1959 ) :
 ################################################################################################################################
 
 	locpath='./DATA/'
-	if zconfig == 'CREG025.L75' : 
-		locfile='PIOMAS_icethic_interpCREG025.L75_1-12_1979-2020.nc'
-	elif zconfig == 'CREG12.L75' :
-		locfile='PIOMAS_icethic_interpCREG12.L75_1-12_1979-2020.nc'
+	locfile='PIOMAS_icethic_interp'+zconfig+'_1-12_1979-2024.nc'
 	if chkfile(locpath+locfile,zstop=True) :
 		ds_icet = xr.open_dataset(locpath+locfile)
 		ICE_thick_init = ds_icet['icethic'].squeeze()
 
-	if t_year >= 1979 and t_year <= 2020 :
+	if t_year >= 1979 and t_year <= 2024 :
 		s_ind = (t_year-1979)*12
 		mean_ICE_thick = ICE_thick_init[s_ind:s_ind+12,:,:].copy()
 	else:
@@ -137,41 +183,58 @@ def ICE_CONCE_OBS( t_year=1959 ) :
 ################################################################################################################################
 
 	locpath='./DATA/'
-	locfile='NSIDC-0051_92585_monthly.nc'
+	locfile='NSIDC-G02202-v6_sic_psn25_197811-202603_v06r00.nc'
 	if chkfile(locpath+locfile,zstop=True) :
 		ds_icec = xr.open_dataset(locpath+locfile)
-		lon = ds_icec['longitude'].squeeze()
-		lat = ds_icec['latitude'].squeeze()
-		CONC_init = ds_icec['Average_Sea_Ice_Concentration_with_Final_Version'].squeeze()
+		ds_msk = xr.open_dataset(locpath+locfile,group='cdr_supplementary')
+		ds_msk = ds_msk.set_coords('longitude')
+		ds_msk = ds_msk.set_coords('latitude')
+		lon = ds_msk['longitude'].squeeze()
+		lat = ds_msk['latitude'].squeeze()
+		CONC_init = ds_icec['cdr_seaice_conc_monthly'].squeeze()
+		#CONC_init = ds_icec['Average_Sea_Ice_Concentration_with_Final_Version'].squeeze()
 
-	## Initial data are based on add_offset
-	## 251 > missing pole
-	## 252 > not used
-	## 253 > coastline
-	## 254 > land
-	## 255 > missing value
-	## data will be recovered in dividing it by 250
-	CONC_init = xr.where( CONC_init == 255, npy.nan, CONC_init )
-	CONC_init = xr.where( CONC_init == 254, npy.nan, CONC_init )
-	CONC_init = xr.where( CONC_init == 253, npy.nan, CONC_init )
-	CONC_init = xr.where( CONC_init == 251, npy.nan, CONC_init )
-	COR_CONC_init = CONC_init/250.
-
-	CONC_init_land = npy.squeeze(CONC_init[0,:,:].copy())
-
-	if t_year >= 1979 and t_year <= 2015 : 
-		print( " Simplification calculation")
+	if t_year >= 1979 and t_year <= 2025 : 
 		# Select only March & September monthly mean
-		mean_CONC_m03 = COR_CONC_init.sel(time=str(t_year)+'-03').squeeze()
-		mean_CONC_m09 = COR_CONC_init.sel(time=str(t_year)+'-09').squeeze()
+		mean_CONC_m03 = CONC_init.sel(time=str(t_year)+'-03').squeeze()
+		mean_CONC_m09 = CONC_init.sel(time=str(t_year)+'-09').squeeze()
 	else:
 		# Compute a mean seasonal cycle and select March & September
 		CONC_clim = COR_CONC_init.groupby('time.month').mean('time')
 		mean_CONC_m03 = CONC_clim.isel(month=2)
 		mean_CONC_m09 = CONC_clim.isel(month=8)
 
-	mean_CONC_m03 = xr.where( CONC_init_land == 254 , npy.nan, mean_CONC_m03 )
-	mean_CONC_m09 = xr.where( CONC_init_land == 254 , npy.nan, mean_CONC_m09 )
+	#mean_CONC_m03 = xr.where( CONC_init_land == 254 , npy.nan, mean_CONC_m03 )
+	#mean_CONC_m09 = xr.where( CONC_init_land == 254 , npy.nan, mean_CONC_m09 )
+
+#	## Initial data are based on add_offset
+#	## 251 > missing pole
+#	## 252 > not used
+#	## 253 > coastline
+#	## 254 > land
+#	## 255 > missing value
+#	## data will be recovered in dividing it by 250
+#	CONC_init = xr.where( CONC_init == 255, npy.nan, CONC_init )
+#	CONC_init = xr.where( CONC_init == 254, npy.nan, CONC_init )
+#	CONC_init = xr.where( CONC_init == 253, npy.nan, CONC_init )
+#	CONC_init = xr.where( CONC_init == 251, npy.nan, CONC_init )
+#	COR_CONC_init = CONC_init/250.
+#
+#	CONC_init_land = npy.squeeze(CONC_init[0,:,:].copy())
+#
+#	if t_year >= 1979 and t_year <= 2015 : 
+#		print( " Simplification calculation")
+#		# Select only March & September monthly mean
+#		mean_CONC_m03 = COR_CONC_init.sel(time=str(t_year)+'-03').squeeze()
+#		mean_CONC_m09 = COR_CONC_init.sel(time=str(t_year)+'-09').squeeze()
+#	else:
+#		# Compute a mean seasonal cycle and select March & September
+#		CONC_clim = COR_CONC_init.groupby('time.month').mean('time')
+#		mean_CONC_m03 = CONC_clim.isel(month=2)
+#		mean_CONC_m09 = CONC_clim.isel(month=8)
+#
+#	mean_CONC_m03 = xr.where( CONC_init_land == 254 , npy.nan, mean_CONC_m03 )
+#	mean_CONC_m09 = xr.where( CONC_init_land == 254 , npy.nan, mean_CONC_m09 )
 
 	return mean_CONC_m03, mean_CONC_m09, lon, lat
 

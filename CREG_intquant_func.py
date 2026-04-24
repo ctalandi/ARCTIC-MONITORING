@@ -41,19 +41,19 @@ def READ_OBS_LGTS_DATA(CONFIG,lgTS_ys,lgTS_ye) :
                 lgts_year+=1
 
         # Ice extent obs
-        # Data start in November 1978, so there is a 2 months shift
+        # NSIDC-v6 starts in November 1978 ending in March 2026 so skip the fiest 2 months and last 3 months of the time-series
         locpath='./DATA/'
-        locfile='NSIDC-G02202-V4_ice_area_and_extent_TiSe_y1978-11-2022-12_maskBeringSea_fullPoleGap.nc'
+        locfile='NSIDC-G02202-v6_ice_area_and_extent_TiSe_y1978-11-2026-03_maskBeringSea_fullPoleGap.nc'
         if chkfile(locpath+locfile) :
                 ds_fld = xr.open_dataset(locpath+locfile)
-                LongTS_OBS_iceext = ds_fld['ice_extent'][2::]
-                LongTS_OBS_iceare = ds_fld['ice_area'][2::]
+                LongTS_OBS_iceext = ds_fld['ice_extent'].sel(time=slice('1979','2025'))
+                LongTS_OBS_iceare = ds_fld['ice_area'].sel(time=slice('1979','2025'))
         else:
-                LongTS_OBS_iceext = npy.arange((2022-1979+1)*12)+npy.nan
-                LongTS_OBS_iceare = npy.arange((2022-1979+1)*12)+npy.nan
+                LongTS_OBS_iceext = npy.arange((2025-1979+1)*12)+npy.nan
+                LongTS_OBS_iceare = npy.arange((2025-1979+1)*12)+npy.nan
 	# Set the time axis for NSIDC observations
         lgts_year=1979    ;      start = 1
-        while  lgts_year <= 2022  :
+        while  lgts_year <= 2025  :
                y_years=npy.tile(lgts_year,12)+t_months
                if start == 1:
                        time_axis_NSIDC=y_years
@@ -64,7 +64,7 @@ def READ_OBS_LGTS_DATA(CONFIG,lgTS_ys,lgTS_ye) :
 
         # Return also the September ice extent 
         LongTS_OBS_Septiceext = ds_fld['ice_extent'].sel(time=ds_fld.time.dt.month == 9)
-        LongTS_OBS_Septiceext['time'] = pd.date_range(start='1979-01',end='2022-12',freq='YS') + pd.DateOffset(days=180)
+        LongTS_OBS_Septiceext['time'] = pd.date_range(start='1979-01',end='2025-12',freq='YS') + pd.DateOffset(days=180)
 
         # Ice drift from IABP
         # Data start in 18/01/1979, with 784 Buoys and 2 smapling / day : 0 & 12 
@@ -74,7 +74,7 @@ def READ_OBS_LGTS_DATA(CONFIG,lgTS_ys,lgTS_ye) :
                 IABPObservations_read = sio.loadmat(locpath+locfile,squeeze_me=True)
                 IABPObservations = npy.array(IABPObservations_read['time_series'])
         else:
-                IABPObservations = npy.arange(396)+npy.nan
+                IABPObservations = npy.arange(456)+npy.nan
         
         # Set the time axis for observations
         lgts_year=1979    ;      start = 1

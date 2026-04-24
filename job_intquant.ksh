@@ -66,7 +66,7 @@ if [ $getfiles -eq 1 ] ; then
 	# Get In-situ data
 	chkdir DATA  ;  cd DATA
 	ln -sf ${OBS_DIR}/ICE/PIOMAS_icevol_maskedBeringSea_interp${CONFIG}_1-12_1979-2024.nc .
-	ln -sf ${OBS_DIR}/ICE/NSIDC-G02202-V4_ice_area_and_extent_TiSe_y1978-11-2022-12_maskBeringSea_fullPoleGap.nc .
+	ln -sf ${OBS_DIR}/ICE/NSIDC-G02202-v6_ice_area_and_extent_TiSe_y1978-11-2026-03_maskBeringSea_fullPoleGap.nc
         ln -sf ${OBS_DIR}/OCEAN/FRAM_inflow.mat .
         ln -sf ${OBS_DIR}/ICE/IABP_ice_drift_BG_1979-2016.mat .
         ln -sf ${OBS_DIR}/OCEAN/BGFWC_OI_2023.nc .

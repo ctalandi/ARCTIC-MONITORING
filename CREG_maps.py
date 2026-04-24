@@ -31,7 +31,7 @@ if e_year-s_year == 0 :
 else:
         climyear=str(s_year)+str(e_year)
 
-AW_Tmax_maps=XXAW_TMAXXX
+AWT_maps=XXAW_TMAXXX
 FWC_maps=XXFWC_MAPSXX
 ICE_maps=XXICE_MAPSXX
 MLD_maps=XXMLD_MAPSXX
@@ -216,7 +216,7 @@ while c_year <= e_year:
                 ds_eke = EKE_compute( lon, lat, CONFIG, CASE, xiosfreq, c_year, data_dir, NCDF_OUT )
 
         #########################################################################################################################################
-        if ( AW_Tmax_maps or FWC_maps or TSD_maps or ATL_maps ) :
+        if ( AWT_maps or FWC_maps or TSD_maps or ATL_maps ) :
 
                    print('                      Read full T/S 3D spatial variables to compute the AWTmax or FWC ')
 
@@ -246,7 +246,7 @@ while c_year <= e_year:
         c_year = c_year + 1 
 
 # Read the initial state to compare with
-if AW_Tmax_maps or FWC_maps or TSD_maps or ATL_maps : My_varTinit, My_varSinit = CREG_INIT( CONFIG, CASE )
+if AWT_maps or FWC_maps or TSD_maps or ATL_maps : My_varTinit, My_varSinit = CREG_INIT( CONFIG, CASE )
 
 ###########################################
 # CALL FUNCTIONS TO PERFORM DIAGS AND PLOTS 
@@ -260,12 +260,12 @@ if BFG_maps :
 
 # To plot the mean T/S in the ML
 if MTS_maps : 
-	MTS_maps( lon, lat, CONFIG, CASE, My_var1SeasM, My_var1SeasS, My_varTSM, My_varTSS, gdepw_0, ze3, climyear, data_dir, grid_dir, NCDF_OUT )
+	MTS_mapsf( lon, lat, CONFIG, CASE, My_var1SeasM, My_var1SeasS, My_varTSM, My_varTSS, gdepw_0, ze3, climyear, data_dir, grid_dir, NCDF_OUT )
 
 # To plot the Atlantic Water maximum temperature as the associated depth
 # Use the salinity criteria S < 33.5
-if AW_Tmax_maps : 
-        AWT_maps( lon, lat, My_var1T, My_var1S, gdept1d, CONFIG, CASE, climyear, NCDF_OUT )
+if AWT_maps : 
+        AWT_mapsf( lon, lat, My_var1T, My_var1S, gdept1d, CONFIG, CASE, climyear, NCDF_OUT )
 
 # To plot SSH and FWC (based on a salinity ref of 34.8 PSU)
 if FWC_maps : 
@@ -277,20 +277,20 @@ if ICE_maps :
 
 # To plot MLD variable
 if MLD_maps : 
-        MLD_maps( lon, lat, My_var1SeasM, My_var1SeasS, CONFIG, CASE, climyear, NCDF_OUT )
+        MLD_mapsf( lon, lat, My_var1SeasM, My_var1SeasS, CONFIG, CASE, climyear, NCDF_OUT )
 
 # To plot DYN variables PSI and EKE 
 if DYN_maps : 
-        ENE_maps( lon, lat, My_var1, ds_eke, gdept1d, CONFIG, CASE, climyear, s_year, NCDF_OUT )
+        DYN_mapsf( lon, lat, My_var1, ds_eke, gdept1d, CONFIG, CASE, climyear, s_year, NCDF_OUT )
 
 # To plot T/S drift at the surface, ~100m, ~200m & ~300m
 if TSD_maps : 
-        TSD_maps( lon, lat, My_var1T, My_var1S, My_varTinit, My_varSinit, gdept1d, CONFIG, CASE, climyear, NCDF_OUT )
+        TSD_mapsf( lon, lat, My_var1T, My_var1S, My_varTinit, My_varSinit, gdept1d, CONFIG, CASE, climyear, NCDF_OUT )
 
 # To plot ATL variables such as MLD, SSH in differents areas GIN, LAB, IRM seas 
 if ATL_maps : 
-        ATL_maps( lon, lat, My_var1SeasM, Mdata_read, My_var1T, My_varTinit, var_ssh, gdept1d, CONFIG, CASE, climyear, s_year, e_year, NCDF_OUT )
+        ATL_mapsf( lon, lat, My_var1SeasM, Mdata_read, My_var1T, My_varTinit, var_ssh, gdept1d, CONFIG, CASE, climyear, s_year, e_year, NCDF_OUT )
 
 # To plot AMOC and Time series 
 if MOC_maps : 
-        MOC_maps( lon, lat, My_MOC, gdept1d, CONFIG, CASE, climyear, s_year, e_year, NCDF_OUT )
+        MOC_mapsf( lon, lat, My_MOC, gdept1d, CONFIG, CASE, climyear, s_year, e_year, NCDF_OUT )

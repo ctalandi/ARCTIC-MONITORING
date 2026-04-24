@@ -62,10 +62,10 @@ def SET_ARC_CNT(zCASE,zclimyear,seas,zMyvar,zslev=0,zplot_obs=0,zdiff=0):
 	  
 	   zfile_ext='_SITHICKClim_'
 	   if zplot_obs == 1 :
-	        if zclimyear >= 1979 and zclimyear <= 2018: 
+	        if zclimyear >= 1979 and zclimyear <= 2024: 
 		        ztitle=' PIOMAS mean SITHICK over \n '+str(zclimyear)
 	        else:
-		        ztitle=' PIOMAS mean SITHICK over \n 1979-2018'
+		        ztitle=' PIOMAS mean SITHICK over \n 1979-2024'
 	   else:
 	        ztitle=zCASE +' mean SITHICK over \n'+zclimyear
 	   vmin=0. ; vmax=5. ; vint=0.5
@@ -81,10 +81,10 @@ def SET_ARC_CNT(zCASE,zclimyear,seas,zMyvar,zslev=0,zplot_obs=0,zdiff=0):
 	   
 	   zfile_ext='_SICONClim_'
 	   if zplot_obs == 1 :
-	        if zclimyear >= 1979 and zclimyear <= 2015: 
-		        ztitle=' NSIDC mean SICON '+seas+' \n '+str(zclimyear)
+	        if zclimyear >= 1979 and zclimyear <= 2025: 
+		        ztitle=' NSIDC-v6 mean SICON '+seas+' \n '+str(zclimyear)
 	        else:
-		        ztitle=' NSIDC mean SICON '+seas+' \n 1979-2015'
+		        ztitle=' NSIDC-v6 mean SICON '+seas+' \n 1979-2025'
 	   else:
 	        ztitle=' mean SICON '+seas
 	   vmin=0. ; vmax=100. ; vint=10.

@@ -107,7 +107,7 @@ def BFG_mapsf( zlon, zlat, zvar_ssh, zbathy, zarea, zCONF, zCASE, zs_year, ze_ye
 
 	if npy.nansum(msk_ym) > 0:
 		msk_plot = xr.where( npy.isnan(msk_ym), 0., msk_ym*1 )
-		CS2 = zoutmap.contour( X, Y, msk_plot, linewidths=0.3, colors='k' )
+		CS2 = zoutmap.contour( X, Y, msk_plot, linewidths=0.5, colors='k' )
 	# Get indices of the BFG center 
 	[r,c] = npy.nonzero( msk_ym*zssh_ym == npy.nanmax(msk_ym*zssh_ym) )
 	
@@ -131,7 +131,7 @@ def BFG_mapsf( zlon, zlat, zvar_ssh, zbathy, zarea, zCONF, zCASE, zs_year, ze_ye
 	for zmm in range(0,12):
 		if npy.nansum(msk[zmm,:,:]) > 0:
 			msk_plot = xr.where( npy.isnan(msk[zmm,:,:]), 0., msk[zmm,:,:]*1 )
-			CS2 = zoutmap.contour( X, Y, msk_plot, linewidths=0.3, colors=colors[zmm] )
+			CS2 = zoutmap.contour( X, Y, msk_plot, linewidths=0.5, colors=colors[zmm] )
 		# Get indices of the BFG center 
 		[r,c] = npy.nonzero( msk[zmm,:,:]*zvar_ssh.isel(time_counter=zmm) == npy.nanmax(msk[zmm,:,:]*zvar_ssh.isel(time_counter=zmm)) )
 		
@@ -432,7 +432,7 @@ def ICE_mapsf( zlon, zlat, zMy_var1, zMy_var1frld_SeasM, zMy_var1frld_SeasS, zCO
         return
 
 ################################################################################################################################
-def MLD_maps( zlon, zlat, zMy_var1SeasM, zMy_var1SeasS, zCONF, zCASE, zclimyear, zncout ) :
+def MLD_mapsf( zlon, zlat, zMy_var1SeasM, zMy_var1SeasS, zCONF, zCASE, zclimyear, zncout ) :
 ################################################################################################################################
 
         num_fram=220
@@ -504,7 +504,7 @@ def MLD_maps( zlon, zlat, zMy_var1SeasM, zMy_var1SeasS, zCONF, zCASE, zclimyear,
         return
 
 ################################################################################################################################
-def ENE_maps( zlon, zlat, zMy_var1, ds_eke, zdepth, zCONF, zCASE, zclimyear, zs_year, zncout ) :
+def DYN_mapsf( zlon, zlat, zMy_var1, ds_eke, zdepth, zCONF, zCASE, zclimyear, zs_year, zncout ) :
 ################################################################################################################################
 
         num_fram=220
@@ -628,7 +628,7 @@ def ENE_maps( zlon, zlat, zMy_var1, ds_eke, zdepth, zCONF, zCASE, zclimyear, zs_
         return
 
 ################################################################################################################################
-def TSD_maps( zlon, zlat, zMy_var1T, zMy_var1S, zMy_varTinit, zMy_varSinit, zdepth, zCONF, zCASE, zclimyear, zncout ) :
+def TSD_mapsf( zlon, zlat, zMy_var1T, zMy_var1S, zMy_varTinit, zMy_varSinit, zdepth, zCONF, zCASE, zclimyear, zncout ) :
 ################################################################################################################################
 
         # Get the model depth at the surface and at ~100m 
@@ -679,7 +679,7 @@ def TSD_maps( zlon, zlat, zMy_var1T, zMy_var1S, zMy_varTinit, zMy_varSinit, zdep
         return
 
 ################################################################################################################################
-def ATL_maps( zlon, zlat, zMy_var1SeasM, zMdata_read, zMy_var1T, zMy_varTinit, zMy_var1ssh, zdepth, zCONF, zCASE, zclimyear, zs_year, ze_year, zncout ) :
+def ATL_mapsf( zlon, zlat, zMy_var1SeasM, zMdata_read, zMy_var1T, zMy_varTinit, zMy_var1ssh, zdepth, zCONF, zCASE, zclimyear, zs_year, ze_year, zncout ) :
 ################################################################################################################################
 
         # Define time axis for plot
@@ -862,7 +862,7 @@ def ATL_maps( zlon, zlat, zMy_var1SeasM, zMdata_read, zMy_var1T, zMy_varTinit, z
         return
 
 ################################################################################################################################
-def MOC_maps( zlon, zlat, zMy_MOC, zdepth, zCONF, zCASE, zclimyear, zs_year, ze_year, zncout ) :
+def MOC_mapsf( zlon, zlat, zMy_MOC, zdepth, zCONF, zCASE, zclimyear, zs_year, ze_year, zncout ) :
 ################################################################################################################################
 
         plt_AMOCTS=True
@@ -955,7 +955,7 @@ def MOC_maps( zlon, zlat, zMy_MOC, zdepth, zCONF, zCASE, zclimyear, zs_year, ze_
         return
 
 ################################################################################################################################
-def MTS_maps( zlon, zlat, zCONF, zCASE, zMLD_M, zMLD_S, zMy_varM, zMy_varS, zgdepw_0, ze3t_0, zclimyear, indir, grdir, zncout ) :
+def MTS_mapsf( zlon, zlat, zCONF, zCASE, zMLD_M, zMLD_S, zMy_varM, zMy_varS, zgdepw_0, ze3t_0, zclimyear, indir, grdir, zncout ) :
 ################################################################################################################################
 
 	# Mask all levels below the MLD 
@@ -1110,7 +1110,7 @@ def MTS_maps( zlon, zlat, zCONF, zCASE, zMLD_M, zMLD_S, zMy_varM, zMy_varS, zgde
 	return
 
 ################################################################################################################################
-def AWT_maps( zlon, zlat, zMy_var1T, zMy_var1S, zdepth, zCONFIG, zCASE, zclimyear, zncout) :
+def AWT_mapsf( zlon, zlat, zMy_var1T, zMy_var1S, zdepth, zCONFIG, zCASE, zclimyear, zncout) :
 ################################################################################################################################
 
 	zCONFCASE=zCONFIG+'-'+zCASE
