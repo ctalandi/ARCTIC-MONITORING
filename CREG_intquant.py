@@ -22,6 +22,7 @@ s_year=XXSYEAXX
 e_year=XXEYEAXX
 lgTS_ys=XXLGTSSXX
 lgTS_ye=XXLGTSEXX
+teos10=XXTEOS1OXX
 xiosfreq=XXXIOSFREQXX
 NCDF_OUT=XXNCDFOUTXX
 main_dir='./'
@@ -49,7 +50,7 @@ var_hthi={'name':"sivolu"  ,'units':u"m"   ,'_FillValue': 0.,'fext':"I",'igrd':1
 var_Wcur={'name':"socurl"  ,'units':u"m/s" ,'_FillValue': 0.,'fext':"Xi",'igrd':1 ,'ze3':"e3f_0",'gdep':"gdepw",'long_name':"Surface ocean stress curl "}
 var_ISfx={'name':"sfxice"  ,'units':u"kg/m2/s" ,'_FillValue': 0.,'fext':"sfxice",'igrd':1 ,'ze3':"e3t_0",'gdep':"gdept",'long_name':"Surface ice salt flux "}
 var_IVfx={'name':"vfxice"  ,'units':u"kg/m2/s" ,'_FillValue': 0.,'fext':"vfxice",'igrd':1 ,'ze3':"e3t_0",'gdep':"gdept",'long_name':"Surface ice mass flux"}
-MassSaltFLX=False
+MassSaltFLX = False
 
 #------------------------------------------------------------------------------------------------------------------------
 ########################################
@@ -116,6 +117,9 @@ if len(SAL_files) == 12 :
    Sdata_read = Sdata_read.rename({'deptht':'z'})
    # Mask land grid points
    Sdata_read = Sdata_read * tmask
+   # Conversion from SA to PS
+   if teos10 : 
+   	Sdata_read = CONVERT_SA2PS( Sdata_read, ds_Sdata.nav_lon.values, ds_Sdata.nav_lat.values ) 
 
 print("						   ")
 print("					       >>>>>>>>>  The curent variable processed is :	    at_i(:,:)"	)
@@ -189,10 +193,7 @@ print()
 
 plt.clf()
 
-# Absolute Salinity 
-Sref=34.80*1.004715
-# Practical Salinity UNIT 
-#Sref=34.80 
+Sref = 34.80 
 
 ########################################
 # Diagnostics in the Beaufort Gyre area 

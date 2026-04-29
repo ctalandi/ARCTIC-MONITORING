@@ -3,6 +3,7 @@ import scipy.io as sio
 from checkfile import *
 import xarray as xr
 import pandas as pd 
+import gsw as gsw 
 from fsspec.implementations.local import LocalFileSystem
 fs = LocalFileSystem()
 
@@ -143,3 +144,29 @@ def READ_OBS_LGTS_CRFEkm(lgTS_ys,lgTS_ye) :
                 time_axis_Ekm = npy.arange((2015-2003+1))+npy.nan
         
         return  LongTS_OBS_Ekm, time_axis_Ekm
+
+def CONVERT_SA2PS( zSAL, zlon, zlat ) :
+
+	# Compute the pressure at each depth
+        pressure = gsw.p_from_z( -zSAL.z.values.squeeze(), 77. )
+        pressure4D = P4D( pressure, zlat ) 
+
+        # Apply the conversion
+        z_SP = gsw.conversions.SP_from_SA( zSAL, pressure4D, zlon, zlat )
+
+        return z_SP.astype('float32')
+
+def P4D( zvector, zlat ):
+
+        # Prepare this 1D field to be duplicated in 4D : time,z,y,x
+        z2dt = npy.reshape( zvector, (1, len(zvector), 1, 1) )
+
+        # Time axis 
+        zplt = npy.repeat( z2dt, 12, axis=0 )
+
+        # Horizontaly to fit the T/S on a global grid
+        vect4D = npy.tile( zplt,( 1, 1, zlat.shape[0], zlat.shape[1] ) )
+
+        return vect4D
+
+
