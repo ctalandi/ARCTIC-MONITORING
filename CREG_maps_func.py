@@ -17,6 +17,7 @@ from matplotlib.lines import Line2D
 import pandas as pd
 import calendar
 import time
+import gsw as gsw 
 from pathlib import Path 
 from xnemogcm import open_domain_cfg, open_nemo, process_nemo, open_namelist, open_nemo_and_domain_cfg
 from xnemogcm import __version__ as xnemogcm_version
@@ -1256,13 +1257,17 @@ def AWT_mapsf( zlon, zlat, zMy_var1T, zMy_var1S, zdepth, zCONFIG, zCASE, zclimye
 	return
 
 ################################################################################################################################
-def FWC_mapsf( zlon, zlat, zMy_var1S, zMy_varSinit, zMy_var1ssh, zCONFIG, zCASE, zclimyear, ze3, ztmask, zncout ) :
+def FWC_mapsf( zlon, zlat, zMy_var1S, zMy_varSinit, zMy_var1ssh, zCONFIG, zCASE, zclimyear, ze3, ztmask, zncout, teos10 ) :
 ################################################################################################################################
 
 	# FWC calculation over the year
 	###########################################
-	#Sref=34.80*1.004715
-	Sref=34.80 
+	Sref = 34.80 
+
+ 	# Conversion from SA to PS
+	if teos10 : 
+		zMy_var1S = CONVERT_SA2PS( zMy_var1S, zlon.values, zlat.values ) 
+		zMy_varSinit = CONVERT_SA2PS( zMy_varSinit, zlon.values, zlat.values ) 
 	 
 	print('				FWC calculation & plot ')
 
@@ -2054,3 +2059,28 @@ def EKE_compute( zlon, zlat, zCONF, zCASE, xiosfreq, zc_year, zdatadir, zncout )
 	ds_eke['voeke'] = (('z','y','x'), EKE_mmT.mean(dim='t').values)
 
 	return ds_eke 
+
+################################################################################################################################
+def CONVERT_SA2PS( zSAL, zlon, zlat ) :
+################################################################################################################################
+
+	# Compute the pressure at each depth
+        pressure = gsw.p_from_z( -zSAL.z.values.squeeze(), 77. )
+        pressure3D = P3D( pressure, zlat ) 
+
+        # Apply the conversion
+        z_SP = gsw.conversions.SP_from_SA( zSAL, pressure3D, zlon, zlat )
+
+        return z_SP.astype('float32')
+
+################################################################################################################################
+def P3D( zvector, zlat ):
+################################################################################################################################
+
+        # Prepare this 1D field to be duplicated in 3D : z,y,x
+        z2dt = npy.reshape( zvector, (len(zvector), 1, 1) )
+
+        # Horizontaly to fit the T/S on a global grid
+        vect4D = npy.tile( z2dt,( 1, zlat.shape[0], zlat.shape[1] ) )
+
+        return vect4D
