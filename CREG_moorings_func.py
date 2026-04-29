@@ -4,6 +4,7 @@ import matplotlib.pylab as plt
 import scipy.io as sio
 from checkfile import *
 from CREG_moorings_cont import *
+import gsw as gsw 
 import subprocess
 from datetime import datetime
 import xarray as xr 
@@ -373,7 +374,7 @@ def DEF_ZPROFILE(zCONFIG,zCASE,zclimyear,zhsct_lev,Red_My_varinit,box,zAll_var,z
 			plt.setp(ax.get_yticklabels(),visible=False)
 	
 		# Plot just the mean at each depth to plot the vertical profile
-		mean_z=npy.mean(zhsct_lev,axis=2).squeeze()
+		mean_z=npy.mean(zhsct_lev,axis=1).squeeze()
 
 		if var['name'] == "vovecrtz":
 			plt.plot(1e6*mean_z[nvar,:]   ,-zplt[:,0],'k', linewidth=0.7, label=zCASE)
@@ -441,12 +442,12 @@ def DEF_ZTIME(zCONFIG,zCASE,lgTS_ys,lgTS_ye,box,z,z2dt,hsct_lev,zgtype=None,zMyv
 		       LongTS_hsct_lev=year_hsct_lev.copy()
 	       else:
 		       time_axis=npy.append(time_axis,y_years)
-		       LongTS_hsct_lev=npy.concatenate((LongTS_hsct_lev,year_hsct_lev),axis=2)
+		       LongTS_hsct_lev=npy.concatenate((LongTS_hsct_lev,year_hsct_lev),axis=1)
 
 	       lgts_year+=1
 
-	xplt= npy.tile(time_axis,(z.size,1))
-	zplt = npy.repeat(z2dt,time_axis.shape[0],axis=1)
+	xplt= npy.tile(time_axis,(z.size,1)).T
+	zplt = npy.repeat(z2dt,time_axis.shape[0],axis=0)
 	lgtsclimyear=str(lgTS_ys)+str(lgTS_ye)
 
 	time_grid=npy.arange(lgTS_ys,lgTS_ye+1,1.,dtype=float)
@@ -518,19 +519,19 @@ def DEF_ZTIME(zCONFIG,zCASE,lgTS_ys,lgTS_ye,box,z,z2dt,hsct_lev,zgtype=None,zMyv
 		ds_outZProf.coords['time'] = (('time') , time_axis.astype('float32'))
 		ds_outZProf.coords['z']    = (('z')    , z.values.astype('float32'))
 
-		ds_outZProf['Temp']= (('z','time'), LongTS_hsct_lev[0,:,:].astype('float32')) 
+		ds_outZProf['Temp']= (('time','z'), LongTS_hsct_lev[0,:,:].astype('float32')) 
 		ds_outZProf['Temp'].attrs['long_name']='Monthly mean temperature profile @ mooring '+box['box']
 		ds_outZProf['Temp'].attrs['units']='DegC'
 
-		ds_outZProf['Sal']= (('z','time'), LongTS_hsct_lev[1,:,:].astype('float32')) 
+		ds_outZProf['Sal']= (('time','z'), LongTS_hsct_lev[1,:,:].astype('float32')) 
 		ds_outZProf['Sal'].attrs['long_name']='Monthly mean salinity profile @ mooring '+box['box']
 		ds_outZProf['Sal'].attrs['units']='PSU'
 
-		ds_outZProf['Time2D']= (('z','time'), xplt ) 
+		ds_outZProf['Time2D']= (('time','z'), xplt ) 
 		ds_outZProf['Time2D'].attrs['long_name']='Depth versus time array for contour plot'
 		ds_outZProf['Time2D'].attrs['units']='month'
 
-		ds_outZProf['Depth2D']= (('z','time'), -1.*zplt ) 
+		ds_outZProf['Depth2D']= (('time','z'), -1.*zplt ) 
 		ds_outZProf['Depth2D'].attrs['long_name']='Depth versus time array for contour plot'
 		ds_outZProf['Depth2D'].attrs['units']='m'
 
@@ -544,7 +545,7 @@ def DEF_ZTIME(zCONFIG,zCASE,lgTS_ys,lgTS_ye,box,z,z2dt,hsct_lev,zgtype=None,zMyv
 	return 
 
 
-def DEF_REDVAR(CONFIG,CASE,My_var,My_varinit,box,zAll_var,s_year,e_year,tmask,e1t,e2t,e3t):
+def DEF_REDVAR(CONFIG,CASE,My_var,My_varinit,box,zAll_var,s_year,e_year,tmask,e1t,e2t,e3t,teos10):
 	########################################
 	# Start calculation
 	########################################
@@ -564,11 +565,19 @@ def DEF_REDVAR(CONFIG,CASE,My_var,My_varinit,box,zAll_var,s_year,e_year,tmask,e1
 	print('			Reduce Array size step')
 	print()
 
-	Red_My_var = My_var.isel(y=slice(box['jmin'],box['jmax']+1),x=slice(box['imin'],box['imax']+1))
-	My_varinitbox = My_varinit.isel(y=slice(box['jmin'],box['jmax']+1),x=slice(box['imin'],box['imax']+1)).squeeze()
+	if teos10 : 
+		# Convert CT/SA to Tpt/SP for comparison with data obs.
+		moorSel = My_var.isel(y=slice(box['jmin'],box['jmax']+1),x=slice(box['imin'],box['imax']+1)).squeeze()
+		moorSel_init = My_varinit.isel(y=slice(box['jmin'],box['jmax']+1),x=slice(box['imin'],box['imax']+1)).squeeze()
+		Red_My_var = CONVERT_SACT_2_SPTpt( moorSel )
+		My_varinitbox = CONVERT_SACT_2_SPTpt( moorSel_init, fldt='init' )
+	else :
+		# Keep data at a given mooring 
+		Red_My_var = My_var.isel(y=slice(box['jmin'],box['jmax']+1),x=slice(box['imin'],box['imax']+1)).squeeze()
+		My_varinitbox = My_varinit.isel(y=slice(box['jmin'],box['jmax']+1),x=slice(box['imin'],box['imax']+1)).squeeze()
 	
-	hsct_lev = xr.DataArray( dims=['nvar','z','time_counter'], coords = dict(nvar=npy.arange(nbvar),z=My_var.z,time_counter=My_var.time_counter) ) 
-	Red_My_varinit = xr.DataArray( dims=['nvar','z'], coords = dict(nvar=npy.arange(nbvar),z=My_var.z) ) 
+	hsct_lev = xr.DataArray( dims = ['nvar','time_counter','z'], coords = dict( nvar = npy.arange(nbvar), time_counter = My_var.time_counter, z = My_var.z ) ) 
+	Red_My_varinit = xr.DataArray( dims = ['nvar','z'], coords = dict( nvar = npy.arange(nbvar), z = My_var.z ) ) 
 	
 	nvar=0
 	for var in zAll_var:
@@ -586,3 +595,25 @@ def DEF_REDVAR(CONFIG,CASE,My_var,My_varinit,box,zAll_var,s_year,e_year,tmask,e1
 	npy.save('./DATA/'+CONFIG+'/'+CASE+'_'+box['box']+file_extZ+'_y'+str(s_year)+'.npy',hsct_lev)
 	
 	return hsct_lev, Red_My_varinit
+
+def CONVERT_SACT_2_SPTpt( zMoor_TS1D, fldt=None ) :
+
+	# Define Dataarray dims 
+	if fldt == None :
+		fldt_dims = ('time_counter','z')
+	else :
+		fldt_dims = ('z')
+
+	pressure = gsw.p_from_z( -zMoor_TS1D.z.values.squeeze(), zMoor_TS1D.lat.values.squeeze() )
+
+	# Create an empty Dataset to store both T & S
+	TS_tz = xr.Dataset( coords = dict( time_counter = zMoor_TS1D.time_counter, z = zMoor_TS1D.z ) ) 
+
+	# Apply the conversion
+	z_Tpt = gsw.conversions.pt_from_CT( zMoor_TS1D['vosaline'].values.squeeze(), zMoor_TS1D['votemper'].values.squeeze() )
+	z_SP = gsw.conversions.SP_from_SA( zMoor_TS1D['vosaline'].values, pressure, zMoor_TS1D['lon'].values, zMoor_TS1D['lat'].values )
+
+	TS_tz['votemper'] = ( fldt_dims, z_Tpt )
+	TS_tz['vosaline'] = ( fldt_dims, z_SP )
+
+	return TS_tz

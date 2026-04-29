@@ -17,6 +17,7 @@ s_year=XXSYEAXX
 e_year=XXEYEAXX
 lgTS_ys=XXLGTSSXX
 lgTS_ye=XXLGTSEXX
+teos10=XXTEOS1OXX
 xiosfreq=XXXIOSFREQXX
 NCDF_OUT=XXNCDFOUTXX
 m_alpha=1.
@@ -74,7 +75,7 @@ locfile=CONFCASE+'_y'+str(s_year)+'.'+xiosfreq+'_gridT.nc'
 if chkfile(locpath+locfile,zstop=True,zscript=sys.argv[0]) :
     ds_fld=xr.open_dataset(locpath+locfile)
     z1D = ds_fld[name_z]
-z2dt=npy.reshape(z1D.values,(z1D.size,1))
+z2dt=npy.reshape(z1D.values,(1,z1D.size))
 print()
 print('         End reading geographical coordinates, scale factors & masks ')
 
@@ -97,8 +98,8 @@ if monthly_data == 1 and e_year-s_year == 0:
     time_axis=npy.arange(12)+1.5
 
 # 2D fields to use for the plotting step 
-xplt= npy.tile(time_axis,(z1D.size,1))
-zplt = npy.repeat(z2dt,time_axis.shape[0],axis=1)
+xplt= npy.tile(time_axis,(z1D.size,1)).T
+zplt = npy.repeat(z2dt,time_axis.shape[0],axis=0)
 
 #------------------------------------------------------------------------------------------------------------------------
 ########################################
@@ -118,6 +119,8 @@ while c_year <= e_year:
          print() 
          ds_TSdata = xr.open_mfdataset(locpath+locfile, engine="netcdf4", concat_dim=["time_counter"], combine='nested', parallel=True, drop_variables=drp_var)
          ds_TSdata = ds_TSdata.rename({'deptht':'z'})
+         ds_TSdata['lat'] = ( ('y','x'), lat.values.squeeze() )
+         ds_TSdata['lon'] = ( ('y','x'), lon.values.squeeze() )
          ## Fill NaN with zero
          #Sdata_read = Sdata_read.fillna(0)
          ## Mask land grid points
@@ -134,6 +137,9 @@ if chkfile(locpath+locfile) :
     print() 
     drp_var=["time_centered", "deptht_bounds","time_centered_bounds","time_counter_bounds"]
     ds_TSinit = xr.open_dataset(locpath+locfile, engine="netcdf4", drop_variables=drp_var)
+    ds_TSinit = ds_TSinit.rename({'nav_lev':'z'})
+    ds_TSinit['lat'] = ( ('y','x'), lat.values.squeeze() )
+    ds_TSinit['lon'] = ( ('y','x'), lon.values.squeeze() )
 
 #------------------------------------------------------------------------------------------------------------------------
 ####################################################################################################################
@@ -152,7 +158,7 @@ if lgTS_ye-lgTS_ys+1 > 1 :
     moor_n=1
     for zmybox in All_box :
         zbox=DEF_MOOR_BOX(CONFIG,zmybox)
-        hsct_lev,Red_My_varinit=DEF_REDVAR(CONFIG,CASE,ds_TSdata,ds_TSinit,zbox,All_var,s_year,e_year,tmask,e1t,e2t,e3t)
+        hsct_lev,Red_My_varinit=DEF_REDVAR(CONFIG,CASE,ds_TSdata,ds_TSinit,zbox,All_var,s_year,e_year,tmask,e1t,e2t,e3t,teos10)
         fram=num_fram+moor_n
         DEF_ZTIME(CONFIG,CASE,lgTS_ys,lgTS_ye,zbox,z1D,z2dt,hsct_lev,zfram=fram,zoutNC=NCDF_OUT) 
         cumul_box=cumul_box+'-'+zbox['box']
@@ -192,7 +198,7 @@ if do_Kprofile :
     for zmybox in All_box :
         zbox=DEF_MOOR_BOX(CONFIG,zmybox)
         fram=num_fram+moor_n
-        hsct_lev,Red_My_varinit=DEF_REDVAR(CONFIG,CASE,ds_TSdata,ds_TSinit,zbox,All_var,s_year,e_year,tmask,e1t,e2t,e3t)
+        hsct_lev,Red_My_varinit=DEF_REDVAR(CONFIG,CASE,ds_TSdata,ds_TSinit,zbox,All_var,s_year,e_year,tmask,e1t,e2t,e3t,teos10)
         DEF_ZPROFILE(CONFIG,CASE,str(s_year),hsct_lev,Red_My_varinit,zbox,All_var,zplt,zfram=fram,zs_year=s_year) 
         cumul_box=cumul_box+'-'+zbox['box']
         moor_n+=2

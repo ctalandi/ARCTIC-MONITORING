@@ -49,7 +49,7 @@ var_hthi={'name':"sivolu"  ,'units':u"m"   ,'_FillValue': 0.,'fext':"I",'igrd':1
 var_Wcur={'name':"socurl"  ,'units':u"m/s" ,'_FillValue': 0.,'fext':"Xi",'igrd':1 ,'ze3':"e3f_0",'gdep':"gdepw",'long_name':"Surface ocean stress curl "}
 var_ISfx={'name':"sfxice"  ,'units':u"kg/m2/s" ,'_FillValue': 0.,'fext':"sfxice",'igrd':1 ,'ze3':"e3t_0",'gdep':"gdept",'long_name':"Surface ice salt flux "}
 var_IVfx={'name':"vfxice"  ,'units':u"kg/m2/s" ,'_FillValue': 0.,'fext':"vfxice",'igrd':1 ,'ze3':"e3t_0",'gdep':"gdept",'long_name':"Surface ice mass flux"}
-MassSaltFLX=True
+MassSaltFLX=False
 
 #------------------------------------------------------------------------------------------------------------------------
 ########################################

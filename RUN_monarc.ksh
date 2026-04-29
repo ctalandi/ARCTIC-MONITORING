@@ -31,11 +31,17 @@ if [ ${DOMAPS} -eq 1 ]  ; then
 
 	DEPEND="#"
 	C_YEAR=${STA_YEAR}
+	LGTS_S=${REF_YEAR}
+	LGTS_E=${REF_YEAR}
+	iyear=1
+
 	while [ ${C_YEAR} -le ${END_YEAR}  ]  ;  do
+
+	      if [ ${C_YEAR} -eq ${END_YEAR}  ] ; then LGTS_E=${END_YEAR} ; fi
 	
 	      # Build Python script for each plot
 	      for ZMAPS in `echo ${MAPS}`  ; do
-                       ZAW_TMAX=False   ; ZFWC_MAPS=False ; ZICE_MAPS=False  ; ZMLD_MAPS=False  ; ZDYN_MAPS=False ; ZTSD_MAPS=False ; ZATL_MAPS=False ; ZMOC_MAPS=False  ; ZNCDF=False  ;   ZTSM_MAPS=False
+                       ZAW_TMAX=False   ; ZFWC_MAPS=False ; ZICE_MAPS=False  ; ZMLD_MAPS=False  ; ZDYN_MAPS=False ; ZTSD_MAPS=False ; ZATL_MAPS=False ; ZMOC_MAPS=False  ; ZNCDF=False  ;   ZTSM_MAPS=False   ;   ZBFG_MAPS=False
 	                if [ ${ZMAPS} = 'AWT' ] ; then  
                               ZAW_TMAX=True
 	                elif [ ${ZMAPS} = 'FWC' ]   ; then 
@@ -54,6 +60,8 @@ if [ ${DOMAPS} -eq 1 ]  ; then
                               ZMOC_MAPS=True
 	                elif [ ${ZMAPS} = 'MTS' ]   ; then 
                               ZTSM_MAPS=True
+	                elif [ ${ZMAPS} = 'BFG' ]   ; then 
+                              ZBFG_MAPS=True
                         fi
 
 	                if [ ${OUTNCDF} = 1 ] ; then  
@@ -65,6 +73,8 @@ if [ ${DOMAPS} -eq 1 ]  ; then
 	                  -e "s/XXCONFXX/${CONFIG}/" \
 	                  -e "s/XXCASEXX/${CASE}/" \
 	                  -e "s/XXCASE2XX/${CASE2}/" \
+	                  -e "s/XXLGTSSXX/${LGTS_S}/" \
+	                  -e "s/XXLGTSEXX/${LGTS_E}/" \
 	                  -e "s/XXGRIDXX/${GTYPE}/" \
 	                  -e "s;XXDATA_DIRXX;${DATA_DIR};" \
 	                  -e "s;XXGRID_DIRXX;${GRID_DIR};" \
@@ -80,9 +90,16 @@ if [ ${DOMAPS} -eq 1 ]  ; then
                           -e "s/XXATL_MAPSXX/${ZATL_MAPS}/" \
                           -e "s/XXMOC_MAPSXX/${ZMOC_MAPS}/" \
                           -e "s/XXMTS_MAPSXX/${ZTSM_MAPS}/" \
+                          -e "s/XXBFG_MAPSXX/${ZBFG_MAPS}/" \
                           -e "s/XXNCDFOUTXX/${ZNCDF}/" CREG_maps.py > ${WPDIR}/MONARC/MAPS/CREG_maps_y${C_YEAR}${C_YEAR}_${ZMAPS}.py
 	              chmod 750 ${WPDIR}/MONARC/MAPS/CREG_maps_y${C_YEAR}${C_YEAR}_${ZMAPS}.py
 	      done
+
+	      # Build the job which will be launched (one per grid)
+              if [ ${C_YEAR} -eq ${END_YEAR}  ] && [ $(( $END_YEAR-$STA_YEAR )) -gt 0 ] ; then 
+                   if [ ${MACHINE} == 'datarmor' ] ; then  DEPEND="#PBS -W depend=afterany:${jobids}"        ; fi
+              fi
+
 
 	      if [ ! -d ${WPDIR}/MONARC/MAPS/NETCDF ] ; then mkdir ${WPDIR}/MONARC/MAPS/NETCDF  ; fi
 	
@@ -111,7 +128,12 @@ if [ ${DOMAPS} -eq 1 ]  ; then
 
               cat ${WPDIR}/MONARC/MAPS/tmp_head_maps ${WPDIR}/MONARC/MAPS/tmp_job_maps > ${WPDIR}/MONARC/MAPS/tmp_job_${CASE}_maps_y${C_YEAR}${C_YEAR}
 	
-	      ${BATCH} ${WPDIR}/MONARC/MAPS/tmp_job_${CASE}_maps_y${C_YEAR}${C_YEAR}
+              tmp_jobid=$( ${BATCH} ${WPDIR}/MONARC/MAPS/tmp_job_${CASE}_maps_y${C_YEAR}${C_YEAR} )
+
+              if [ ${MACHINE} == 'occigen' ]   ;  then jobid=$( echo $tmp_jobid | awk '{print $4}'  ) ; else jobid=$tmp_jobid   ; fi
+
+	      if [ $iyear -eq 1 ] ;  then jobids="${jobid}" ; else  jobids="${jobids}:${jobid}" ; fi
+	      let iyear=$iyear+1
 	
 	
 	   let C_YEAR=$C_YEAR+1
@@ -229,6 +251,7 @@ if [ ${DOMOORINGS} -eq 1 ]  ; then
 	            -e "s/XXCASE2XX/${CASE2}/" \
                     -e "s/XXLGTSSXX/${LGTS_S}/" \
                     -e "s/XXLGTSEXX/${LGTS_E}/" \
+                    -e "s/XXTEOS1OXX/${TEOS10}/" \
                     -e "s/XXXIOSFREQXX/'${XIOS}'/" \
 	            -e "s/XXALLBOXXX/${BOX}/" \
 	            -e "s/XXVARXX/votemper/"  \
@@ -389,6 +412,7 @@ if [ ${DOINTQUANT} -eq 1 ]  ; then
                   -e "s/XXXIOSFREQXX/'${XIOS}'/" \
 	          -e "s/XXLGTSSXX/${LGTS_S}/" \
 	          -e "s/XXLGTSEXX/${LGTS_E}/" \
+                  -e "s/XXTEOS1OXX/${TEOS10}/" \
 	          -e "s/XXNCDFOUTXX/${ZNCDF}/" CREG_intquant.py > ${WPDIR}/MONARC/INTQUANT/CREG_intquant_y${C_YEAR}${C_YEAR}.py
 	      chmod 750 ${WPDIR}/MONARC/INTQUANT/CREG_intquant_y${C_YEAR}${C_YEAR}.py
 	
