@@ -8,6 +8,7 @@ import subprocess
 from checkfile import *
 import xarray as xr 
 from datetime import datetime
+import gsw as gsw
 
 ################################################################################################################################
 def DEF_LOC_SEC( CONFIG, zsect ) :
@@ -668,3 +669,24 @@ def PLOT_SECTION( zCONF, zCASE, strait, Tsec, Ssec, Usec, Tsec_init, Ssec_init, 
 		ds_out.to_netcdf(nc_f,engine='netcdf4')
 
 	return
+
+################################################################################################################################
+def CONVERT_SACT_2_SPTpt( ds_TS, zdepth3D, zlon, zlat ) :
+################################################################################################################################
+
+	# Compute the pressure at depth
+	pressure = gsw.p_from_z( -zdepth3D, zlat )
+	pressure4D = P4D( pressure, zlat ) 
+
+	# Apply the conversion
+	z_Tpt = gsw.conversions.pt_from_CT( ds_TS['vosaline'].values.squeeze(), ds_TS['votemper'].values.squeeze() )
+	z_SP = gsw.conversions.SP_from_SA( ds_TS['vosaline'].values.squeeze(), pressure4D, zlon.values, zlat.values )
+
+	return z_Tpt.astype('float32'), z_SP.astype('float32')
+
+def P4D( zvector, zlat ):
+
+        # 12 months to fit the T/S on a global grid
+        vect4D = npy.tile( zvector, ( 12, 1, 1, 1 ) )
+
+        return vect4D

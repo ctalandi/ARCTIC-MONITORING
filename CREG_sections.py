@@ -15,6 +15,7 @@ s_year=XXSYEAXX
 e_year=XXEYEAXX
 lgTS_ys=XXLGTSSXX
 lgTS_ye=XXLGTSEXX
+teos10=XXTEOS1OXX
 xiosfreq=XXXIOSFREQXX
 NCDF_OUT=XXNCDFOUTXX
 main_dir='./'
@@ -159,12 +160,10 @@ TS_files = [f for f in fs.glob(locpath+locfile)]
 if len(TS_files) == 12 :
    ds_TSdata = xr.open_mfdataset(locpath+locfile, engine="netcdf4", concat_dim=["time_counter"], combine='nested', parallel=True)[[infieldT['name'],infieldS['name']]]
    ds_TSdata = ds_TSdata.rename({'deptht':'z'})
-   Tdata_read = ds_TSdata[infieldT['name']].squeeze()
-   Sdata_read = ds_TSdata[infieldS['name']].squeeze()
 
    # Annual mean 
-   Tdata_read_mean = Tdata_read.mean('time_counter').squeeze()
-   Sdata_read_mean = Sdata_read.mean('time_counter').squeeze()
+   Tdata_read_mean = ds_TSdata[infieldT['name']].mean('time_counter').squeeze()
+   Sdata_read_mean = ds_TSdata[infieldS['name']].mean('time_counter').squeeze()
 
    # Mask DataArray 
    Tdata_read_mean = xr.where( tmask < 1., npy.nan, Tdata_read_mean )
@@ -242,6 +241,17 @@ for selsec in XXDIAGSSECXX :
 	strait = DEF_LOC_SEC( CONFIG, selsec )
 
 	print('			        >>>>   The concerned section is: '+ strait['name'])
+
+	# Convert CT/SA to Tpt/SP for comparison with obs. data
+	if teos10 : 
+		gdept_0 = xr.where( npy.isnan(gdept_0), 0., gdept_0 )
+		Tpot, PS = CONVERT_SACT_2_SPTpt( ds_TSdata, gdept_0, lon, lat )
+		Tdata_read = xr.DataArray( Tpot, dims=ds_TSdata[infieldT['name']].dims, coords=ds_TSdata[infieldT['name']].coords, name=ds_TSdata[infieldT['name']].name , attrs=ds_TSdata[infieldT['name']].attrs )
+		Sdata_read = xr.DataArray( PS  , dims=ds_TSdata[infieldS['name']].dims, coords=ds_TSdata[infieldS['name']].coords, name=ds_TSdata[infieldS['name']].name , attrs=ds_TSdata[infieldS['name']].attrs )
+		Tdata_read.attrs['long_name'] = 'sea_water_potential_temperature'
+		Tdata_read.attrs['standard_name'] = 'sea_water_potential_temperature'
+		Sdata_read.attrs['long_name'] = 'sea_water_practical_salinity'
+		Sdata_read.attrs['standard_name'] = 'sea_water_practical_salinity'
 
 	# Compute mean temp/sal & Ice thickness at V-point 
 	##################################################
