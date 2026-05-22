@@ -377,15 +377,15 @@ def DEF_ZPROFILE(zCONFIG,zCASE,zclimyear,zhsct_lev,Red_My_varinit,box,zAll_var,z
 		mean_z=npy.mean(zhsct_lev,axis=1).squeeze()
 
 		if var['name'] == "vovecrtz":
-			plt.plot(1e6*mean_z[nvar,:]   ,-zplt[:,0],'k', linewidth=0.7, label=zCASE)
+			plt.plot(1e6*mean_z[nvar,:]   ,-zplt[0,:],'k', linewidth=0.7, label=zCASE)
 		elif var['name'] == "votkeavt":
-			plt.semilogx(mean_z[nvar,:],-zplt[:,0],'k', linewidth=0.7, label=zCASE)
-			#plt.plot(npy.log10(mean_z[nvar,:])	    ,-zplt[:,0],'k', linewidth=0.7, label=zCASE)
+			plt.semilogx(mean_z[nvar,:],-zplt[0,:],'k', linewidth=0.7, label=zCASE)
+			#plt.plot(npy.log10(mean_z[nvar,:])	    ,-zplt[0,:],'k', linewidth=0.7, label=zCASE)
 		elif var['name'] == "rhop_sig0":
-			plt.plot(mean_z[nvar,:]-1.e+3	,-zplt[:,0],'k', linewidth=0.7, label=zCASE)
+			plt.plot(mean_z[nvar,:]-1.e+3	,-zplt[0,:],'k', linewidth=0.7, label=zCASE)
 		else:
-			plt.plot(mean_z[nvar,:]   ,-zplt[:,0],'k', linewidth=0.7, label=zCASE)
-			plt.plot(Red_My_varinit[nvar,:] ,-zplt[:,0],'m', linewidth=0.7, label='woa09')
+			plt.plot(mean_z[nvar,:]   ,-zplt[0,:],'k', linewidth=0.7, label=zCASE)
+			plt.plot(Red_My_varinit[nvar,:] ,-zplt[0,:],'m', linewidth=0.7, label='woa09')
 
 		if zfram == 221 :
 			locpath='./DATA/'

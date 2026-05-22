@@ -42,7 +42,7 @@ def READ_OBS_LGTS_DATA(CONFIG,lgTS_ys,lgTS_ye) :
                 lgts_year+=1
 
         # Ice extent obs
-        # NSIDC-v6 starts in November 1978 ending in March 2026 so skip the fiest 2 months and last 3 months of the time-series
+        # NSIDC-v6 starts in November 1978 ending in March 2026 so skip the first 2 months and last 3 months of the time-series
         locpath='./DATA/'
         locfile='NSIDC-G02202-v6_ice_area_and_extent_TiSe_y1978-11-2026-03_maskBeringSea_fullPoleGap.nc'
         if chkfile(locpath+locfile) :
@@ -65,7 +65,7 @@ def READ_OBS_LGTS_DATA(CONFIG,lgTS_ys,lgTS_ye) :
 
         # Return also the September ice extent 
         LongTS_OBS_Septiceext = ds_fld['ice_extent'].sel(time=ds_fld.time.dt.month == 9)
-        LongTS_OBS_Septiceext['time'] = pd.date_range(start='1979-01',end='2025-12',freq='YS') + pd.DateOffset(days=180)
+        LongTS_OBS_Septiceext_time = pd.date_range(start='1979-01',end='2025-12',freq='YS') + pd.DateOffset(days=257)
 
         # Ice drift from IABP
         # Data start in 18/01/1979, with 784 Buoys and 2 smapling / day : 0 & 12 
@@ -88,7 +88,7 @@ def READ_OBS_LGTS_DATA(CONFIG,lgTS_ys,lgTS_ye) :
                         time_axis_obs=npy.append(time_axis_obs,y_years)
                 lgts_year+=1
         
-        return LongTS_OBS_icevol, LongTS_OBS_iceext, LongTS_OBS_Septiceext, LongTS_OBS_iceare, IABPObservations, time_axis_obs, time_axis_PIO, time_axis_NSIDC
+        return LongTS_OBS_icevol, LongTS_OBS_iceext, LongTS_OBS_Septiceext, LongTS_OBS_iceare, IABPObservations, time_axis_obs, time_axis_PIO, time_axis_NSIDC, LongTS_OBS_Septiceext_time
 
 def CAL_ICE_VOL_AREA(CONFIG,CASE,lgts_year,data_dir,xiosfreq,dom_area,tmask2D) :
 
@@ -168,5 +168,3 @@ def P4D( zvector, zlat ):
         vect4D = npy.tile( zplt,( 1, 1, zlat.shape[0], zlat.shape[1] ) )
 
         return vect4D
-
-

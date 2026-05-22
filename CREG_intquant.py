@@ -5,6 +5,7 @@ matplotlib.use('Agg')
 import numpy as npy
 import matplotlib.pylab as plt
 from matplotlib import rcParams
+from matplotlib.ticker import MultipleLocator
 import matplotlib as mpl
 import sys 
 from checkfile import *
@@ -318,7 +319,7 @@ if lgTS_ye-lgTS_ys+1 > 1 :
 
 	# Start to read all yearly files
 	#######################################################################################################
-	lgts_year=lgTS_ys    ;	  t_months=(npy.arange(12)*30.+15.)/365.   ;   start = 1
+	lgts_year=lgTS_ys    ;	  t_months=(npy.arange(12)*30.+15.)/365.   ;   t_months_IceExt=(8*30.+15.)/365.     ;     start = 1
 	while  lgts_year <= lgTS_ye  :
 		print ()
 		print("				>>>>   Read year:"+str(lgts_year))
@@ -366,12 +367,14 @@ if lgTS_ye-lgTS_ys+1 > 1 :
 
 
 		# Set the time axis
-		y_years=npy.tile(lgts_year,12)+t_months
+		y_years=npy.tile(lgts_year,12)+t_months  ; y_years_IceExt=lgts_year+t_months_IceExt
 		if start == 1:
 			time_axis=y_years
+			time_axis_IceExt=y_years_IceExt
 			start=0
 		else:
 			time_axis=npy.append(time_axis,y_years)
+			time_axis_IceExt=npy.append(time_axis_IceExt,y_years_IceExt)
 
 		lgts_year+=1
 
@@ -387,12 +390,13 @@ if lgTS_ye-lgTS_ys+1 > 1 :
 	ds_ice = ds_ice.set_coords(['time'])
 
 	# Finally, define a Datarray where to store the September sea-ice extent 
-	Sept_sice_ext =  ds_ice['LongTS_sice_ext'].where( ds_ice.time.dt.month == 9, drop = True )
-	yearly_time = pd.date_range(start=str(lgTS_ys),end=str(lgTS_ye),freq='YS') + pd.DateOffset(days=180)
-	Sept_sice_ext['time'] =  yearly_time 
+	Sept_sice_ext = ds_ice['LongTS_sice_ext'].where( ds_ice.time.dt.month == 9, drop = True )
+	yearly_time = pd.date_range(start=str(lgTS_ys),end=str(lgTS_ye),freq='YS') + pd.DateOffset(days=257)
+	Sept_sice_ext['time'] = yearly_time 
 
 	# Read observations DATA from PIOMAS, NSIDC and IABP
-	LongTS_OBS_icevol, LongTS_OBS_iceext, LongTS_OBS_Septiceext, LongTS_OBS_iceare, IABPObservations, time_axis_obs, time_axis_PIO, time_axis_NSIDC = READ_OBS_LGTS_DATA(CONFIG,lgTS_ys,lgTS_ye)
+	LongTS_OBS_icevol, LongTS_OBS_iceext, LongTS_OBS_Septiceext, LongTS_OBS_iceare, IABPObservations, \
+	time_axis_obs, time_axis_PIO, time_axis_NSIDC, time_axis_Septiceext = READ_OBS_LGTS_DATA(CONFIG,lgTS_ys,lgTS_ye)
 	# Read observations DATA from Proshutinsky et al. GRL2018
 	LongTS_OBS_CRFFWC, time_axis_CRFFWC = READ_OBS_LGTS_CRFFWC(lgTS_ys,lgTS_ye)
 	# Read observations DATA from Gianluca et al. JPO2017
@@ -400,7 +404,7 @@ if lgTS_ye-lgTS_ys+1 > 1 :
 
 	# Set time axis properly 
 	#######################################################################################################
-	time_grid=npy.arange(lgTS_ys,2018.,1.,dtype=int)
+	time_grid = npy.arange(lgTS_ys,2025.,1.,dtype=int)
 	newlocsx  = npy.array(time_grid,'f')
 	newlabelsx = npy.array(time_grid,'i')
 
@@ -447,29 +451,36 @@ if lgTS_ye-lgTS_ys+1 > 1 :
 	# Ice volume 
 	################
 	ax=plt.subplot(xwind+1)
-	plt.title(CASE+' Arctic Ice quantities over \n '+str(lgtsclimyear),size=9)
-	plt.plot(time_axis, LongTS_ibgvoltot*1e-3 , 'k', label=CASE ,linewidth=0.7)
-	plt.text(lgTS_ye+1.,32.,str(npy.round(npy.nanmean(LongTS_ibgvoltot)*1e-3 ,decimals=1)),color='k',size=8)
-	plt.plot(time_axis_PIO, LongTS_OBS_icevol*1e-12 , 'g',label='Obs.' , linewidth=0.7 )
-	plt.text(2013+1.,5.,str(npy.round(npy.nanmean(LongTS_OBS_icevol)*1e-12 ,decimals=1)),color='g',size=8)
-	plt.xlim([lgTS_ys-1.,2018.])
+	plt.title(CASE,size=9)
+	plt.plot(time_axis, LongTS_ibgvoltot*1e-3 , 'k', linewidth=0.5 )
+	plt.text(1981.,33.,str(npy.round(npy.nanmean(LongTS_ibgvoltot)*1e-3 ,decimals=1)),color='k',size=6)
+	plt.plot(time_axis_PIO, LongTS_OBS_icevol*1e-12 , 'g',label='PIOMAS' , linewidth=0.5 )
+	plt.text(1984.,33.,str(npy.round(npy.nanmean(LongTS_OBS_icevol)*1e-12 ,decimals=1)),color='g',size=6)
+	plt.xlim([lgTS_ys-1.,2025.])
 	plt.ylim([0,40])
+	ax.yaxis.set_major_locator(MultipleLocator(10))
 	plt.xticks(piomas_newlocsx,piomas_newlabelsx,size=5)
 	#plt.setp(ax.get_xticklabels(),rotation=90)
 	plt.setp(ax.get_xticklabels(),visible=False)
 	plt.yticks(size=6)
 	plt.grid(True, linestyle='--', which='both', color='grey', alpha=0.50)
 	plt.ylabel('Ice volume \n'+r'(x$10^3$ $km^{3}$)',size=6)
+	if lgTS_ys >= 1979 :
+		plt.legend(loc='upper right')
+		leg = plt.gca().get_legend()
+		ltext = leg.get_texts()
+		plt.setp(ltext, fontsize=4)
 	
 	# Ice area 
 	################
 	ax=plt.subplot(xwind+2)
-	plt.plot(time_axis, LongTS_ibgarea*1e-6 , 'k', linewidth=0.7  )
-	plt.text(lgTS_ye+1.,17.,str(npy.round(npy.nanmean(LongTS_ibgarea)*1e-6 ,decimals=1)),color='k',size=8)
-	plt.plot(time_axis_NSIDC, LongTS_OBS_iceare*1e-12 , 'g', label='Obs.', linewidth=0.7  )
-	plt.text(2015+1.,1.,str(npy.round(npy.nanmean(LongTS_OBS_iceare)*1e-12 ,decimals=1)),color='g',size=8)
-	plt.xlim([lgTS_ys-1.,2018.])
-	plt.ylim([0,20])
+	plt.plot(time_axis, LongTS_ibgarea*1e-6 , 'k', linewidth=0.5 )
+	plt.text(1981.,16.,str(npy.round(npy.nanmean(LongTS_ibgarea)*1e-6 ,decimals=1)),color='k',size=6)
+	plt.plot(time_axis_NSIDC, LongTS_OBS_iceare*1e-12 , 'g', label='NSIDC v6', linewidth=0.5 )
+	plt.text(1984.,16.,str(npy.round(npy.nanmean(LongTS_OBS_iceare)*1e-12 ,decimals=1)),color='g',size=6)
+	plt.xlim([lgTS_ys-1.,2025.])
+	plt.ylim([3,18])
+	ax.yaxis.set_major_locator(MultipleLocator(5))
 	plt.xticks(nsidc_newlocsx,nsidc_newlabelsx,size=5)
 	#plt.setp(ax.get_xticklabels(),rotation=90)
 	plt.setp(ax.get_xticklabels(),visible=False)
@@ -477,20 +488,21 @@ if lgTS_ye-lgTS_ys+1 > 1 :
 	plt.grid(True, linestyle='--', which='both', color='grey', alpha=0.50)
 	plt.ylabel('Ice area \n'+r'(x$10^6$ $km^{2}$)',size=6)
 	if lgTS_ys >= 1979 :
-		plt.legend(loc='upper left')
+		plt.legend(loc='upper right')
 		leg = plt.gca().get_legend()
 		ltext = leg.get_texts()
-		plt.setp(ltext, fontsize=5.)
+		plt.setp(ltext, fontsize=3)
 	
 	# Ice Extent 
 	################
 	ax=plt.subplot(xwind+3)
-	curve_case = plt.plot(time_axis, LongTS_sice_ext*1e-12 , 'k', linewidth=0.7  )
-	plt.text(lgTS_ye+1.,17.,str(npy.round(npy.nanmean(LongTS_sice_ext)*1e-12 ,decimals=1)),color='k',size=8)
-	curve_obs = plt.plot(time_axis_NSIDC, LongTS_OBS_iceext*1e-12 , 'g', linewidth=0.7  )
-	plt.text(2015+1.,1.,str(npy.round(npy.nanmean(LongTS_OBS_iceext)*1e-12 ,decimals=1)),color='g',size=8)
-	plt.xlim([lgTS_ys-1.,2018.])
-	plt.ylim([0,20])
+	plt.plot(time_axis, LongTS_sice_ext*1e-12 , 'k', linewidth=0.5 )
+	plt.text(1981.,16.,str(npy.round(npy.nanmean(LongTS_sice_ext)*1e-12 ,decimals=1)),color='k',size=6)
+	plt.plot(time_axis_NSIDC, LongTS_OBS_iceext*1e-12 , 'g', linewidth=0.5 )
+	plt.text(1984.,16.,str(npy.round(npy.nanmean(LongTS_OBS_iceext)*1e-12 ,decimals=1)),color='g',size=6)
+	plt.xlim([lgTS_ys-1.,2025.])
+	plt.ylim([3,18])
+	ax.yaxis.set_major_locator(MultipleLocator(5))
 	plt.xticks(nsidc_newlocsx,nsidc_newlabelsx,size=5)
 	#plt.setp(ax.get_xticklabels(),rotation=90)
 	plt.setp(ax.get_xticklabels(),visible=False)
@@ -501,21 +513,24 @@ if lgTS_ye-lgTS_ys+1 > 1 :
 	# September Ice extent 
 	######################
 	ax=plt.subplot(xwind+4)
-	plt.title(' Sea-Ice drift',size=9)
-	(Sept_sice_ext*1e-12).plot(color='k', linewidth=0.7 )
-	(LongTS_OBS_Septiceext*1e-12).plot(color='g', linewidth=0.7 )
-	#plt.plot(time_axis_obs, IABPObservations*100 , 'g', label='Obs.', linewidth=0.7  )
+	plt.plot(time_axis_IceExt, Sept_sice_ext*1e-12, label='Model', color='k', linewidth=0.5 )
+	plt.plot(time_axis_Septiceext.year.values+t_months_IceExt, LongTS_OBS_Septiceext*1e-12, label='NSIDC v6', color='g', linewidth=0.5 )
 	plt.ylim([3,9])
+	ax.yaxis.set_major_locator(MultipleLocator(2))
+	plt.xlim([lgTS_ys-1,2025])
+	plt.xticks(newlocsx,newlabelsx,size=5)
 	plt.setp(ax.get_xticklabels(),rotation=90, fontsize=5)
 	plt.yticks(size=6)
 	plt.grid(True, linestyle='--', which='both', color='grey', alpha=0.50)
 	plt.ylabel('September Ice extent \n '+r'(x$10^6$ $km^{2}$)',size=6)
-	
-	#plt.legend(loc='upper left',ncol=3)
-	#leg = plt.gca().get_legend()
-	#ltext = leg.get_texts()
-	#plt.setp(ltext, fontsize=5.)
-	#plt.tight_layout()
+	plt.xlabel(' years',size=6)
+
+	plt.legend(loc='upper right',ncol=2)
+	leg = plt.gca().get_legend()
+	ltext = leg.get_texts()
+	plt.setp(ltext, fontsize=3)
+
+	plt.tight_layout()
 	
 	plt.savefig(CONFIG+'-'+CASE+'_ICEVolExt-LGTS_y'+str(lgTS_ys)+'LASTy.png',dpi=400)
 	
@@ -528,68 +543,63 @@ if lgTS_ye-lgTS_ys+1 > 1 :
 	###########################
 	ax=plt.subplot(xwind+1)
 	ax2=ax.twinx()
-	plt.title(CASE+' FWC \n '+str(lgtsclimyear),size=9)
-	ax.text(lgTS_ye+0.5,17.   ,str(npy.round(npy.nanmean(LongTS_FWC)*1e-12 ,decimals=1)),color='k',size=8)
-	ax.plot(time_axis, LongTS_FWC*1e-12 , 'k', label='CRF box model', linewidth=0.5  )
-	ax.plot(time_axis_CRFFWC, LongTS_OBS_CRFFWC , 'g', linestyle='None', marker='8', markersize=3, label='CRF box Obs.', linewidth=0.5  )
-	plt.xlim([lgTS_ys-1.,2018.])
-	ax.set_ylim(12,24)
+	plt.title(CASE,size=8)
+	ax.text(1981,23.,str(npy.round(npy.nanmean(LongTS_FWC)*1e-12 ,decimals=1)),color='k',size=6)
+	ax.plot(time_axis, LongTS_FWC*1e-12 , 'k', label='Model CRF box', linewidth=0.5  )
+	ax.plot(time_axis_CRFFWC, LongTS_OBS_CRFFWC , 'g', linestyle='None', marker='8', markersize=3, label='Obs. CRF box', linewidth=0.5  )
+	plt.xlim([lgTS_ys-1.,2025.])
+	ax.set_ylim(12,25)
 	ax.set_ylabel('FWC '+r'(x$10^3$ $km^3$)',size=6)
 	ax.tick_params('y', labelsize=6)
 	ax.set_xticks(newlocsx)
 	#ax.tick_params('x', labelsize=5, labelrotation=90, )
 	ax.set_xticklabels(list(newlabelsx),size=5,rotation=90)
 	ax.grid(True, linestyle='--', which='both', color='grey', alpha=0.50)
+	ax.legend(loc='upper center',ncol=2,fontsize=4)
 
-	ax2.plot(time_axis, LongTS_BIGFWC*1e-12 , 'r', label='Arctic box', linewidth=0.5  )
+	ax2.plot(time_axis, LongTS_BIGFWC*1e-12 , 'r', label='Model Arctic box', linewidth=0.5  )
 	ax2.set_ylim(70,130)
 	ax2.tick_params('y', colors='r',labelsize=6)
-	ax2.text(lgTS_ye-0.5,85. ,str(npy.round(npy.nanmean(LongTS_BIGFWC)*1e-12 ,decimals=1)),color='r',size=8)
-	ax2.set_xlim([lgTS_ys-1.,2018.])
-	
-	ax.legend(loc='upper left',ncol=2)
-	ax2.legend(loc='lower right',ncol=2)
-
+	ax2.text(1984,120.,str(npy.round(npy.nanmean(LongTS_BIGFWC)*1e-12 ,decimals=1)),color='r',size=6)
+	ax2.set_xlim([lgTS_ys-1.,2025.])
+	#ax2.set_xlim([lgTS_ys-1.,2018.])
+	ax2.legend(loc='lower right',ncol=2,fontsize=4)
 
 	# Ekman pumping in the CRF box 
 	###############################
 	xwind=311
 	ax=plt.subplot(xwind+1)
-	plt.title(CASE+' Ekman pumping \n '+str(lgtsclimyear),size=9)
 	ax.plot(time_axis, LongTS_WEkm*86400.*365. , 'k', label='Model CRF box', linewidth=0.5	)
 	ax.plot(time_axis_CRFEkm, LongTS_OBS_CRFEkm , 'g', label='Obs. CRF box', linewidth=0.5	)
-	plt.xlim([lgTS_ys-1.,2018.])
+	plt.xlim([lgTS_ys-1.,2025.])
 	ax.set_ylim(-40.,40.)
 	ax.set_ylabel('WEk '+r'( m $year^{-1}$)',size=6)
 	ax.tick_params('y', labelsize=6)
 	ax.set_xticks(newlocsx)
 	ax.set_xticklabels(list(newlabelsx),size=5,rotation=90)
 	ax.grid(True, linestyle='--', which='both', color='grey', alpha=0.50)
-	ax.legend(loc='upper left',ncol=2)
-
+	ax.legend(loc='upper left',ncol=2,fontsize=3)
 
 	# Mean Ice drift 
 	################
 	xwind=312
 	ax=plt.subplot(xwind+1)
-	plt.title(' Sea-Ice drift',size=9)
-	plt.plot(time_axis, LongTS_VEICE*100 , 'k', label='CRF box' , linewidth=0.7 )
-	plt.plot(time_axis_obs, IABPObservations*100 , 'g', label='Obs.', linewidth=0.7  )
-	plt.text(lgTS_ye+1.,15.   ,str(npy.round(npy.nanmean(LongTS_VEICE)*100. ,decimals=1)),color='k',size=8)
-	plt.text(2011+1,1.  ,str(npy.round(npy.nanmean(IABPObservations)*100. ,decimals=1)),color='g',size=8)
-	plt.xlim([lgTS_ys-1.,2018.])
-	plt.ylim([0,20])
-	plt.xticks(full_newlocsx,full_newlabelsx,size=5)
+	plt.plot(time_axis, LongTS_VEICE*100 , 'k', label='Model CRF box' , linewidth=0.5 )
+	plt.plot(time_axis_obs, IABPObservations*100 , 'g', label='Obs. CRF box', linewidth=0.5  )
+	plt.text(1981,13.,str(npy.round(npy.nanmean(LongTS_VEICE)*100. ,decimals=1)),color='k',size=6)
+	plt.text(1984,13.,str(npy.round(npy.nanmean(IABPObservations)*100. ,decimals=1)),color='g',size=6)
+	plt.xlim([lgTS_ys-1.,2025.])
+	plt.ylim([0,15])
+	plt.xticks(newlocsx,newlabelsx,size=5)
 	plt.setp(ax.get_xticklabels(),rotation=90)
 	plt.yticks(size=6)
 	plt.grid(True, linestyle='--', which='both', color='grey', alpha=0.50)
 	plt.ylabel('Ice drift '+r'(cm $s^{-1}$)',size=7)
 	
-	plt.legend(loc='upper left',ncol=3)
+	plt.legend(loc='lower left',ncol=2)
 	leg = plt.gca().get_legend()
 	ltext = leg.get_texts()
-	plt.setp(ltext, fontsize=5.)
-
+	plt.setp(ltext, fontsize=4)
 
 	plt.tight_layout()
 	plt.savefig(CONFIG+'-'+CASE+'_FWC-WEK-ICEDrift-LGTS_y'+str(lgTS_ys)+'LASTy.png',dpi=400)
@@ -601,7 +611,7 @@ if lgTS_ye-lgTS_ys+1 > 1 :
 		xwind=210
 		ax=plt.subplot(xwind+1)
 		plt.title(CASE+' Salt flux \n '+str(lgtsclimyear),size=9)
-		ax.plot(time_axis, LongTS_SFX*86400. , 'k', label='Model CRF box', linewidth=0.5  )
+		ax.plot(time_axis, LongTS_SFX*86400. , 'k', label='Model CRF box', linewidth=0.5 )
 		plt.xlim([lgTS_ys-1.,2018.])
 		#ax.set_ylim(-40.,40.)
 		ax.set_ylabel('Sfx '+r'( kg $m^{-2}$ $day^{-1}$)',size=6)
@@ -609,11 +619,11 @@ if lgTS_ye-lgTS_ys+1 > 1 :
 		ax.set_xticks(newlocsx)
 		ax.set_xticklabels(list(newlabelsx),size=5,rotation=90)
 		ax.grid(True, linestyle='--', which='both', color='grey', alpha=0.50)
-		ax.legend(loc='upper left',ncol=2)
+		ax.legend(loc='upper left',ncol=2, fontsize=3)
 
 		ax=plt.subplot(xwind+2)
 		plt.title(CASE+' Volume flux \n '+str(lgtsclimyear),size=9)
-		ax.plot(time_axis, LongTS_VFX*86400. , 'k', label='Model CRF box', linewidth=0.5  )
+		ax.plot(time_axis, LongTS_VFX*86400. , 'k', label='Model CRF box', linewidth=0.5 )
 		plt.xlim([lgTS_ys-1.,2018.])
 		#ax.set_ylim(-40.,40.)
 		ax.set_ylabel('Sfx '+r'( kg $m^{-2}$ $day^{-1}$)',size=6)
@@ -621,7 +631,7 @@ if lgTS_ye-lgTS_ys+1 > 1 :
 		ax.set_xticks(newlocsx)
 		ax.set_xticklabels(list(newlabelsx),size=5,rotation=90)
 		ax.grid(True, linestyle='--', which='both', color='grey', alpha=0.50)
-		ax.legend(loc='upper left',ncol=2)
+		ax.legend(loc='upper left',ncol=2, fontsize=3)
 
 		plt.tight_layout()
 		plt.savefig(CONFIG+'-'+CASE+'_SVFX-LGTS_y'+str(lgTS_ys)+'LASTy.png',dpi=400)
@@ -631,11 +641,13 @@ if lgTS_ye-lgTS_ys+1 > 1 :
 	if NCDF_OUT:
 		ds_outTS = xr.Dataset()
 		# Define time axis
-		ds_outTS.coords['time_axis']           = (('time_axis')          , time_axis.astype('float32'))
-		ds_outTS.coords['time_axis_NSIDC']     = (('time_axis_NSIDC')    , time_axis_NSIDC.astype('float32'))
-		ds_outTS.coords['time_axis_PIO']       = (('time_axis_PIO')      , time_axis_PIO.astype('float32'))
-		ds_outTS.coords['time_axis_IABPobs']   = (('time_axis_IABPobs')  , time_axis_obs.astype('float32'))
-		ds_outTS.coords['time_axis_CRFFWCobs'] = (('time_axis_CRFFWCobs'), time_axis_CRFFWC.values.astype('float32'))
+		ds_outTS.coords['time_axis']            = (('time_axis')           , time_axis.astype('float32'))
+		ds_outTS.coords['time_axis_NSIDC']      = (('time_axis_NSIDC')     , time_axis_NSIDC.astype('float32'))
+		ds_outTS.coords['time_axis_PIO']        = (('time_axis_PIO')       , time_axis_PIO.astype('float32'))
+		ds_outTS.coords['time_axis_IABPobs']    = (('time_axis_IABPobs')   , time_axis_obs.astype('float32'))
+		ds_outTS.coords['time_axis_CRFFWCobs']  = (('time_axis_CRFFWCobs') , time_axis_CRFFWC.values.astype('float32'))
+		ds_outTS.coords['time_axis_IceExt']     = (('time_axis_IceExt')    , time_axis_IceExt.astype('float32'))
+		ds_outTS.coords['time_axis_Septiceext'] = (('time_axis_Septiceext'), time_axis_Septiceext.values.astype('float32'))
 
 		# Save diagnotics 
 		ds_outTS['LongTS_ibgvoltot']= (('time_axis'), LongTS_ibgvoltot.astype('float32'))
@@ -644,30 +656,36 @@ if lgTS_ye-lgTS_ys+1 > 1 :
 		ds_outTS['LongTS_ibgarea']= (('time_axis'), LongTS_ibgarea.astype('float32'))
 		ds_outTS['LongTS_ibgarea'].attrs['long_name']='Sea-ice area in the Arctic basin'
 		ds_outTS['LongTS_ibgarea'].attrs['units']="km2"
-		ds_outTS['LongTS_sice_ext']= (('time_axis'), LongTS_sice_ext.astype('float32'))
-		ds_outTS['LongTS_sice_ext'].attrs['long_name']='Sea-ice extent in the Arctic basin'
-		ds_outTS['LongTS_sice_ext'].attrs['units']="km2"
+		ds_outTS['LongTS_ice_ext']= (('time_axis'), (LongTS_sice_ext*1e-6).astype('float32'))
+		ds_outTS['LongTS_ice_ext'].attrs['long_name']='Sea-ice extent in the Arctic basin'
+		ds_outTS['LongTS_ice_ext'].attrs['units']="km2"
+		ds_outTS['LongTS_Sice_ext']= (('time_axis_IceExt'), (Sept_sice_ext*1e-6).values.astype('float32'))
+		ds_outTS['LongTS_Sice_ext'].attrs['long_name']='September minimum Sea-ice extent in the Arctic basin'
+		ds_outTS['LongTS_Sice_ext'].attrs['units']="km2"
 		ds_outTS['LongTS_VEICE']= (('time_axis'), LongTS_VEICE.astype('float32'))
 		ds_outTS['LongTS_VEICE'].attrs['long_name']='Sea-ice drift calculated in the CRF box centered over the Beaufort Gyre'
 		ds_outTS['LongTS_VEICE'].attrs['units']="m/s"
-		ds_outTS['LongTS_FWC']= (('time_axis'), LongTS_FWC.astype('float32'))
+		ds_outTS['LongTS_FWC']= (('time_axis'), (LongTS_FWC*1e-9).astype('float32'))
 		ds_outTS['LongTS_FWC'].attrs['long_name']='Freshwater content over the CRF box'
 		ds_outTS['LongTS_FWC'].attrs['units']="km3"
-		ds_outTS['LongTS_BIGFWC']= (('time_axis'), LongTS_BIGFWC.astype('float32'))
+		ds_outTS['LongTS_BIGFWC']= (('time_axis'), (LongTS_BIGFWC*1e-9).astype('float32'))
 		ds_outTS['LongTS_BIGFWC'].attrs['long_name']='Freshwater content over the whole Arctic basin '
 		ds_outTS['LongTS_BIGFWC'].attrs['units']="km3"
 		ds_outTS['LongTS_WEkm']= (('time_axis'), (LongTS_WEkm*86400.*365.).astype('float32'))
 		ds_outTS['LongTS_WEkm'].attrs['long_name']='Ekman pumping over the CRF box'
-		ds_outTS['LongTS_WEkm'].attrs['units']="m/day"
-		ds_outTS['LongTS_OBS_icevol']= (('time_axis_PIO'   ), LongTS_OBS_icevol.values.astype('float32')) 
+		ds_outTS['LongTS_WEkm'].attrs['units']="m/year"
+		ds_outTS['LongTS_OBS_icevol']= (('time_axis_PIO'   ), (LongTS_OBS_icevol*1e-9).values.astype('float32')) 
 		ds_outTS['LongTS_OBS_icevol'].attrs['long_name']='Sea-ice volume from PIOMAS reanalysis'
 		ds_outTS['LongTS_OBS_icevol'].attrs['units']="km3"
-		ds_outTS['LongTS_OBS_iceare']= (('time_axis_NSIDC' ), LongTS_OBS_iceare.values.astype('float32'))
-		ds_outTS['LongTS_OBS_iceare'].attrs['long_name']='Sea-ice area from NSIDC '
+		ds_outTS['LongTS_OBS_iceare']= (('time_axis_NSIDC' ), (LongTS_OBS_iceare*1e-6).values.astype('float32'))
+		ds_outTS['LongTS_OBS_iceare'].attrs['long_name']='Sea-ice area from NSIDC v6'
 		ds_outTS['LongTS_OBS_iceare'].attrs['units']="km2"
-		ds_outTS['LongTS_OBS_iceext']= (('time_axis_NSIDC'), LongTS_OBS_iceext.values.astype('float32'))
-		ds_outTS['LongTS_OBS_iceext'].attrs['long_name']='Sea-ice extent from NSIDC '
+		ds_outTS['LongTS_OBS_iceext']= (('time_axis_NSIDC'), (LongTS_OBS_iceext*1e-6).values.astype('float32'))
+		ds_outTS['LongTS_OBS_iceext'].attrs['long_name']='Sea-ice extent from NSIDC v6'
 		ds_outTS['LongTS_OBS_iceext'].attrs['units']="km2"
+		ds_outTS['LongTS_OBS_Siceext']= (('time_axis_Septiceext'), (LongTS_OBS_Septiceext*1e-6).values.astype('float32'))
+		ds_outTS['LongTS_OBS_Siceext'].attrs['long_name']='September minimum Sea-ice extent from NSIDC v6'
+		ds_outTS['LongTS_OBS_Siceext'].attrs['units']="km2"
 		ds_outTS['LongTS_OBS_CRFFWC']= (('time_axis_CRFFWCobs'), LongTS_OBS_CRFFWC.values.astype('float32'))
 		ds_outTS['LongTS_OBS_CRFFWC'].attrs['long_name']='Freshwater content over the CRF box from Proshutinsky et al. GRL2018 observations'
 		ds_outTS['LongTS_OBS_CRFFWC'].attrs['units']="m/s"
