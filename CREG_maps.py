@@ -215,6 +215,7 @@ while c_year <= e_year:
              else : 
                 # Compute annual mean EKE using monthly mean velocities 
                 ds_eke = EKE_compute( lon, lat, CONFIG, CASE, xiosfreq, c_year, data_dir, NCDF_OUT )
+                ds_eke['voeke'] = xr.where( tmask == 0., npy.nan, ds_eke['voeke'] )
 
         #########################################################################################################################################
         if ( AWT_maps or FWC_maps or TSD_maps or ATL_maps ) :

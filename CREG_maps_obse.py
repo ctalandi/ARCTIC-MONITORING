@@ -186,13 +186,12 @@ def ICE_CONCE_OBS( t_year=1959 ) :
 	locfile='NSIDC-G02202-v6_sic_psn25_197811-202603_v06r00.nc'
 	if chkfile(locpath+locfile,zstop=True) :
 		ds_icec = xr.open_dataset(locpath+locfile)
-		ds_msk = xr.open_dataset(locpath+locfile,group='cdr_supplementary')
-		ds_msk = ds_msk.set_coords('longitude')
-		ds_msk = ds_msk.set_coords('latitude')
-		lon = ds_msk['longitude'].squeeze()
-		lat = ds_msk['latitude'].squeeze()
+		ds_coor = xr.open_dataset(locpath+locfile, group='cdr_supplementary')
+		ds_coor = ds_coor.set_coords('longitude')
+		ds_coor = ds_coor.set_coords('latitude')
+		lon = ds_coor['longitude'].squeeze()
+		lat = ds_coor['latitude'].squeeze()
 		CONC_init = ds_icec['cdr_seaice_conc_monthly'].squeeze()
-		#CONC_init = ds_icec['Average_Sea_Ice_Concentration_with_Final_Version'].squeeze()
 
 	if t_year >= 1979 and t_year <= 2025 : 
 		# Select only March & September monthly mean

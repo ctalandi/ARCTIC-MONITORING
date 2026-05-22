@@ -67,7 +67,7 @@ def SET_ARC_CNT(zCASE,zclimyear,seas,zMyvar,zslev=0,zplot_obs=0,zdiff=0):
 	        else:
 		        ztitle=' PIOMAS mean SITHICK over \n 1979-2024'
 	   else:
-	        ztitle=zCASE +' mean SITHICK over \n'+zclimyear
+	        ztitle=zCASE +' mean SITHICK over \n'+str(zclimyear)
 	   vmin=0. ; vmax=5. ; vint=0.5
 	   contours=npy.arange(vmin,vmax+vint,vint)  # optional contours
 	   limits=[vmin,vmax,vint]			  # limits for eke

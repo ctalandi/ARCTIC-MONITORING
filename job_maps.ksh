@@ -134,7 +134,7 @@ fi
 for ZMAPS in `echo ${MAPS} ` ; do
     ./CREG_maps_y${S_Y}${E_Y}_${ZMAPS}.py 
     mv ${CONFCASE}*${ZMAPS}*${S_Y}*.png ${CONFCASE}*LAB*LGTS* ${OUTFIGS}/.
-    mv ${CONFCASE}*???_MLDClimm03* ${OUTFIGS}/.
+    mv ${CONFCASE}*BFG_metrics* ${INITDIR}/INTQUANT/FIGS-${CONFIG}/${CONFIG}-${CASE}/.
 done
 
 cp ./NETCDF/${CONFCASE}*.nc ${OUTNCDF}/.
