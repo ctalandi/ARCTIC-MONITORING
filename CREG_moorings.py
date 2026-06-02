@@ -1,6 +1,14 @@
-#!/usr/bin/env python
-#### Enthought Python Distribution (free for Academic) recommended
+"""
+CREG_moorings.py
 
+Description:
+This module is dedicated to plot at few specific geographical locations :
+- a temperature/salinity depth/time plot
+- a temperature/salinity time mean vertical profile plot 
+
+Author:
+Claude Talandier (claude.talandier@cnrs.fr)
+"""
 import matplotlib
 matplotlib.use('Agg')
 import sys
@@ -29,9 +37,9 @@ grid_dir=main_dir+CONFIG+'/GRID/'
 
 DIR_FIG_OUT='./'
 
-monthly_data = 1  # Read monthly mean field for temporal evolution 
-depth_time_plot=True   # Do the plot or not 
-do_Kprofile=True     # Read a previous profile to compare the current one
+monthly_data = 1       # Read monthly mean field for temporal evolution 
+depth_time_plot=True   # Do the depth/time plot or not 
+do_Kprofile=True       # Plot vertical profiles
 
 ########################################
 # Read GRID 

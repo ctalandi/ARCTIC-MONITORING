@@ -1,5 +1,19 @@
-#!/usr/bin/env python
+"""
+CREG_sections_func.py
 
+Description:
+This module defines a set of functions dedicated to :
+- CAL_VOLHEATSALTICE : compute volume, heat, salt & ice cross section transport 
+- CONV_SACT_2_SPTpt  : convert SA/CT to PS/Tpot units 
+- DEF_LOC_SEC        : define the exact position of sections in grid indices NOT in geographical coordinates
+- PLOT_SEC           : plot temperature, salinity, cross-section velocity & vertical mixing of given section
+- PLOT_SECTION       : plot sections main call function of PLOT_SEC
+- PLOT_TRANS_TISE    : plot the cross section transport 
+- P4Dtzyx            : extend a 3D spatial array to 4D spatial & temporal array
+
+Author:
+Claude Talandier (claude.talandier@cnrs.fr)
+"""
 import numpy as npy
 import matplotlib.pylab as plt
 import matplotlib as mpl
@@ -13,6 +27,17 @@ import gsw as gsw
 ################################################################################################################################
 def DEF_LOC_SEC( CONFIG, zsect ) :
 ################################################################################################################################
+	"""
+	Function dedicated to define the exact position of sections in grid indices NOT in geographical coordinates
+	
+	Input:
+	    CONFIG: the configuration name to set indices on either CREG025.L75 or CREG12.L75 
+	    zsect  : section name 
+	
+	Output:
+	    loc_sec : a dictionnary with indices of section as range vor variables to plots 
+	"""
+        # ----------------------------------------------------------------------
 
 	#------------------------------------------------------------------------------------------------------------------------
 	# Localisation of straits >>>> FORTRAN indices
@@ -43,8 +68,30 @@ def DEF_LOC_SEC( CONFIG, zsect ) :
 	
 
 ################################################################################################################################
-def PLOT_SEC( znum_plot, X, Y, tab_clim, zcont, znorm, zcol, zisol, dens_clim=None, zdens=None, data_type=None, zgrid=None, zstrait=None, ztitle=None, zfig=None ):
+def PLOT_SEC( znum_plot, X, Y, tab_clim, zcont, znorm, zcol, zisol, data_type=None, zgrid=None, zstrait=None, ztitle=None, zfig=None ):
 ################################################################################################################################
+	"""
+	Function dedicated to do the section plot for each variable
+	
+	Input:
+	    znum_plot : subplot location 
+	    X         : X-axis geographical coordinates
+	    Y         : Y-axis depth
+	    tab_clim  : variable to plot 
+	    zcont     : contours
+	    znorm     : color normalization 
+	    zcol      : colormap to use 
+	    zisol     : contour lines to plot 
+	    data_type : (optional) variable type [TSVW] for specific plot properties
+	    zgrid     : (optional) 2D vertical e1v horizontal scale factor 
+	    zstrait   : (optional) section name 
+	    ztitle    : (optional) plot title 
+	    zfig      : (optional) plot axes to manage the colorbar properties
+	
+	Output:
+	    None 
+	"""
+	# ----------------------------------------------------------------------
 
 	ax=plt.subplot(znum_plot,facecolor='darkslategray')
 	zfmt='%4.2f'
@@ -131,8 +178,30 @@ def PLOT_SEC( znum_plot, X, Y, tab_clim, zcont, znorm, zcol, zisol, dens_clim=No
 	return
 
 ################################################################################################################################
-def CAL_VOLHEATSALTICE( data_dir, zCONF, zCASE, s_year, zstrait, zTsec, zSsec, zVsec, zIHsec, zIVsec, zface, ze1v, zvmask ) :
+def CAL_VOLHEATSALTICE( zCONF, zCASE, data_dir, s_year, zstrait, zTsec, zSsec, zVsec, zIHsec, zIVsec, zface, ze1v, zvmask ) :
 ################################################################################################################################
+	"""
+	Function dedicated to compute volume, heat, salt & ice cross section transport
+	
+	Input:
+	    zCONF    : the onfiguration 
+	    zCASE    : the experiment associated to the configuration 
+	    data_dir : path to access the data 
+	    s_year   : the considered year 
+	    zstrait  : the section name 
+	    zTsec    : temperature at V-point along the considered section
+	    zSsec    : salinity at V-point along the considered section
+	    zVsec    : cross section velocity
+	    zIHsec   : ice thickness at V-point along the considered section
+	    zIVsec   : ice cross section velocity along the considered section
+	    zface    : 2D vertical surface of each grid cell along the considered section
+	    ze1v     : 2D vertical e1v horizontal scale factor 
+	    zvmask   : 2D vertical ocean/land mask along section V-point 
+	
+	Output:
+	    None : results are stored into an intermediate npz file for later plot 
+	"""
+	# ----------------------------------------------------------------------
 
 	rhocp = 1029. * 4160.
 	Sref = 34.8   ;  Tref = -0.1
@@ -183,8 +252,24 @@ def CAL_VOLHEATSALTICE( data_dir, zCONF, zCASE, s_year, zstrait, zTsec, zSsec, z
 	return
 
 ################################################################################################################################
-def PLOT_TRANS_TISE( data_dir, zCONF, zCASE, lgTS_ys, lgTS_ye, zstrait, zncout ) :
+def PLOT_TRANS_TISE( zCONF, zCASE, data_dir, lgTS_ys, lgTS_ye, zstrait, zncout ) :
 ################################################################################################################################
+	"""
+	Function dedicated to plot cross-section volulme, temperature, salinity & ice time-series for a given section
+	
+	Input:
+	    zCONF    : the configuration name 
+	    zCASE    : the experiment associated to the configuration 
+	    data_dir : path to access the data
+	    lgTS_ys  : the first year to read 
+	    lgTS_ye  : the last year to read 
+	    zstrait  : the section name 
+	    zncout   : logical to output into a netcdf file data along the considered section
+	
+	Output:
+	    None : 
+	"""
+	# ----------------------------------------------------------------------
 
 	# Time series lenght 
 	####################
@@ -571,6 +656,28 @@ def PLOT_TRANS_TISE( data_dir, zCONF, zCASE, lgTS_ys, lgTS_ye, zstrait, zncout )
 ################################################################################################################################
 def PLOT_SECTION( zCONF, zCASE, strait, Tsec, Ssec, Usec, Tsec_init, Ssec_init, Ksec, z2D, lon2D, zclimyear, zncout ) :
 ################################################################################################################################
+	"""
+	Function dedicated to plot temperature, salinity, cross section velocity & vertical mixing along a given section
+	
+	Input:
+	    zCONF     : the configuration name 
+	    zCASE     : the experiment associated to the configuration 
+	    strait    : the section name 
+	    Tsec      : 2D temperature field to plot 
+	    Ssec      : 2D salinity field to plot 
+	    Usec      : 2D cross-section field to plot 
+	    Tsec_init : 2D climatological temperature field to plot 
+	    Ssec_init : 2D climatological salinity field to plot 
+	    Ksec      : 2D vertical mixing field to plot 
+	    z2D       : 2D depth/along section depth
+	    lon2D     : 2D depth/along section geographical coordinates 
+	    zclimyear : climatological period considered 
+	    zncout    : logical to perform (or not) outputs into a netcdf file 
+	
+	Output:
+	    None 
+	"""
+	# ----------------------------------------------------------------------
 
 	plt.clf()
 	fig = plt.figure(320)
@@ -671,12 +778,25 @@ def PLOT_SECTION( zCONF, zCASE, strait, Tsec, Ssec, Usec, Tsec_init, Ssec_init, 
 	return
 
 ################################################################################################################################
-def CONVERT_SACT_2_SPTpt( ds_TS, zdepth3D, zlon, zlat ) :
+def CONV_SACT_2_SPTpt( ds_TS, zdepth3D, zlon, zlat ) :
 ################################################################################################################################
+	"""
+	Function to convert CT/SA to Tpot/PS units using tge GSW package 
+	
+	Input:
+	    ds_TS    : 3D temperature/Salinity data set 
+	    zdepth3D : 3D depth 
+	    zlon     : 2D longitude 
+	    zlat     : 2D latitude
+	
+	Output:
+	    z_Tpt : 3D potential temperature 
+	    z_SP  : 3D practical salinity 
+	"""
 
 	# Compute the pressure at depth
 	pressure = gsw.p_from_z( -zdepth3D, zlat )
-	pressure4D = P4D( pressure, zlat ) 
+	pressure4D = P4Dtzyx( pressure ) 
 
 	# Apply the conversion
 	z_Tpt = gsw.conversions.pt_from_CT( ds_TS['vosaline'].values.squeeze(), ds_TS['votemper'].values.squeeze() )
@@ -684,9 +804,20 @@ def CONVERT_SACT_2_SPTpt( ds_TS, zdepth3D, zlon, zlat ) :
 
 	return z_Tpt.astype('float32'), z_SP.astype('float32')
 
-def P4D( zvector, zlat ):
+################################################################################################################################
+def P4Dtzyx( zvector ) :
+################################################################################################################################
+	"""
+	Function to extend a 3D pressure field with 12 time records 
+	
+	Input:
+	    zvector  : 3D pressure field 
+	
+	Output:
+	    zpressure4D  : 4D pressure field 
+	"""
 
-        # 12 months to fit the T/S on a global grid
-        vect4D = npy.tile( zvector, ( 12, 1, 1, 1 ) )
-
-        return vect4D
+	# 12 months to fit the T/S on a global grid
+	zpressure4D = npy.tile( zvector, ( 12, 1, 1, 1 ) )
+	
+	return zpressure4D

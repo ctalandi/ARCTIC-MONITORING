@@ -31,9 +31,6 @@ cd ${WPDIR}/MONARC/MOORINGS
 cp ${INITDIR}/MOORINGS/CREG_moorings_func.py .
 cp ${INITDIR}/MOORINGS/CREG_moorings_cont.py .
 cp ${DMONTOOLS}/MONARC/checkfile.py .
-cp ${DMONTOOLS}/MONARC/PyRaf/PyRaf_plots.py .
-cp ${DMONTOOLS}/MONARC/PyRaf/PyRaf_colormaps.py .
-cp ${DMONTOOLS}/MONARC/PyRaf/PyRaf.py .
 
 getfiles=XXGETFILEXX     
 if [ $getfiles -eq 1 ] ; then 

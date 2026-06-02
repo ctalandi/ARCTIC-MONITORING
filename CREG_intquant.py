@@ -1,4 +1,17 @@
 #!/usr/bin/env python
+"""
+CREG_intquant.py
+
+Description:
+This module is dedicated to diagnose integral quantities time series among which : 
+- Fresh Water Content in the Beaufort Gyre 
+- Ekman pumping in the Beaufort Gyre
+- Ice drift in the Beaufort Gyre
+- Ice volume, area, extent and September minimum
+
+Author:
+Claude Talandier (claude.talandier@cnrs.fr)
+"""
 
 import matplotlib
 matplotlib.use('Agg')
@@ -34,14 +47,10 @@ grid_dir=main_dir+CONFIG+'/GRID/'
 
 DIR_FIG_OUT='./'
 
-# Infos concernant les climatologies sur la periode de la simulation
-climyear=str(s_year)+str(e_year)
-
 print() 
 print("				     Configuration :" + CONFCASE)
 print("				     Period	   :" + str(s_year)+" - "+str(e_year))
 print()
-
 
 #####################################################################
 var_temp={'name':"votemper",'units':u"degC",'_FillValue': 0.,'fext':"T",'igrd':1 ,'ze3':"e3t_0",'gdep':"gdept",'long_name':"Temperature"}
@@ -333,7 +342,6 @@ if lgTS_ye-lgTS_ys+1 > 1 :
 		LongTS_BIGFWC = READ_MOD_LGTS_DATA(locpath,locfile,LongTS_BIGFWC)
 
 		locfile=CONFIG+'-'+CASE+'_ICEExtTS_y'+str(lgts_year)+'.npy'
-		#locfile=CONFIG+'-'+CASE+'_ICEExtTS_y'+str(s_year)+'.npy'
 		LongTS_sice_ext = READ_MOD_LGTS_DATA(locpath,locfile,LongTS_sice_ext)
 
 		locfile=CONFIG+'-'+CASE+'_WEKMATS_y'+str(lgts_year)+'.npy'
@@ -562,7 +570,6 @@ if lgTS_ye-lgTS_ys+1 > 1 :
 	ax2.tick_params('y', colors='r',labelsize=6)
 	ax2.text(1984,120.,str(npy.round(npy.nanmean(LongTS_BIGFWC)*1e-12 ,decimals=1)),color='r',size=6)
 	ax2.set_xlim([lgTS_ys-1.,2025.])
-	#ax2.set_xlim([lgTS_ys-1.,2018.])
 	ax2.legend(loc='lower right',ncol=2,fontsize=4)
 
 	# Ekman pumping in the CRF box 

@@ -1,4 +1,18 @@
+"""
+CREG_moorings_func.py
 
+Description:
+This module defines a set of functions dedicated to :
+- CONV_SACT_2_SPTpt : convert SA/CT to PS/Tpot units using the GSW package 
+- DEF_INFO_VAR      : define dictionnaries to set properties of a given variable 
+- DEF_MOOR_BOX      : define a box/or a moring location for both CREG025.L75 & CREG12.L75 configurations
+- DEF_REDVAR        : compute the temperature/salinity mean value for each moorings/box 
+- DEF_ZPROFILE      : plot a vertical profile of temperature/salinity 
+- DEF_ZTIME         : plot a depth/time plot of temperature/salinity at a specific location
+
+Author:
+Claude Talandier (claude.talandier@cnrs.fr)
+"""
 import numpy as npy
 import matplotlib.pylab as plt 
 import scipy.io as sio
@@ -11,7 +25,20 @@ import xarray as xr
 from fsspec.implementations.local import LocalFileSystem
 fs = LocalFileSystem()
 
-def DEF_INFO_VAR(zgtype,zMyvar):
+################################################################################################################################
+def DEF_INFO_VAR( zgtype, zMyvar ) :
+################################################################################################################################
+	"""
+	Function to define dictionnaries to set properties of a given variable
+	
+	Input:
+	    zgtype : grid type 
+	    zMyvar : variable name to manage specific ones (rhop_sig0 & vosigma0)
+	
+	Output:
+	    zAll_var : properties of a set of variables
+	"""
+	# ----------------------------------------------------------------------
 	# The following box indices have been defined for the ARCTIC area
 	D_temp={'name':'votemper','units':'DegC','longname':'Temperature','shortname':'T','minval':3,'maxval':5}
 	D_sali={'name':'vosaline','units':'PSU' ,'longname':'Salinity','shortname':'S','minval':34.5,'maxval':35.5}
@@ -33,7 +60,20 @@ def DEF_INFO_VAR(zgtype,zMyvar):
 	return zAll_var
 
 
-def DEF_MOOR_BOX(CONFIG,box2sel):
+################################################################################################################################
+def DEF_MOOR_BOX( CONFIG, box2sel ) :
+################################################################################################################################
+	"""
+	Function to set properties of variables at a given box/mooring
+	
+	Input:
+	    CONFIG  : configuration name, either CREG025.L75 or CREG12.L75 
+	    box2sel : the box/mooring to set properties 
+	
+	Output:
+	    sbox : variables properties using a dictionnary for a given box/mooring
+	"""
+	# ----------------------------------------------------------------------
 	# The following box indices have been defined for the ARCTIC area
 
 	if CONFIG == 'CREG12.L75':
@@ -300,7 +340,28 @@ def DEF_MOOR_BOX(CONFIG,box2sel):
 
 	return sbox
 
-def DEF_ZPROFILE(zCONFIG,zCASE,zclimyear,zhsct_lev,Red_My_varinit,box,zAll_var,zplt,zgtype=None,zMyvar=None,zfram=None,zs_year=None):
+################################################################################################################################
+def DEF_ZPROFILE( zCONFIG, zCASE, zclimyear, zhsct_lev, Red_My_varinit, box, zAll_var, zplt, zfram=None, zs_year=None ) :
+################################################################################################################################
+	"""
+	Function to plot temperature/salinity vertical profile at a given box/mooring
+	
+	Input:
+	    zCONFIG        : configuration name, either CREG025.L75 or CREG12.L75 
+	    zCASE          : experiment associated to the configuration 
+	    zclimyear      : the time period concerned
+	    zhsct_lev      : temperature/salinity vertical profile at a given box/mooring 
+	    Red_My_varinit : initial temperature/salinity vertical profile at a given box/mooring
+	    box            : the box/mooring name 
+	    zAll_var       : variables to plot 
+	    zplt           : depth variable
+	    zfram          : (optional) frame where to plot 
+	    zs_year        : (optional) year concerned 
+	
+	Output:
+	    None
+	"""
+	# ----------------------------------------------------------------------
 
 	nvar=0
 	for var in zAll_var :
@@ -416,7 +477,28 @@ def DEF_ZPROFILE(zCONFIG,zCASE,zclimyear,zhsct_lev,Red_My_varinit,box,zAll_var,z
 	return 
 
 
-def DEF_ZTIME(zCONFIG,zCASE,lgTS_ys,lgTS_ye,box,z,z2dt,hsct_lev,zgtype=None,zMyvar=None,zfram=None,zoutNC=False):
+################################################################################################################################
+def DEF_ZTIME( zCONFIG, zCASE, lgTS_ys, lgTS_ye, box, z, z2dt, hsct_lev, zfram=None, zoutNC=False ) :
+################################################################################################################################
+	"""
+	Function to plot depth/time temperature/salinity at a given box/mooring
+	
+	Input:
+	    zCONFIG  : configuration name, either CREG025.L75 or CREG12.L75 
+	    zCASE    : experiment associated to the configuration 
+	    lgTS_ys  : first year 
+	    lgTS_ye  : last year 
+	    box      : the box/mooring name 
+	    z        : depth 1D variable to get the levels number
+	    z2dt     : depth/time variable
+	    hsct_lev : temperature/salinity depth/time at a given box/mooring 
+	    zfram    : (optional) frame to plot 
+	    zoutNC   : (optional) output results into a netcdf file
+	
+	Output:
+	    None
+	"""
+	# ----------------------------------------------------------------------
 
 	LongTS_hsct_lev= []   
 
@@ -541,15 +623,39 @@ def DEF_ZTIME(zCONFIG,zCASE,lgTS_ys,lgTS_ye,box,z,z2dt,hsct_lev,zgtype=None,zMyv
 		nc_f = './NETCDF/'+zCONFIG+'-'+zCASE+'_MOOR-'+box['box']+'_y'+str(lgTS_ys)+'LASTy.nc'
 		ds_outZProf.to_netcdf(nc_f,engine='netcdf4')
 
-
 	return 
 
 
-def DEF_REDVAR(CONFIG,CASE,My_var,My_varinit,box,zAll_var,s_year,e_year,tmask,e1t,e2t,e3t,teos10):
+################################################################################################################################
+def DEF_REDVAR( CONFIG, CASE, My_var, My_varinit, box, zAll_var, s_year, e_year, tmask, e1t, e2t, e3t, teos10 ) :
+################################################################################################################################
+	"""
+	Function to compute temperature/salinity time mean vertical profile at a given box/mooring
+	
+	Input:
+	    CONFIG  : configuration name, either CREG025.L75 or CREG12.L75 
+	    CASE    : experiment associated to the configuration 
+	    My_var  : model temperature/Salinity data set
+	    My_varinit  : model initial state temperature/Salinity data set 
+	    box      : the box/mooring name 
+	    zAll_var        : variables to plots 
+	    s_year     : starting year 
+	    e_year : ending year 
+	    tmask    : ocean/land mask (T-point)
+	    e1t   :  zonal scale factor 
+	    e2t   :  meridional scale factor 
+	    e3t   :  vertical scale factor 
+	    teos   :  to convert CT/SA to Tpot/PS units 
+	
+	Output:
+	    hsct_lev       : model temperature/salinity mean profile at the box/mooring location
+	    Red_My_varinit : model initial state temperature/salinity mean profile at the box/mooring location
+	"""
+	# ----------------------------------------------------------------------
 	########################################
 	# Start calculation
 	########################################
-	#------------------------------------------------------------------------------------------------------------------------
+
 	# Number of variables temperature/salinity to process
 	nbvar = 2 
 
@@ -569,8 +675,8 @@ def DEF_REDVAR(CONFIG,CASE,My_var,My_varinit,box,zAll_var,s_year,e_year,tmask,e1
 		# Convert CT/SA to Tpt/SP for comparison with data obs.
 		moorSel = My_var.isel(y=slice(box['jmin'],box['jmax']+1),x=slice(box['imin'],box['imax']+1)).squeeze()
 		moorSel_init = My_varinit.isel(y=slice(box['jmin'],box['jmax']+1),x=slice(box['imin'],box['imax']+1)).squeeze()
-		Red_My_var = CONVERT_SACT_2_SPTpt( moorSel )
-		My_varinitbox = CONVERT_SACT_2_SPTpt( moorSel_init, fldt='init' )
+		Red_My_var = CONV_SACT_2_SPTpt( moorSel )
+		My_varinitbox = CONV_SACT_2_SPTpt( moorSel_init, fldt='init' )
 	else :
 		# Keep data at a given mooring 
 		Red_My_var = My_var.isel(y=slice(box['jmin'],box['jmax']+1),x=slice(box['imin'],box['imax']+1)).squeeze()
@@ -596,7 +702,20 @@ def DEF_REDVAR(CONFIG,CASE,My_var,My_varinit,box,zAll_var,s_year,e_year,tmask,e1
 	
 	return hsct_lev, Red_My_varinit
 
-def CONVERT_SACT_2_SPTpt( zMoor_TS1D, fldt=None ) :
+################################################################################################################################
+def CONV_SACT_2_SPTpt( zMoor_TS1D, fldt=None ) :
+################################################################################################################################
+	"""
+	Function to convert CT/SA to Tpot/PS units 
+	
+	Input:
+	    zMoor_TS1D : temperature/Salinity data set in a box/mooring 
+	    fldt       : argument used to define dimensions of the resulting data set 
+	
+	Output:
+	    TS_tz : model temperature/salinity mean profile at the box/mooring location
+	"""
+	# ----------------------------------------------------------------------
 
 	# Define Dataarray dims 
 	if fldt == None :

@@ -1,5 +1,20 @@
-#!/usr/bin/env python
+"""
+CREG_maps_obse.py
 
+Description:
+This module defines a set of functions dedicated to read Obs. or reanalysis data set :
+- EKE_OBS          : EKE deduced from DOT field. File: EKE_DOT_based_2003-2014.nc
+- ICE_THICK_OBS    : ice thickness from PIOMAS reanalysis data set. File: PIOMAS_icethic_interpCREGXX.L75_1-12_1979-2024.nc
+- ICE_CONCE_OBS    : September/March ice concentration from NSIDC v6 release. File: NSIDC-G02202-v6_sic_psn25_197811-202603_v06r00.nc
+- MLD_OBS          : Mixed Layer Depth computed from MIMOC obs. File: MLD_MIMOC_based_monthlyClim_rhocrit0.01.nc
+- MLTS_OBS         : mean temperature/salinity in the MLD infered from MIMOC obs. File: MIMOC_ML_v2.2_PT_S_MLP_Clim.nc
+- PHC3_OBS         : temperature/salinity from PHC 3.0 climatology. File: phc3.0_annual.nc
+- SSH_OBS          : SSH data from DOT obs. File: EKE_DOT_based_2003-2014.nc [2003-2014] and Full_DOT_data_Arco_2025_09.nc [2015-2025]
+- VONAPPEN_EKE_OBS : EKE data infered from direct in-situ obs. File: EKE_table_Pangaea_lon_sorted_zero_nan_depth.txt
+
+Author:
+Claude Talandier (claude.talandier@cnrs.fr)
+"""
 import sys
 import subprocess
 import xarray as xr 
@@ -12,6 +27,22 @@ import csv
 ################################################################################################################################
 def SSH_OBS( t_year=1959 ) :
 ################################################################################################################################
+	"""
+	Function dedicated to read obs. data from PIOMAS (ice thickness) & NSIDC v6 (ice concentration) & IABP (ice drift)
+	Respective filenames are :
+		- PIOMAS_icevol_maskedBeringSea_interp+CONFIG+_1-12_1979-2024.nc [1979-2024]
+		- NSIDC-G02202-v6_ice_area_and_extent_TiSe_y1978-11-2026-03_maskBeringSea_fullPoleGap.nc [1979-2025]
+	
+	Input:
+	    t_year : current year to read 
+	
+	Output:
+	    out_ssh_OBS    : SSH from Obs. 
+	    SSH_lon2D      : 2D longitude 
+	    SSH_lat2D      : 2D latitude 
+	    ssh_OBS_obsper : string to mention the considered period in plots title 
+	"""
+	# ----------------------------------------------------------------------
 
 	# DOT data set his based on the following satelite:
 	# From 2003 - 2011 : Envisat 
@@ -90,6 +121,20 @@ def SSH_OBS( t_year=1959 ) :
 ################################################################################################################################
 def MLD_OBS() :
 ################################################################################################################################
+	"""
+	Function dedicated to read MIMOC MLD infered from climatological temperature/salinity 
+	Filename : MLD_MIMOC_based_monthlyClim_rhocrit0.01.nc
+	
+	Input:
+	    None 
+	
+	Output:
+	    mld_m03   : March MLD climatology
+	    mld_m09   : September MLD climatology
+	    MLD_lon2D : 2D longitude 
+	    MLD_lat2D : 2D latitude 
+	"""
+	# ----------------------------------------------------------------------
 
 	locpath='./DATA/'
 	locfile='MLD_MIMOC_based_monthlyClim_rhocrit0.01.nc'
@@ -113,6 +158,20 @@ def MLD_OBS() :
 ################################################################################################################################
 def MLTS_OBS() :
 ################################################################################################################################
+	"""
+	Function dedicated to read MIMOC MLD mean temperature/salinity infered from climatological temperature/salinity 
+	Filename : MIMOC_ML_v2.2_PT_S_MLP_Clim.nc
+	
+	Input:
+	    None 
+	
+	Output:
+	    mlT_init : MLD mean temperature 
+	    mlS_init : MLD mean salinity 
+	    lon2D    : 2D longitude 
+	    lat2D    : 2D latitude 
+	"""
+	# ----------------------------------------------------------------------
 
 	locpath='./DATA/'
 	locfile='MIMOC_ML_v2.2_PT_S_MLP_Clim.nc'
@@ -134,6 +193,19 @@ def MLTS_OBS() :
 ################################################################################################################################
 def EKE_OBS( t_year=1959 ) :
 ################################################################################################################################
+	"""
+	Function dedicated to read EKE infered from DOT obs. data 
+	Filename : EKE_DOT_based_2003-2014.nc
+	
+	Input:
+	    t_year : current year to read 
+	
+	Output:
+	    out_EKE_OBS : EKE infered from Obs. 
+	    EKE_lon2D   : 2D longitude 
+	    EKE_lat2D   : 2D latitude 
+	"""
+	# ----------------------------------------------------------------------
 
 	locpath='./DATA/'
 	locfile='EKE_DOT_based_2003-2014.nc'
@@ -159,6 +231,18 @@ def EKE_OBS( t_year=1959 ) :
 ################################################################################################################################
 def ICE_THICK_OBS( zconfig='CREG025.L75', t_year=1959 ) :
 ################################################################################################################################
+	"""
+	Function dedicated to read ice thickness from PIOMAS reanalysis 
+	Filename : PIOMAS_icevol_maskedBeringSea_interp+CONFIG+_1-12_1979-2024.nc [1979-2024]
+	
+	Input:
+	    zconfig : (optional) the considered model configuration (default = 'CREG025.L75') 
+	    t_year  : current year to read 
+	
+	Output:
+	    out_ICE_thick : ice thickness from observation
+	"""
+	# ----------------------------------------------------------------------
 
 	locpath='./DATA/'
 	locfile='PIOMAS_icethic_interp'+zconfig+'_1-12_1979-2024.nc'
@@ -181,6 +265,20 @@ def ICE_THICK_OBS( zconfig='CREG025.L75', t_year=1959 ) :
 ################################################################################################################################
 def ICE_CONCE_OBS( t_year=1959 ) :
 ################################################################################################################################
+	"""
+	Function dedicated to read ice concentration obs. data NSIDC v6 
+	Filename : NSIDC-G02202-v6_ice_area_and_extent_TiSe_y1978-11-2026-03_maskBeringSea_fullPoleGap.nc [1979-2025]
+	
+	Input:
+	    t_year : current year to read 
+	
+	Output:
+	    mean_CONC_m03 : March ice concentration of the current year 
+	    mean_CONC_m09 : September ice concentration of the current year
+	    lon           : 2D longitude  
+	    lat           : 2D latitude
+	"""
+	# ----------------------------------------------------------------------
 
 	locpath='./DATA/'
 	locfile='NSIDC-G02202-v6_sic_psn25_197811-202603_v06r00.nc'
@@ -203,44 +301,26 @@ def ICE_CONCE_OBS( t_year=1959 ) :
 		mean_CONC_m03 = CONC_clim.isel(month=2)
 		mean_CONC_m09 = CONC_clim.isel(month=8)
 
-	#mean_CONC_m03 = xr.where( CONC_init_land == 254 , npy.nan, mean_CONC_m03 )
-	#mean_CONC_m09 = xr.where( CONC_init_land == 254 , npy.nan, mean_CONC_m09 )
-
-#	## Initial data are based on add_offset
-#	## 251 > missing pole
-#	## 252 > not used
-#	## 253 > coastline
-#	## 254 > land
-#	## 255 > missing value
-#	## data will be recovered in dividing it by 250
-#	CONC_init = xr.where( CONC_init == 255, npy.nan, CONC_init )
-#	CONC_init = xr.where( CONC_init == 254, npy.nan, CONC_init )
-#	CONC_init = xr.where( CONC_init == 253, npy.nan, CONC_init )
-#	CONC_init = xr.where( CONC_init == 251, npy.nan, CONC_init )
-#	COR_CONC_init = CONC_init/250.
-#
-#	CONC_init_land = npy.squeeze(CONC_init[0,:,:].copy())
-#
-#	if t_year >= 1979 and t_year <= 2015 : 
-#		print( " Simplification calculation")
-#		# Select only March & September monthly mean
-#		mean_CONC_m03 = COR_CONC_init.sel(time=str(t_year)+'-03').squeeze()
-#		mean_CONC_m09 = COR_CONC_init.sel(time=str(t_year)+'-09').squeeze()
-#	else:
-#		# Compute a mean seasonal cycle and select March & September
-#		CONC_clim = COR_CONC_init.groupby('time.month').mean('time')
-#		mean_CONC_m03 = CONC_clim.isel(month=2)
-#		mean_CONC_m09 = CONC_clim.isel(month=8)
-#
-#	mean_CONC_m03 = xr.where( CONC_init_land == 254 , npy.nan, mean_CONC_m03 )
-#	mean_CONC_m09 = xr.where( CONC_init_land == 254 , npy.nan, mean_CONC_m09 )
-
 	return mean_CONC_m03, mean_CONC_m09, lon, lat
 
 
 ################################################################################################################################
 def PHC3_OBS() :
 ################################################################################################################################
+	"""
+	Function dedicated to read temperature/salinity from PHC3.0 climatology
+	Filename : phc3.0_annual.nc
+	
+	Input:
+	    None
+	
+	Output:
+	    My_varTinit : 3D temperature climatology 
+	    My_varSinit : 3D salinity climatology 
+	    PHC_lon2D   : 2D longitude 
+	    PHC_lat2D   : 2D latitude 
+	"""
+	# ----------------------------------------------------------------------
 
 	print('				Read PHC 3.0 Obs. state  ')
 	locpath='./DATA/'
@@ -264,8 +344,19 @@ def PHC3_OBS() :
 ################################################################################################################################
 def VONAPPEN_EKE_OBS() :
 ################################################################################################################################
+	"""
+	Function dedicated to read EKE from in-situ obs. at given moorings
+	Filename : EKE_table_Pangaea_lon_sorted_zero_nan_depth.txt
+	
+	Input:
+	    None
+	
+	Output:
+	    dsVAD : EKE dataset at specific location and depths
+	"""
+	# ----------------------------------------------------------------------
 
-	print('				Read Von Appen et al. EKE inferred from Obs. ')
+	print('				Read Von Appen et al. EKE infered from Obs. ')
 	locpath='./DATA/'
 	locfile='EKE_table_Pangaea_lon_sorted_zero_nan_depth.txt'
 	if chkfile(locpath+locfile) : 

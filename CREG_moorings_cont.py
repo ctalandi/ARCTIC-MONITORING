@@ -1,8 +1,34 @@
+"""
+CREG_moorings_cont.py
+
+Description:
+This module defines a function dedicated to set properties of plots
+
+Author:
+Claude Talandier (claude.talandier@cnrs.fr)
+"""
 import numpy as npy 
 import matplotlib as mpl
 import matplotlib.pylab as plt
 
-def SET_CONT(lbox, lvarname, lano_cmp=0):
+################################################################################################################################
+def SET_CONT( lbox, lvarname, lano_cmp=0 ) :
+################################################################################################################################
+	"""
+	Function dedicated to set contours, colors, min., max for each variable
+	
+	Input:
+	    lbox     : The considered box 
+	    lvarname : the variable name 
+	    lano_cmp : (optional) specify if it's an field anomaly that is plotted 
+	
+	Output:
+	    contours : contours to plot 
+	    norm     : normalization of coloras between min. & max. 
+	    cmap     : color map 
+	    isoline  : lines to plot 
+	"""
+	# ----------------------------------------------------------------------
 
 	if lvarname == "votemper":
 		# Temperature
@@ -17,10 +43,6 @@ def SET_CONT(lbox, lvarname, lano_cmp=0):
 			   contours = npy.arange(vmin,vmax+vint,vint)
 			   isoline  = npy.arange(vmin,vmax+vint,vint*2)
 			   cmap=plt.cm.get_cmap('rainbow')
-			   #cmap=plt.cm.get_cmap('jet')
-			   #cmap=plt.cm.get_cmap('RdBu_r')
-			   #cmap=plt.cm.get_cmap('inferno')
-			   #cmap=plt.cm.get_cmap('seismic')
 	elif lvarname == "vosaline":
 		# Salinity
 		if lano_cmp == 1 :
@@ -30,16 +52,10 @@ def SET_CONT(lbox, lvarname, lano_cmp=0):
 			   cmap=plt.cm.get_cmap('seismic')
 		else:
 			   vmin=lbox['sallim'][0]    ;	vmax=lbox['sallim'][1]	  ;  vint=lbox['sallim'][2]
-			   #vmin=27.8	;  vmax=35.    ;  vint=0.2
 			   norm = mpl.colors.Normalize(vmin=vmin, vmax=vmax)
 			   contours = npy.arange(vmin,vmax+vint,vint)
 			   isoline  = npy.arange(vmin,vmax+vint,vint*2)
 			   cmap=plt.cm.get_cmap('Spectral_r')
-			   #cmap=plt.cm.get_cmap('jet')
-			   #cmap=plt.cm.get_cmap('seismic')
-			   #cmap=plt.cm.get_cmap('YlOrRd')
-			   #cmap=plt.cm.get_cmap('viridis')
-			   #cmap=plt.cm.get_cmap('magma')
 	elif lvarname == "vovecrtz":
 		# Vertical velocity
 		if lano_cmp == 1 :
@@ -53,11 +69,6 @@ def SET_CONT(lbox, lvarname, lano_cmp=0):
 			   contours = npy.arange(vmin,vmax+vint,vint)
 			   isoline  = npy.arange(vmin,vmax+vint,vint*2)
 			   cmap=plt.cm.get_cmap('cool')
-			   #cmap=plt.cm.get_cmap('jet')
-			   #cmap=plt.cm.get_cmap('seismic')
-			   #cmap=plt.cm.get_cmap('YlOrRd')
-			   #cmap=plt.cm.get_cmap('viridis')
-			   #cmap=plt.cm.get_cmap('magma')
 	elif lvarname == "votkeavt":
 		# Vertical diffusivity
 		if lano_cmp == 1 :
@@ -70,12 +81,7 @@ def SET_CONT(lbox, lvarname, lano_cmp=0):
 			   norm = mpl.colors.Normalize(vmin=vmin, vmax=vmax)
 			   contours = npy.arange(vmin,vmax+vint,vint)
 			   isoline  = npy.arange(vmin,vmax+vint,vint*2)
-			   #cmap=plt.cm.get_cmap('cool')
-			   #cmap=plt.cm.get_cmap('jet')
-			   #cmap=plt.cm.get_cmap('seismic')
-			   #cmap=plt.cm.get_cmap('YlOrRd')
 			   cmap=plt.cm.get_cmap('viridis')
-			   #cmap=plt.cm.get_cmap('magma')
 	elif lvarname == "rhop_sig0":
 		# sigma0
 		if lano_cmp == 1 :

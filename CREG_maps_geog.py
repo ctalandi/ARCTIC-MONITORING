@@ -1,13 +1,23 @@
 #!/usr/bin/env python
+"""
+CREG_maps_geog.py
+
+Description:
+This module is dedicated to plot the moorings and sections location available in the current monitoring
+
+Author:
+Claude Talandier (claude.talandier@cnrs.fr)
+"""
 
 import sys 
 import matplotlib
 matplotlib.use('Agg')
 import numpy as npy
-import CREG_maps_func
+from CREG_maps_func import *
 from checkfile import *
 import matplotlib.pylab as plt
 import matplotlib as mpl
+from cartopy import crs as ccrs
 import xarray as xr
 
 main_dir='./'
@@ -18,7 +28,6 @@ grid_dir=main_dir+CONFIG+'/GRID/'
 print()
 print('				       Configuration :' + CONFCASE)
 print()
-
 
 ########################################
 # Read GRID 
@@ -33,9 +42,22 @@ if chkfile(locpath+locfile,zstop=True,zscript=sys.argv[0]) :
 	lat = ds_msk['gphit'].squeeze()
 #------------------------------------------------------------------------------------------------------------------------
 
-	fig=plt.figure()
+	fig=plt.figure() ;  fram=111
+	projection = ccrs.NorthPolarStereo(central_longitude=-60, true_scale_latitude=65)
+	ax = fig.add_subplot(fram, projection=projection)
 
-	zoutmap,X,Y=CREG_maps_func.Arc_Bat(ztype='isomonarc')
+	BATHY_MAP( ztype='isol500', ax=ax )
+
+	ax.set_aspect('equal')  
+	ax.set_extent([-180, 180, 65, 90], crs=ccrs.PlateCarree())
+	
+	ax.add_feature(cartopy.feature.LAND, facecolor='dimgray')
+	gridlines = ax.gridlines(draw_labels=True, linestyle=':', linewidth=0.4, alpha=0.7, xlocs=npy.arange(-180, 181, 20), y_inline=True, rotate_labels=False )
+	gridlines.xlabel_style={'fontsize': 4}
+	gridlines.ylabel_style={'fontsize': 4}
+	gridlines.top_labels=False
+	gridlines.left_labels=True
+	gridlines.right_labels=True
 
 	############################################################################################################
 	############################################################################################################
@@ -49,7 +71,7 @@ if chkfile(locpath+locfile,zstop=True,zscript=sys.argv[0]) :
 
 		norm = mpl.colors.Normalize(vmin=0., vmax=1.)
 		pal = plt.get_cmap('cool')
-		C2= zoutmap.contourf(X,Y,tmskBFG,[0.,1.],cmap=pal,norm=norm,alpha=0.4)
+		ax.contourf( lon,lat,tmskBFG,levels=[0.,1.],cmap=pal,alpha=0.4, transform=ccrs.PlateCarree() )
 		props = dict(boxstyle='round', facecolor='w', alpha=1.0)
 		fig.text(0.33, 0.61, 'CRF-Box', color='b',fontsize=7, bbox=props, alpha=0.5)
 	############################################################################################################
@@ -67,8 +89,7 @@ if chkfile(locpath+locfile,zstop=True,zscript=sys.argv[0]) :
 		for box in All_box:
 			lats = [box['lat_min'],box['lat_max']]
 			lons = [box['lon_min'],box['lon_max']]
-			x,y = zoutmap(lons,lats)
-			zoutmap.scatter(x,y,5,marker='o', color='r')
+			ax.scatter(lons,lats,1,marker='o', color='r', transform=ccrs.PlateCarree())
 
 	props = dict(boxstyle='round', facecolor='w', alpha=1.0)
 	fig.text(0.37, 0.50, 'ARC-B', color='r',fontsize=7, bbox=props)
@@ -95,8 +116,7 @@ if chkfile(locpath+locfile,zstop=True,zscript=sys.argv[0]) :
 			while ji <= box['imax']-1 :
 				lats = [lat[box['jmax'],ji], lat[box['jmax'],ji+1]]
 				lons = [lon[box['jmax'],ji], lon[box['jmax'],ji+1]]
-				x,y = zoutmap(lons,lats)
-				zoutmap.plot(x,y,linewidth=1,color='g')
+				ax.plot(lons,lats, color='g', transform=ccrs.PlateCarree())
 				ji+=1
 			fig.text(box['labx'],box['laby'] , box['name'], color='g',fontsize=7, bbox=props)
 
@@ -109,18 +129,10 @@ if chkfile(locpath+locfile,zstop=True,zscript=sys.argv[0]) :
 			while jj <= box['jmax']-1 :
 				lats = [lat[jj,box['imin']], lat[jj+1,box['imin']]]
 				lons = [lon[jj,box['imin']], lon[jj+1,box['imin']]]
-				x,y = zoutmap(lons,lats)
-				zoutmap.plot(x,y,linewidth=1,color='g')
+				ax.plot(lons,lats, color='g', transform=ccrs.PlateCarree())
 				jj+=1
 			fig.text(box['labx'],box['laby'] , box['name'], color='g',fontsize=7, bbox=props)
 
-
-	zfontsize=8.
-	zoutmap.drawparallels(npy.arange(-90.,91.,5.),labels=[False,False,False,False], color='grey', size=zfontsize, linewidth=0.3, alpha=0.5)
-	zoutmap.drawmeridians(npy.arange(-180.,181.,20.),labels=[True,True,False,True], color='grey', size=zfontsize, latmax=90.,linewidth=0.3, alpha=0.5)
-	zoutmap.fillcontinents(color='grey',lake_color='white',alpha=0.8)
-
-
 	zfile_ext='_ARC-GEO_'
 	plt.tight_layout()
-	plt.savefig('MONARC_ARC-GEOLOC.png')
+	plt.savefig('MONARC_ARC-GEOLOC.png', dpi=300)

@@ -1,4 +1,15 @@
 #!/usr/bin/env python
+"""
+CREG_sections.py
+
+Description:
+This module is dedicated to :
+- plot temperature/salinity, cross-section velocity & vertical mixing along a gevien section
+- compute volulme, heat, salinity & ice cross-section transport time-series
+
+Author:
+Claude Talandier (claude.talandier@cnrs.fr)
+"""
 
 import sys 
 import matplotlib
@@ -245,7 +256,7 @@ for selsec in XXDIAGSSECXX :
 	# Convert CT/SA to Tpt/SP for comparison with obs. data
 	if teos10 : 
 		gdept_0 = xr.where( npy.isnan(gdept_0), 0., gdept_0 )
-		Tpot, PS = CONVERT_SACT_2_SPTpt( ds_TSdata, gdept_0, lon, lat )
+		Tpot, PS = CONV_SACT_2_SPTpt( ds_TSdata, gdept_0, lon, lat )
 		Tdata_read = xr.DataArray( Tpot, dims=ds_TSdata[infieldT['name']].dims, coords=ds_TSdata[infieldT['name']].coords, name=ds_TSdata[infieldT['name']].name , attrs=ds_TSdata[infieldT['name']].attrs )
 		Sdata_read = xr.DataArray( PS  , dims=ds_TSdata[infieldS['name']].dims, coords=ds_TSdata[infieldS['name']].coords, name=ds_TSdata[infieldS['name']].name , attrs=ds_TSdata[infieldS['name']].attrs )
 		Tdata_read.attrs['long_name'] = 'sea_water_potential_temperature'
@@ -285,7 +296,7 @@ for selsec in XXDIAGSSECXX :
 	print()
 
 	# Call the function dedicated to the calculation
-	CAL_VOLHEATSALTICE( data_dir, CONFIG, CASE, s_year, strait, Tsec, Ssec, Vsec, HIsec, VIsec, fasec, e1vsec, vmsksec ) 
+	CAL_VOLHEATSALTICE( CONFIG, CASE, data_dir, s_year, strait, Tsec, Ssec, Vsec, HIsec, VIsec, fasec, e1vsec, vmsksec ) 
 
 	#------------------------------------------------------------------------------------------------------------------------
 	########################################
@@ -342,7 +353,7 @@ for selsec in XXDIAGSSECXX :
 		print('				##################################################################  ')
 		print()
 	
-		PLOT_TRANS_TISE( data_dir, CONFIG, CASE, lgTS_ys, lgTS_ye, strait, NCDF_OUT ) 
+		PLOT_TRANS_TISE( CONFIG, CASE, data_dir, lgTS_ys, lgTS_ye, strait, NCDF_OUT ) 
 
 #------------------------------------------------------------------------------------------------------------------------
 ########################################
