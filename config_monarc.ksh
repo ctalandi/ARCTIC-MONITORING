@@ -16,6 +16,7 @@ REF_YEAR=                     # The starting year of the experiment for time-ser
 XIOS=1m   	              # [1m/5d] depending the output frequency directory
 GETFILE=1                     # [0/1] to set if input files required both obs. and model 
 OUTNCDF=1                     # [0/1] to output diagnostics into NetCDF 
+TEOS10=True                   # Set the temperature/salinity origin EOS80 or TEOS10 (True)
 
 # Specify input files name (should be stored in the GRID_DIR directory to set below)
 INIT_FILE=                    # Initial file with both temp/sal initial state store in GRID_DIR directory
@@ -60,9 +61,11 @@ DOINTQUANT=1
 # DYN keyword for surface & 100m depth EKE & stream function
 # TSD keyword for surface & 100m depth temperature & salinity differences with initial state
 # MTS keyword for mean temperature & salinity in the ML in March and September
+# ATL keyword for MLD and SSH in march in areas such as LAB, IRM and GIN Seas
+# MOC keyword for AMOC plot as its maximum time series
+# BFG keyword for Beaufort Gyre center based on SSH ( Regan et al. JPO2020 ; https://doi.org/10.1175/JPO-D-19-0234.1 )
 
-MAPS='AWT FWC ICE MLD DYN MTS'
-#MAPS='AWT FWC ICE MLD DYN TSD MTS MOC'
+MAPS='AWT FWC ICE MLD DYN BFG TSD MTS MOC'
 
 # Compute a mean over a period spanning given years in argument
 MKCLIM=0
