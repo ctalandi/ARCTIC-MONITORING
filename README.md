@@ -17,8 +17,8 @@ In the following, basic information are listed to be able to get and to run the 
 ---
 ## 1 - EXTRACTION: <br>
 Create a directory that will be used as a repository that will NOT change over time.<br> 
-> mkdir MONITOR 
-> cd MONITOR 
+> mkdir MONITOR <br>
+> cd MONITOR <br>
 
 Extraction: <br>
 > git clone git@github.com:ctalandi/ARCTIC-MONITORING.git
@@ -26,8 +26,8 @@ Extraction: <br>
 ---
 ## 2 - INSTALLATION:<br>
 For a specific configuration, CREG025.L75 for instance and associated sensitivity experiments.<br>  
-Go into the bin sub-directory and execute the mkmonarc_stdal script as below:<br>
-> cd ./bin <br>
+Go into the install sub-directory and execute the mkmonarc_stdal script as below:<br>
+> cd ./install <br>
 > chmod 750 mkmonarc_stdal<br>
 > ./mkmonarc_stdal CONFIG-NAME EXPNAME TARGETDIR <br>
 **CONFIG-NAME** is the name of the configuration<br>
