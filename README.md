@@ -1,9 +1,9 @@
 # ARCTIC-MONITORING
-This is a set of Python scripts to assess ocean/sea-ice numerical simulations over the Arctic relying on the **[NEMO](https://www.nemo-ocean.eu)** numerical platform. Diagnostics and plots are done over and around the Arctic basin. It aims at producing maps, sections, vertical profiles along moorings and integrated quantities such as sea-ice volume, area, extend, freshwater content as well among others using either monthly or annual means only (depending on the final plot).<br>
+This is a set of Python (3.xx) scripts to assess ocean/sea-ice numerical simulations over the Arctic relying on the **[NEMO](https://www.nemo-ocean.eu)** numerical platform. Diagnostics and plots are done over and around the Arctic basin. It aims at producing maps, sections, vertical profiles along moorings and integrated quantities such as sea-ice volume, area, extend, freshwater content as well among others using either monthly or annual means only (depending on the final plot). It has been developped specifically for the so called CREGXX.L75 configurations suite (XX corresponds to either 025 or 12 refering to the 1/4° or 1/.12° model grid resolution.<br>
 Few sections, moorings and boxes are shown in the following figure over and through which few diagnostics are computed and then compared to few available in-situ or satellite observations.
 <p align="center"> <img src="./figs/MONARC_ARC-GEOLOC.png" width="600" height="500"> </p>
 
-**CAUTION: It has been originaly developped in order to run in only few specific computing system. If it is installed on a new architecture, few modifictions will be required to make it running properly; these modifications are not documented yet hereafter. Finally, for convenience, the monitoring relies on a hardcoded specific model data filenames as paths structure as well that would require potential deep changes.**
+**CAUTION: It has been originaly developped in order to run in only few specific computing system. If it is installed on a new architecture, few modifictions will be required to make it running properly; these modifications are not documented yet hereafter. Finally, for convenience, the monitoring relies on hardcoded specific model data filenames as paths structure as well that would require potential deep changes.**
 
 
 In the following, basic information are listed to be able to get and to run the Arctic monitoring.<br>
@@ -12,6 +12,7 @@ In the following, basic information are listed to be able to get and to run the 
 2 - INSTALLATION:<br>
 3 - USE THE MONITORING:<br>
 4 - THE MONITORING TREE:<br>
+5 - LICENSE:<br> 
   
 ---
 ## 1 - EXTRACTION: <br>
@@ -82,4 +83,9 @@ Most of the time, there are 3 python scripts. <br>
 ## 4 - THE MONITORING TREE:<br>
 
 ![The monitor tree](./figs/Monitor_tree.jpg)
+
+---
+## 5 - LICENSE: <br>
+The ARCTIC MONITORING source code is freely available and distributed under [CeCILL v2.1 license](./Licence_CeCILL_V2.1-en.txt)  (GNU GPL compatible).<br>
+You can use, modify and/or redistribute the software under its terms, but users are provided only with a limited warranty and the software's authors and the successive licensor's have only limited liability.<br>
 
