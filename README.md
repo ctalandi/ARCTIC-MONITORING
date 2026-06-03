@@ -30,6 +30,7 @@ The monitoring relies on classic python librairies (Numpy, Matplotlib, Cartopy, 
 To buid this new virtual environment, follow the steps below: <br> 
 Under the sub-directory install, execute the following command line. (Use either conda or mamba). MY-ENV-DIRECTORY corresponds to the directory where to store the new virtual Python environment named Python4Monarc.<br> 
 > conda env create -f monarc_environment.yml --prefix ~/MY-ENV-DIRECTORY/Python4Monarc <br>
+
 Then you should activate this environement before using the monitoring; this is required either when using an interactive or a job sessio. Use the command line: <br> 
 > conda activate Python4Monarc
 
