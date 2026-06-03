@@ -52,7 +52,7 @@ All observations/Re-analyses data used in the monitoring to compare the model ou
 > wget https://data.umr-lops.fr/pub/FREDY_MONITOR/MISC/FOR-MONITORING_v2.tgz <br> 
 > tar zxvf FOR-MONITORING_v2.tgz <br> 
 
-To let these data accessible by the monitoring, set the variable with the previous full pathname OBS_DIR=MYDIR/DATAOBS in the ./run/config_monarc.ksh script.<br> 
+To let these data accessible by the monitoring, in the ./run/config_monarc.ksh script, set the variable OBS_DIR with the previous full pathname like this OBS_DIR=MYDIR/DATAOBS <br> 
 
 ---
 ## 3 - USE THE MONITORING:<br>
