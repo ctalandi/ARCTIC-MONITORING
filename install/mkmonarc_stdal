@@ -60,7 +60,7 @@ if [ ! $PDIR ] ; then
 fi
 
 # find the DMONTOOLS directory 
-SRCDIR=`pwd | sed -e "s/\/bin//" `
+SRCDIR=`pwd | sed -e "s/\/install//" `
 
 # Create directories on $PDIR (production)
 ###############################
@@ -90,28 +90,28 @@ else
 	short_name='occigen'
 fi
 
-cp $SRCDIR/RUN_monarc.ksh   $P_CDF_DIR/.
+cp $SRCDIR/run/RUN_monarc.ksh   $P_CDF_DIR/.
 chmod 750 $P_CDF_DIR/RUN_monarc.ksh
-cp $SRCDIR/JHEAD_${short_name}.bash $P_CDF_DIR/.
+cp $SRCDIR/run/JHEAD_${short_name}.bash $P_CDF_DIR/.
 
-cp $SRCDIR/CREG_intquant_func.py    $P_CDF_DIR/INTQUANT/.
-cp $SRCDIR/CREG_intquant.py         $P_CDF_DIR/INTQUANT/.
-cp $SRCDIR/job_intquant.ksh         $P_CDF_DIR/INTQUANT/.
+cp $SRCDIR/src/CREG_intquant_func.py    $P_CDF_DIR/INTQUANT/.
+cp $SRCDIR/src/CREG_intquant.py         $P_CDF_DIR/INTQUANT/.
+cp $SRCDIR/run/job_intquant.ksh         $P_CDF_DIR/INTQUANT/.
 
-cp $SRCDIR/CREG_maps_func.py        $P_CDF_DIR/MAPS/.
-cp $SRCDIR/CREG_maps_cont.py        $P_CDF_DIR/MAPS/.
-cp $SRCDIR/CREG_maps_geog.py        $P_CDF_DIR/MAPS/.
-cp $SRCDIR/CREG_maps.py             $P_CDF_DIR/MAPS/.
-cp $SRCDIR/job_maps.ksh             $P_CDF_DIR/MAPS/.
+cp $SRCDIR/src/CREG_maps_func.py        $P_CDF_DIR/MAPS/.
+cp $SRCDIR/src/CREG_maps_cont.py        $P_CDF_DIR/MAPS/.
+cp $SRCDIR/src/CREG_maps_geog.py        $P_CDF_DIR/MAPS/.
+cp $SRCDIR/src/CREG_maps.py             $P_CDF_DIR/MAPS/.
+cp $SRCDIR/run/job_maps.ksh             $P_CDF_DIR/MAPS/.
 
-cp $SRCDIR/CREG_moorings_func.py    $P_CDF_DIR/MOORINGS/.
-cp $SRCDIR/CREG_moorings_cont.py    $P_CDF_DIR/MOORINGS/.
-cp $SRCDIR/CREG_moorings.py         $P_CDF_DIR/MOORINGS/.
-cp $SRCDIR/job_moorings.ksh         $P_CDF_DIR/MOORINGS/.
+cp $SRCDIR/src/CREG_moorings_func.py    $P_CDF_DIR/MOORINGS/.
+cp $SRCDIR/src/CREG_moorings_cont.py    $P_CDF_DIR/MOORINGS/.
+cp $SRCDIR/src/CREG_moorings.py         $P_CDF_DIR/MOORINGS/.
+cp $SRCDIR/run/job_moorings.ksh         $P_CDF_DIR/MOORINGS/.
 
-cp $SRCDIR/CREG_sections_func.py    $P_CDF_DIR/SECTIONS/.
-cp $SRCDIR/CREG_sections.py         $P_CDF_DIR/SECTIONS/.
-cp $SRCDIR/job_sections.ksh         $P_CDF_DIR/SECTIONS/.
+cp $SRCDIR/src/CREG_sections_func.py    $P_CDF_DIR/SECTIONS/.
+cp $SRCDIR/src/CREG_sections.py         $P_CDF_DIR/SECTIONS/.
+cp $SRCDIR/run/job_sections.ksh         $P_CDF_DIR/SECTIONS/.
 
 
 # save existing config_monarc.ksh for reference
@@ -120,7 +120,7 @@ if [ -f $P_CDF_DIR/config_monarc.ksh ] ; then
   echo Existing config_monarc.ksh renamed $P_CDF_DIR/config_monarc.ksh.$$
 fi
 
-cat $SRCDIR/config_monarc.ksh | sed -e "s/<CONFIG>/${CONFIG}/" -e "s/<CASE>/${CASE}/" \
+cat $SRCDIR/run/config_monarc.ksh | sed -e "s/<CONFIG>/${CONFIG}/" -e "s/<CASE>/${CASE}/" \
     -e "s/<MACHINE>/$short_name/" -e "s;<INITDIR>;${P_CDF_DIR};" > $P_CDF_DIR/config_monarc.ksh
 
 
