@@ -25,6 +25,15 @@ Extraction: <br>
 
 ---
 ## 2 - INSTALLATION:<br>
+### - Python environnement: <br> 
+The monitoring relies on classic python librairies (Numpy, Matplotlib, Cartopy, Basemap, Pandas, etc ) and also few specific ones such as : GSW, Xarray, xnemogcm, xgcm. If you already have those librairies installed on your system, you can try to use them. In case of troubles, you can try to build a new python virtual environment on your own system that will be used.<br> 
+To buid this new virtual environment, follow the steps below: <br> 
+Under the sub-directory install, execute the following command line. (Use either conda or mamba). MY-ENV-DIRECTORY corresponds to the directory where to store the new virtual Python environment named Python4Monarc.<br> 
+> conda env create -f monarc_environment.yml --prefix ~/MY-ENV-DIRECTORY/Python4Monarc
+Then you should activate this environement before using the monitoring; this is required either when using an interactive or a job sessio. Use the command line: <br> 
+> conda activate Python4Monarc
+
+### - ARCTIC-MONITORING deployment: <br> 
 For a specific configuration, CREG025.L75 for instance and associated sensitivity experiments.<br>  
 Go into the install sub-directory and execute the mkmonarc_stdal script as below:<br>
 > cd ./install <br>
@@ -33,17 +42,17 @@ Go into the install sub-directory and execute the mkmonarc_stdal script as below
 **CONFIG-NAME** is the name of the configuration<br>
 **EXNAME** is the name of the experiement relying on the CONFIG-NAME <br>
 **TARGETDIR** is the path where the monitoring will be installed <br>
-The final command wil create the TARGETDIR/CONFIG-NAME-MONARC/CONFIG-NAME-EXPNAME directory.
+The final command wil create the TARGETDIR/CONFIG-NAME-MONARC/CONFIG-NAME-EXPNAME directory with all Python sources copied from the src directory dispatched into either MAPS, MOORINGS, SECTIONS or INTQUANT sub-directories. 
 
 ---
 ## 3 - USE THE MONITORING:<br>
 Go into the directory just created before <br>
 > cd TARGETDIR/CONFIG-NAME-MONARC/CONFIG-NAME-EXPNAME <br>
 
-Note: You can change/adapt as you want all files located under this directory and sub-directories <br>
+Note: You can change/adapt as you want all scripts, python files located under this directory and sub-directories <br>
  
   1. Adapt the user’s file config_monarc.ksh to your case.<br>
-It is there that the user can set the kind of diagnostics to perform. <br>
+In this file, the user select the diagnostics to perform. <br>
 
 Few key variables below: <br>
 > **REF_YEAR** is the starting year of the simulation<br>
