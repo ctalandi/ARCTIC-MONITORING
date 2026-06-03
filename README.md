@@ -29,7 +29,7 @@ Extraction: <br>
 The monitoring relies on classic python librairies (Numpy, Matplotlib, Cartopy, Basemap, Pandas, etc ) and also few specific ones such as : GSW, Xarray, xnemogcm, xgcm. If you already have those librairies installed on your system, you can try to use them. In case of troubles, you can try to build a new python virtual environment on your own system that will be used.<br> 
 To buid this new virtual environment, follow the steps below: <br> 
 Under the sub-directory install, execute the following command line. (Use either conda or mamba). MY-ENV-DIRECTORY corresponds to the directory where to store the new virtual Python environment named Python4Monarc.<br> 
-> conda env create -f monarc_environment.yml --prefix ~/MY-ENV-DIRECTORY/Python4Monarc
+> conda env create -f monarc_environment.yml --prefix ~/MY-ENV-DIRECTORY/Python4Monarc <br>
 Then you should activate this environement before using the monitoring; this is required either when using an interactive or a job sessio. Use the command line: <br> 
 > conda activate Python4Monarc
 
@@ -39,6 +39,7 @@ Go into the install sub-directory and execute the mkmonarc_stdal script as below
 > cd ./install <br>
 > chmod 750 mkmonarc_stdal<br>
 > ./mkmonarc_stdal CONFIG-NAME EXPNAME TARGETDIR <br>
+
 **CONFIG-NAME** is the name of the configuration<br>
 **EXNAME** is the name of the experiement relying on the CONFIG-NAME <br>
 **TARGETDIR** is the path where the monitoring will be installed <br>
