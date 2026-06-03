@@ -46,6 +46,13 @@ Go into the install sub-directory and execute the mkmonarc_stdal script as below
 **TARGETDIR** is the path where the monitoring will be installed <br>
 The final command wil create the TARGETDIR/CONFIG-NAME-MONARC/CONFIG-NAME-EXPNAME directory with all Python sources copied from the src directory dispatched into either MAPS, MOORINGS, SECTIONS or INTQUANT sub-directories. 
 
+### - Observations/Re-analysis data sets: <br> 
+All observations/Re-analyses data used in the monitoring to compare the model outputs with are available there [ObsData (~3GB)](https://data.umr-lops.fr/pub/FREDY_MONITOR/MISC/FOR-MONITORING_v2.tgz). This file can also be downloaded in command line. Create a directory in a permanent space, for instance DATAOBS.<br> 
+> mkdir ~/MYDIR/DATAOBS  ; cd ~/MYDIR/DATAOBS <br> 
+> wget https://data.umr-lops.fr/pub/FREDY_MONITOR/MISC/FOR-MONITORING_v2.tgz <br> 
+> tar zxvf FOR-MONITORING_v2.tgz <br> 
+To let these data accessible by the monitoring, set the variable with the previous full pathname OBS_DIR=~/MYDIR/DATAOBS in the ./run/config_monarc.ksh script.<br> 
+
 ---
 ## 3 - USE THE MONITORING:<br>
 Go into the directory just created before <br>
