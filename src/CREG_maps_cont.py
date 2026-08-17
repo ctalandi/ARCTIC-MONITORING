@@ -47,20 +47,17 @@ def SET_ARC_CNT( zCASE, zc_year, seas, zMyvar, zslev=0, zplot_obs=0, zdiff=0 ) :
 	   my_cmap=plt.get_cmap('coolwarm')
 	   my_cmap=plt.get_cmap('Spectral_r')
 	   
-	   zfile_ext='_SSHClim_'
+	   zfile_ext='_FWCSSHClim_'
 	   if zplot_obs == 1 :
-	        if zc_year < 2003 :
-		        ztitle=' Mean DOT from Armitage et al. 2017 \n 2003-2014'
-	        else : 
-		        ztitle=' Mean DOT from Armitage et al. 2017 \n '+str(zc_year)
-	        vmin=-40. ; vmax=40. ; vint=2.
+	        ztitle=' DOT from Armitage et al. 2017 \n '
+	        vmin=-40. ; vmax=40. ; vint=2.  ; ztik=5.
 	   else:
-	        ztitle=zCASE +' mean SSH anomaly '
-	        vmin=-36. ; vmax=36. ; vint=2.
+	        ztitle=zCASE +' SSH anomaly '
+	        vmin=-36. ; vmax=36. ; vint=2.  ; ztik=3.
 
-	   contours=npy.arange(vmin,vmax+vint,vint)  # optional contours
+	   contours=npy.arange(vmin,vmax+vint,vint)       # optional contours
 	   limits=[vmin,vmax,vint]			  # limits for eke
-	   myticks=npy.arange(vmin,vmax+vint,vint)   # optional colorbar ticks (None)
+	   myticks=npy.arange(vmin,vmax+vint,vint*ztik)   # optional colorbar ticks (None)
 
 	######### MIXED LAYER DEPTH #########
 	if zMyvar == 'mldr10_1' :
@@ -72,13 +69,13 @@ def SET_ARC_CNT( zCASE, zc_year, seas, zMyvar, zslev=0, zplot_obs=0, zdiff=0 ) :
 	        if zplot_obs == 1 :
 		        ztitle=' MIMOC climatology MLD01 \n '+seas
 	        else:
-		        ztitle=zCASE +' mean MLD01 over \n'+str(zc_year)+' '+seas
+		        ztitle=zCASE +' MLD01 \n'+str(zc_year)+' '+seas
 	        vmin=0. ; vmax=80. ; vint=10.
 	   if seas == 'm09' : 
 	        if zplot_obs == 1 :
-		        ztitle=' MIMOC climatology MLD01 '+seas
+		        ztitle=' MIMOC climatology MLD01 \n '+seas
 	        else:
-		        ztitle=' mean MLD01 '+seas
+		        ztitle=' MLD01 '+seas
 	        vmin=0. ; vmax=40. ; vint=5.
 	   contours=npy.arange(vmin,vmax+vint,vint)  # optional contours
 	   limits=[vmin,vmax,vint]			  # limits for eke
@@ -93,11 +90,11 @@ def SET_ARC_CNT( zCASE, zc_year, seas, zMyvar, zslev=0, zplot_obs=0, zdiff=0 ) :
 	   zfile_ext='_SITHICKClim_'
 	   if zplot_obs == 1 :
 	        if zc_year >= 1979 and zc_year <= 2024: 
-		        ztitle=' PIOMAS mean SITHICK over \n '+str(zc_year)
+		        ztitle=' PIOMAS SITHICK \n '+str(zc_year)
 	        else:
-		        ztitle=' PIOMAS mean SITHICK over \n 1979-2024'
+		        ztitle=' PIOMAS SITHICK \n 1979-2024'
 	   else:
-	        ztitle=zCASE +' mean SITHICK over \n'+str(zc_year)
+	        ztitle=zCASE +' SITHICK \n'+str(zc_year)
 	   vmin=0. ; vmax=5. ; vint=0.5
 	   contours=npy.arange(vmin,vmax+vint,vint)  # optional contours
 	   limits=[vmin,vmax,vint]			  # limits for eke
@@ -112,11 +109,11 @@ def SET_ARC_CNT( zCASE, zc_year, seas, zMyvar, zslev=0, zplot_obs=0, zdiff=0 ) :
 	   zfile_ext='_SICONClim_'
 	   if zplot_obs == 1 :
 	        if zc_year >= 1979 and zc_year <= 2025: 
-		        ztitle=' NSIDC-v6 mean SICON '+seas+' \n '+str(zc_year)
+		        ztitle=' NSIDC-v6 SICON '+seas+' \n '+str(zc_year)
 	        else:
-		        ztitle=' NSIDC-v6 mean SICON '+seas+' \n 1979-2025'
+		        ztitle=' NSIDC-v6 SICON '+seas+' \n 1979-2025'
 	   else:
-	        ztitle=' mean SICON '+seas
+	        ztitle=' SICON '+seas
 	   vmin=0. ; vmax=100. ; vint=10.
 	   contours=npy.arange(vmin,vmax+vint,vint)  # optional contours
 	   limits=[vmin,vmax,vint]			  # limits for eke
@@ -126,11 +123,24 @@ def SET_ARC_CNT( zCASE, zc_year, seas, zMyvar, zslev=0, zplot_obs=0, zdiff=0 ) :
 	if zMyvar == 'sobarstf' :
 	   my_cblab=r'(Sv)'
 	   m_alpha=1.e-6
-	   my_cmap=plt.get_cmap('coolwarm')
+	   my_cmap=plt.get_cmap('RdBu_r')
 	   
 	   zfile_ext='_PSIClim_'
-	   ztitle=' mean PSI over \n'+str(zc_year)
-	   vmin=-5. ; vmax=5. ; vint=.25
+	   ztitle=zCASE +' PSI \n'+str(zc_year)
+	   vmin=-10. ; vmax=5. ; vint=.25
+	   contours=npy.arange(vmin,vmax+vint,vint)  # optional contours
+	   limits=[vmin,vmax,vint]			  # limits for eke
+	   myticks=npy.arange(vmin,vmax+vint,2.*vint)	# optional colorbar ticks (None)
+
+	######## TOPOSTROPHY #########
+	if zMyvar == 'topos' :
+	   my_cblab=r'(x10^-8 m s-2)'
+	   m_alpha=1.e+8
+	   my_cmap=plt.get_cmap('RdBu_r')
+	   
+	   zfile_ext='_TOPClim_'
+	   ztitle=zCASE +' Topostrophy \n'+str(zc_year)
+	   vmin=-4. ; vmax=4. ; vint=0.4
 	   contours=npy.arange(vmin,vmax+vint,vint)  # optional contours
 	   limits=[vmin,vmax,vint]			  # limits for eke
 	   myticks=npy.arange(vmin,vmax+vint,2.*vint)	# optional colorbar ticks (None)
@@ -145,15 +155,19 @@ def SET_ARC_CNT( zCASE, zc_year, seas, zMyvar, zslev=0, zplot_obs=0, zdiff=0 ) :
 	   if zslev == '0' : 
 	        vmin=-6. ; vmax=-2. ; vint=0.2
 	        if zplot_obs == 0 :
-		        ztitle=zCASE +' - '+str(zc_year)+' mean EKE @ '+zslev+' m '
+		        ztitle=zCASE +' - '+str(zc_year)+' EKE @ '+zslev+' m '
 	        else:
-		        if zc_year >= 2003 and zc_year <= 2014 : 
-			        ztitle=' Mean EKE from Armitage et al. 2017 \n '+str(zc_year)
+		        if zc_year < 2003 : 
+			        ztitle=' EKE from Envisat 2003-2014'
+		        elif zc_year >= 2003 and zc_year <= 2014 : 
+			        ztitle=' EKE from Envisat \n '+str(zc_year)
+		        elif zc_year >= 2015 and zc_year <= 2024 : 
+			        ztitle=' EKE from Cryosat-2 \n'+str(zc_year)
 		        else:
-			        ztitle=' Mean EKE from Armitage et al. 2017 \n 2003-2014'
+			        ztitle=' EKE from Cryosat-2 2015-2024'
 	   else : 
 	        vmin=-6. ; vmax=-2. ; vint=0.2
-	        ztitle=zCASE +' - '+str(zc_year)+' mean EKE @ '+zslev+' m \n patches from Von Appen et al. 2022'
+	        ztitle=zCASE +' - '+str(zc_year)+' EKE @ '+zslev+' m \n patches from Von Appen et al. 2022'
 
 	   contours=npy.arange(vmin,vmax+vint,vint)  # optional contours
 	   limits=[vmin,vmax,vint]			  # limits for eke
@@ -167,13 +181,13 @@ def SET_ARC_CNT( zCASE, zc_year, seas, zMyvar, zslev=0, zplot_obs=0, zdiff=0 ) :
 	   
 	   if zdiff == 1 :
 	        zfile_ext='_TSDiffClim_z'+zslev+'m_'
-	        ztitle=zCASE +' mean Temp diff with init. state over '+str(zc_year)+'\n @ depth '+zslev+' m'
+	        ztitle=zCASE +' Temp diff with init. state '+str(zc_year)+'\n @ depth '+zslev+' m'
 	        vmin=-3. ; vmax=3. ; vint=0.5
 	        my_cmap=plt.get_cmap('RdBu_r')
 	        #my_cmap=plt.get_cmap('coolwarm')
 	   else:
 	        zfile_ext='_TClim_z'+zslev+'m_'
-	        ztitle=zCASE +' mean Temp over'+str(zc_year)+'\n @ depth '+zslev+' m'
+	        ztitle=zCASE +' Temp @ depth '+zslev+' m'
 	        vmin=-2. ; vmax=8. ; vint=0.5
 	   contours=npy.arange(vmin,vmax+vint,vint)  # optional contours
 	   limits=[vmin,vmax,vint]			  # limits for eke
@@ -187,18 +201,30 @@ def SET_ARC_CNT( zCASE, zc_year, seas, zMyvar, zslev=0, zplot_obs=0, zdiff=0 ) :
 	 
 	   if zdiff == 1 :
 	        zfile_ext='_TSDiffClim_z'+zslev+'m_'
-	        ztitle=zCASE +' mean Sal diff with init. state over '+str(zc_year)+'\n @ depth '+zslev+' m'
+	        ztitle=zCASE +' Sal diff with init. state '+str(zc_year)+'\n @ depth '+zslev+' m'
 	        vmin=-4. ; vmax=4. ; vint=0.5
 	        if zslev == '97' or zslev == '199' : vmin=-2. ; vmax=2. ; vint=0.5
 	        my_cmap=plt.get_cmap('RdBu_r')
 	   else:
 	        zfile_ext='_SClim_z'+zslev+'m_'
-	        ztitle=zCASE +' mean Sal over'+str(zc_year)+'\n @ depth '+zslev+' m'
+	        ztitle=zCASE +' Sal '+str(zc_year)+'\n @ depth '+zslev+' m'
 	        vmin=15. ; vmax=34. ; vint=1.
 	        if zslev == '97' : vmin=32. ; vmax=36. ; vint=0.5
 	        if zslev == '508': vmin=34. ; vmax=36. ; vint=0.2
 	   contours=npy.arange(vmin,vmax+vint,vint)  # optional contours
 	   limits=[vmin,vmax,vint]			  # limits for eke
 	   myticks=npy.arange(vmin,vmax+vint,vint)   # optional colorbar ticks (None)
+
+	######### FWC #########
+	if zMyvar == 'FWC' :
+	   my_cblab=r'(m)'
+	   my_cmap=plt.get_cmap('Spectral_r')
+
+	   zfile_ext='_FWCSSHClim_'
+	   ztitle=zCASE+' FWC (m) \n'+str(zc_year)
+	   vmin=0. ; vmax=25. ; vint=2.
+	   contours=npy.arange(vmin,vmax+vint,vint)  # optional contours
+	   limits=[vmin,vmax,vint]			  # limits for eke
+	   myticks=npy.arange(vmin,vmax+vint,vint)	# optional colorbar ticks (None)
 
 	return contours, limits, myticks, ztitle, zfile_ext, my_cblab, my_cmap, m_alpha

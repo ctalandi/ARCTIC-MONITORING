@@ -184,14 +184,50 @@ while c_year <= e_year:
              if len(TS_files) == 12 :
                 ds_TSdata = xr.open_mfdataset(locpath+locfile, engine="netcdf4", concat_dim=["time_counter"], combine='nested', parallel=True)[[zMyvar,'votemper','vosaline','deptht']]
                 ds_TSdata = ds_TSdata.rename({'deptht':'z'})
-                # Keep the MLD only in March and September
-                My_var1SeasM = ds_TSdata[zMyvar].isel(time_counter=2).squeeze()
-                My_var1SeasS = ds_TSdata[zMyvar].isel(time_counter=8).squeeze()
-                # Keep the MLD over the 12 months 
-                Mdata_read = ds_TSdata[zMyvar]
-                # Keep both temperature/salinity in March and September
+
+                # temperature/salinity in March and September
                 My_varTSM = ds_TSdata.isel(time_counter=2).squeeze() 
                 My_varTSS = ds_TSdata.isel(time_counter=8).squeeze() 
+
+                # Read WOA09 climatology to compute the MLD
+                TSinit, Tinit, Sinit = WOA09_INIT( )
+                gdepw_woa09 = P3Dzyx( gdepw_0[:,0,0].values, Tinit[0,0,:,:].squeeze() )
+                da_gdepw_woa09= xr.DataArray(gdepw_woa09,dims=['z','y','x'])
+                # temperature/salinity in March and September
+                TSinitM = TSinit.isel(time_counter=2).squeeze() 
+                TSinitS = TSinit.isel(time_counter=8).squeeze() 
+
+                ds_woa09_msk = xr.open_dataset('./DATA/woa13_msk_1x1.nc')
+                woa09_msk = ds_woa09_msk.lsm.values
+
+                # Select or recompute the MLD (0.1 kg/m3 dentsity criteria) 
+                if True : 
+                #if calc_MLD01 : 
+                	# March MLD 
+                	My_var1SeasM = MLD_CALC( My_varTSM, lon, lat, gdepw_0, teos10 )
+                	zmld_initM = MLD_CALC( TSinitM, TSinit.lon.values, TSinit.lat.values, da_gdepw_woa09, teos10, dtype='woa09' )
+                	zmld_initM = xr.where( woa09_msk < 1 , npy.nan, zmld_initM )
+                	zmld_initM = npy.roll( zmld_initM, +180, axis=1 )
+                	mld_initM = xr.DataArray( zmld_initM, dims=['y','x'] )
+                	mld_initM.coords['lat'] = ( ('y','x'), TSinit.lat.values )
+                	mld_initM.coords['lon'] = ( ('y','x'), TSinit.lon.values )
+                	# September MLD 
+                	My_var1SeasS = MLD_CALC( My_varTSS, lon, lat, gdepw_0, teos10 )
+                	zmld_initS = MLD_CALC( TSinitS, TSinit.lon.values, TSinit.lat.values, da_gdepw_woa09, teos10, dtype='woa09' )
+                	zmld_initS = xr.where( woa09_msk < 1 , npy.nan, zmld_initS )
+                	zmld_initS = npy.roll( zmld_initS, +180, axis=1 )
+                	mld_initS = xr.DataArray( zmld_initS, dims=['y','x'] )
+                	mld_initS.coords['lat'] = ( ('y','x'), TSinit.lat.values )
+                	mld_initS.coords['lon'] = ( ('y','x'), TSinit.lon.values )
+                else :
+                        # Keep the MLD only in March and September
+                        My_var1SeasM = ds_TSdata[zMyvar].isel(time_counter=2).squeeze()
+                        My_var1SeasS = ds_TSdata[zMyvar].isel(time_counter=8).squeeze()
+                        # Keep the MLD over the 12 months 
+                        print()
+                        print(' ////!!!!! CAUTION !!!!!\\\\: Case MLD_MAPS: the 12 months MLD fields are not correct for Time-series for ATL maps' )
+                        print()
+                        Mdata_read = ds_TSdata[zMyvar]
 
                 if c_year == e_year : 
                         My_var1SeasM = xr.where( tmask[0,:,:] < 1, npy.nan, My_var1SeasM ).squeeze()
@@ -230,6 +266,11 @@ while c_year <= e_year:
                 ds_eke = EKE_CALC( lon, lat, CONFIG, CASE, xiosfreq, c_year, data_dir, NCDF_OUT )
                 ds_eke['voeke'] = xr.where( tmask == 0., npy.nan, ds_eke['voeke'] )
 
+             print('                    Compute topostrophy ' )
+             zMyvar = 'topos' 
+             ds_topos = TOPOS_CALC( lon, lat, CONFIG, CASE, c_year, locpath )
+             ds_topos['topos'] = xr.where( tmask[0,:,:] == 0., npy.nan, ds_topos['topos'] )
+
         #########################################################################################################################################
         if ( AWT_maps or FWC_maps or TSD_maps or ATL_maps ) :
 
@@ -261,7 +302,7 @@ while c_year <= e_year:
         c_year = c_year + 1 
 
 # Read the initial state to compare with
-if AWT_maps or FWC_maps or TSD_maps or ATL_maps : My_varTinit, My_varSinit = CREG_INIT( CONFIG, CASE )
+if AWT_maps or FWC_maps or TSD_maps or ATL_maps : My_varTSinit, My_varTinit, My_varSinit = CREG_INIT( CONFIG, CASE )
 
 ###########################################
 # CALL FUNCTIONS TO PERFORM DIAGS AND PLOTS 
@@ -280,7 +321,7 @@ if MTS_maps :
 # To plot the Atlantic Water maximum temperature as the associated depth
 # Use the salinity criteria S < 33.5
 if AWT_maps : 
-        AWT_MAPSF( lon, lat, My_var1T, My_var1S, CONFIG, CASE, s_year, NCDF_OUT )
+        AWT_MAPSF( lon, lat, My_var1T, My_var1S, My_varTinit, My_varSinit, CONFIG, CASE, s_year, NCDF_OUT )
 
 # To plot SSH and FWC (based on a salinity ref of 34.8 PSU)
 if FWC_maps : 
@@ -292,11 +333,11 @@ if ICE_maps :
 
 # To plot MLD variable
 if MLD_maps : 
-        MLD_MAPSF( lon, lat, My_var1SeasM, My_var1SeasS, CONFIG, CASE, s_year, NCDF_OUT )
+        MLD_MAPSF( lon, lat, My_var1SeasM, My_var1SeasS, mld_initM, mld_initS, CONFIG, CASE, s_year, NCDF_OUT )
 
 # To plot DYN variables PSI and EKE 
 if DYN_maps : 
-        DYN_MAPSF( lon, lat, My_var1, ds_eke, gdept1d, CONFIG, CASE, s_year, NCDF_OUT )
+        DYN_MAPSF( lon, lat, My_var1, ds_eke, ds_topos, gdept1d, CONFIG, CASE, s_year, NCDF_OUT )
 
 # To plot T/S drift at the surface, ~100m, ~200m & ~300m
 if TSD_maps : 

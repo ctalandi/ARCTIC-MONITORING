@@ -88,11 +88,14 @@ if [ $getfiles -eq 1 ] ; then
         chkdir DATA  ;  cd DATA
         ln -sf ${OBS_DIR}/OCEAN/phc3.0_annual.nc .
         ln -sf ${OBS_DIR}/OCEAN/EKE_DOT_based_2003-2014.nc .
+        ln -sf ${OBS_DIR}/OCEAN/EKEGeos_CPOM_DOT_2003-2014_Yearlymean.nc .
         ln -sf ${OBS_DIR}/OCEAN/Full_DOT_data_Arco_2025_09.nc .
-        ln -sf ${OBS_DIR}/OCEAN/MLD_MIMOC_based_monthlyClim_rhocrit0.01.nc .
+        ln -sf ${OBS_DIR}/OCEAN/Full_EKEGeos_data_Arco_2011-2024.nc .
+        ln -sf ${OBS_DIR}/OCEAN/MLD_MIMOC_based_monthlyClim_rhocrit0.1.nc .
         ln -sf ${OBS_DIR}/OCEAN/MIMOC_ML_v2.2_PT_S_MLP_Clim.nc .
         ln -sf ${OBS_DIR}/OCEAN/BeaufortGyreFWC-Obs-Proshutinsky_GRL2018_y2003-2017.nc .
         ln -sf ${OBS_DIR}/OCEAN/BGFWC_OI_2023.nc .
+        ln -sf ${OBS_DIR}/OCEAN/BGFWC_OI_2023_2DGRID.nc .
         ln -sf ${OBS_DIR}/OCEAN/BGmask_2003to2014.nc .
         ln -sf ${OBS_DIR}/OCEAN/EKE_table_Pangaea_lon_sorted_zero_nan_depth.txt .
         ln -sf ${OBS_DIR}/ICE/NSIDC-G02202-v6_sic_psn25_197811-202603_v06r00.nc .

@@ -17,11 +17,13 @@ This module defines a set of functions dedicated to :
 - FWC_MAPSF   : plot the SSH and FWC (based on a salinity ref of 34.8 PSU)
 - ICE_MAPSF   : plot ICE concentration & thickness
 - BATHY_MAP   : plot few iso-bathymetric contours 
+- MLD_CALC    : compture de the MLD using a 0.1 kg m-3 density criteria
 - MLD_MAPSF   : plot the Mixed Layer Depth 
 - MOC_MAPSF   : plot the AMOC and its maximum time series
 - MTS_MAPSF   : plot the Mixed Layer mean T/S 
 - PROJ_PLOT   : apply the right projection over the Arctic for the plot 
 - P3Dzyx      : extend the pressure vector to spatial 3D 
+- TOPOS_CALC  : compute the annual mean topostrophy 
 - TSD_MAPSF   : plot the T/S drift at the surface, ~100m, ~200m & ~300m
 
 Author:
@@ -51,6 +53,8 @@ from pathlib import Path
 from xnemogcm import open_domain_cfg, open_nemo, process_nemo, open_namelist, open_nemo_and_domain_cfg
 from xnemogcm import __version__ as xnemogcm_version
 import xgcm
+from fsspec.implementations.local import LocalFileSystem
+fs = LocalFileSystem()
 
 
 # Matplotlib
@@ -417,23 +421,19 @@ def ICE_MAPSF( zlon, zlat, zIceThic, zIceConc_M, zIceConc_S, zCONF, zCASE, zc_ye
         # ----------------------------------------------------------------------
 
         plt.clf()
-        fig=plt.figure()
-        projection = ccrs.NorthPolarStereo(central_longitude=-60, true_scale_latitude=65)
+        fig, axes = plt.subplots( 3, 2, figsize=(8.3,11.7),  subplot_kw={'projection': ccrs.NorthPolarStereo(central_longitude=-60, true_scale_latitude=65)} )
+        axes = axes.flatten()
 
-        num_fram=320
         # Annual mean Ice thickness
-        zMyvar='sivolu'   ; fram=num_fram+1
+        zMyvar='sivolu'
         zIceThic = xr.where( zIceThic == 0., npy.nan, zIceThic )
-        ax = fig.add_subplot(fram, projection=projection)
-        DO_MAPS( zlon, zlat, zCONF, zCASE, zIceThic, zMyvar, zc_year, ax=ax )
+        DO_MAPS( zlon, zlat, zCONF, zCASE, zIceThic, zMyvar, zc_year, ax=axes[0] )
         # March mean Ice fraction 
-        zMyvar='siconc'   ; fram=num_fram+3
-        ax = fig.add_subplot(fram, projection=projection)
-        DO_MAPS( zlon, zlat, zCONF, zCASE, zIceConc_M, zMyvar, zc_year, seas='m03', ax=ax )
+        zMyvar='siconc'
+        DO_MAPS( zlon, zlat, zCONF, zCASE, zIceConc_M, zMyvar, zc_year, seas='m03', ax=axes[2] )
         # September mean Ice fraction 
-        zMyvar='siconc'   ; fram=num_fram+5
-        ax= fig.add_subplot(fram, projection=projection)
-        DO_MAPS( zlon, zlat, zCONF, zCASE, zIceConc_S, zMyvar, zc_year, seas='m09', ax=ax )
+        zMyvar='siconc'
+        DO_MAPS( zlon, zlat, zCONF, zCASE, zIceConc_S, zMyvar, zc_year, seas='m09', ax=axes[4] )
 
         # Annual mean Ice thickness PIOMASS observations
         # WARNING this part has been interpolated on CREG025 grid directly 
@@ -444,21 +444,18 @@ def ICE_MAPSF( zlon, zlat, zIceThic, zIceConc_M, zIceConc_S, zCONF, zCASE, zc_ye
         obs_thick = xr.where( npy.squeeze(zmask[0,:,:]) < 1., npy.nan, obs_thick )
         obs_thick = xr.where( obs_thick == 0., npy.nan, obs_thick )
 
-        zMyvar='sivolu'   ; fram=num_fram+2
-        ax = fig.add_subplot(fram, projection=projection)
-        DO_MAPS( plon, plat, zCONF, zCASE, obs_thick, zMyvar, zc_year, plot_obs=0, ax=ax )
+        zMyvar='sivolu'
+        DO_MAPS( plon, plat, zCONF, zCASE, obs_thick, zMyvar, zc_year, plot_obs=0, ax=axes[1] )
 
         # Read NSIDC obs. data 
         obs_conc_m03, obs_conc_m09, obs_lon, obs_lat = ICE_CONCE_OBS( t_year=zc_year )
 
         # March mean Ice fraction 
-        zMyvar='siconc'   ; fram=num_fram+4
-        ax = fig.add_subplot(fram, projection=projection)
-        DO_MAPS( obs_lon, obs_lat, zCONF, zCASE, obs_conc_m03, zMyvar, zc_year, seas='m03', plot_obs=1, ax=ax )
+        zMyvar='siconc'
+        DO_MAPS( obs_lon, obs_lat, zCONF, zCASE, obs_conc_m03, zMyvar, zc_year, seas='m03', plot_obs=1, ax=axes[3] )
         # September mean Ice fraction 
-        zMyvar='siconc'   ; fram=num_fram+6
-        ax = fig.add_subplot(fram, projection=projection)
-        DO_MAPS( obs_lon, obs_lat, zCONF, zCASE, obs_conc_m09, zMyvar, zc_year, seas='m09', plot_obs=1, ax=ax )
+        zMyvar='siconc'
+        DO_MAPS( obs_lon, obs_lat, zCONF, zCASE, obs_conc_m09, zMyvar, zc_year, seas='m09', plot_obs=1, ax=axes[5] )
         plt.tight_layout()
 
         zfile_ext='_ICEClim_'
@@ -529,7 +526,7 @@ def ICE_MAPSF( zlon, zlat, zIceThic, zIceConc_M, zIceConc_S, zCONF, zCASE, zc_ye
         return
 
 ################################################################################################################################
-def MLD_MAPSF( zlon, zlat, zMLD_M, zMLD_S, zCONF, zCASE, zc_year, zncout ) :
+def MLD_MAPSF( zlon, zlat, zMLD_M, zMLD_S, zMLDI_M, zMLDI_S, zCONF, zCASE, zc_year, zncout ) :
 ################################################################################################################################
         """
         Function dedicated to plot the Mixed Layer Depth 
@@ -550,32 +547,34 @@ def MLD_MAPSF( zlon, zlat, zMLD_M, zMLD_S, zCONF, zCASE, zc_year, zncout ) :
         # ----------------------------------------------------------------------
 
         plt.clf()
-        fig = plt.figure()
-        projection = ccrs.NorthPolarStereo(central_longitude=-60, true_scale_latitude=65)
+        fig, axes = plt.subplots( 2, 3, figsize=(11.7,8.3),  subplot_kw={'projection': ccrs.NorthPolarStereo(central_longitude=-60, true_scale_latitude=65)} )
+        axes = axes.flatten()
 
-        num_fram=220
+	# Model MLD 
         # March mean MLD
-        zMyvar='mldr10_1'   ; fram=num_fram+1
-        ax = fig.add_subplot(fram, projection=projection)
-        DO_MAPS( zlon, zlat, zCONF, zCASE, zMLD_M, zMyvar, zc_year, seas='m03', ax=ax )
+        zMyvar='mldr10_1'
+        DO_MAPS( zlon, zlat, zCONF, zCASE, zMLD_M, zMyvar, zc_year, seas='m03', ax=axes[0] )
         # September mean MLD
-        zMyvar='mldr10_1'   ; fram=num_fram+3
-        ax = fig.add_subplot(fram, projection=projection)
-        DO_MAPS( zlon, zlat, zCONF, zCASE, zMLD_S, zMyvar, zc_year, seas='m09', ax=ax )
+        zMyvar='mldr10_1'
+        DO_MAPS( zlon, zlat, zCONF, zCASE, zMLD_S, zMyvar, zc_year, seas='m09', ax=axes[3] )
 
         # MLD from observation
         mld_obs_m03, mld_obs_m09, lon_obs, lat_obs = MLD_OBS()
-        mld_obs_m03 = mld_obs_m03.assign_coords(longitude=(('y', 'x'),npy.array(lon_obs)), latitude=(('y', 'x'),npy.array(lat_obs)))
-        mld_obs_m09 = mld_obs_m03.assign_coords(longitude=(('y', 'x'),npy.array(lon_obs)), latitude=(('y', 'x'),npy.array(lat_obs)))
 
         # March mean MLD
-        zMyvar='mldr10_1'   ; fram=num_fram+2
-        ax = fig.add_subplot(fram, projection=projection)
-        DO_MAPS( lon_obs, lat_obs, zCONF, zCASE, mld_obs_m03, zMyvar, zc_year, seas='m03', plot_obs=1, ax=ax )
+        zMyvar='mldr10_1'
+        DO_MAPS( lon_obs, lat_obs, zCONF, zCASE, mld_obs_m03, zMyvar, zc_year, seas='m03', plot_obs=1, ax=axes[1] )
         # September mean MLD
-        zMyvar='mldr10_1'   ; fram=num_fram+4
-        ax = fig.add_subplot(fram, projection=projection)
-        DO_MAPS( lon_obs, lat_obs, zCONF, zCASE, mld_obs_m09, zMyvar, zc_year, seas='m09', plot_obs=1, ax=ax )
+        zMyvar='mldr10_1'
+        DO_MAPS( lon_obs, lat_obs, zCONF, zCASE, mld_obs_m09, zMyvar, zc_year, seas='m09', plot_obs=1, ax=axes[4] )
+
+	# Initial state MLD 
+        # March mean MLD
+        zMyvar='mldr10_1'
+        DO_MAPS( zMLDI_M.lon, zMLDI_M.lat, zCONF, zCASE, zMLDI_M.values, zMyvar, zc_year, seas='m03', plot_obs=1, ax=axes[2], over_title='Init state \n m03' )
+        # September mean MLD
+        zMyvar='mldr10_1'
+        DO_MAPS( zMLDI_S.lon, zMLDI_S.lat, zCONF, zCASE, zMLDI_S.values, zMyvar, zc_year, seas='m09', plot_obs=1, ax=axes[5], over_title='Init state \n m09' )
         plt.tight_layout()
 
         zfile_ext='_MLDClim_'
@@ -586,21 +585,29 @@ def MLD_MAPSF( zlon, zlat, zMLD_M, zMLD_S, zCONF, zCASE, zc_year, zncout ) :
                 
                 # MLD fields
                 #######################
-                ds_out['MLDd001M03_mod']= (('y','x'), zMLD_M.values.astype('float32')) 
-                ds_out['MLDd001M03_mod'].attrs['long_name']='Model monthly mean MLD in march based on a density criteria of 0.01 kg/m^3'
-                ds_out['MLDd001M03_mod'].attrs['units']='m'
+                ds_out['MLDd01M03_mod']= (('y','x'), zMLD_M.values.astype('float32')) 
+                ds_out['MLDd01M03_mod'].attrs['long_name']='Model monthly mean MLD in march based on a density criteria of 0.1 kg/m^3'
+                ds_out['MLDd01M03_mod'].attrs['units']='m'
 
-                ds_out['MLDd001M09_mod']= (('y','x'), zMLD_S.values.astype('float32')) 
-                ds_out['MLDd001M09_mod'].attrs['long_name']='Model monthly mean MLD in september based on a density criteria of 0.01 kg/m^3'
-                ds_out['MLDd001M09_mod'].attrs['units']='m'
+                ds_out['MLDd01M09_mod']= (('y','x'), zMLD_S.values.astype('float32')) 
+                ds_out['MLDd01M09_mod'].attrs['long_name']='Model monthly mean MLD in september based on a density criteria of 0.1 kg/m^3'
+                ds_out['MLDd01M09_mod'].attrs['units']='m'
 
-                ds_out['MLDd001M03_obs']= (('yobs','xobs'), mld_obs_m03.values.astype('float32')) 
-                ds_out['MLDd001M03_obs'].attrs['long_name']='MIMOC climatological mean in march over 2003-2014 based on a density criteria of 0.01 kg/m^3'
-                ds_out['MLDd001M03_obs'].attrs['units']='m'
+                ds_out['MLDd01M03_woa']= (('ywoa','xwoa'), zMLDI_M.values.astype('float32')) 
+                ds_out['MLDd01M03_woa'].attrs['long_name']='Climatological March MLD based on a density criteria of 0.1 kg/m^3'
+                ds_out['MLDd01M03_woa'].attrs['units']='m'
 
-                ds_out['MLDd001M09_obs']= (('yobs','xobs'), mld_obs_m09.values.astype('float32')) 
-                ds_out['MLDd001M09_obs'].attrs['long_name']='MIMOC climatological mean in september over 2003-2014 based on a density criteria of 0.01 kg/m^3'
-                ds_out['MLDd001M09_obs'].attrs['units']='m'
+                ds_out['MLDd01M09_woa']= (('ywoa','xwoa'), zMLDI_S.values.astype('float32')) 
+                ds_out['MLDd01M09_woa'].attrs['long_name']='Climatological September MLD based on a density criteria of 0.1 kg/m^3'
+                ds_out['MLDd01M09_woa'].attrs['units']='m'
+
+                ds_out['MLDd01M03_obs']= (('yobs','xobs'), mld_obs_m03.values.astype('float32')) 
+                ds_out['MLDd01M03_obs'].attrs['long_name']='MIMOC climatological mean in march over 2003-2014 based on a density criteria of 0.1 kg/m^3'
+                ds_out['MLDd01M03_obs'].attrs['units']='m'
+
+                ds_out['MLDd01M09_obs']= (('yobs','xobs'), mld_obs_m09.values.astype('float32')) 
+                ds_out['MLDd01M09_obs'].attrs['long_name']='MIMOC climatological mean in september over 2003-2014 based on a density criteria of 0.1 kg/m^3'
+                ds_out['MLDd01M09_obs'].attrs['units']='m'
 
                 ds_out['lat_obs']= (('yobs','xobs'), lat_obs.astype('float32')) 
                 ds_out['lat_obs'].attrs['long_name']='Degrees north'
@@ -609,6 +616,14 @@ def MLD_MAPSF( zlon, zlat, zMLD_M, zMLD_S, zCONF, zCASE, zc_year, zncout ) :
                 ds_out['lon_obs']= (('yobs','xobs'), lon_obs.astype('float32')) 
                 ds_out['lon_obs'].attrs['long_name']='Degrees east'
                 ds_out['lon_obs'].attrs['units']='Deg'
+
+                ds_out['lat_woa']= (('ywoa','xwoa'), zMLDI_S.lat.values.astype('float32')) 
+                ds_out['lat_woa'].attrs['long_name']='Degrees north'
+                ds_out['lat_woa'].attrs['units']='Deg'
+                
+                ds_out['lon_woa']= (('ywoa','xwoa'), zMLDI_S.lon.values.astype('float32')) 
+                ds_out['lon_woa'].attrs['long_name']='Degrees east'
+                ds_out['lon_woa'].attrs['units']='Deg'
                 
                 ds_out['lat_mod']= (('y','x'), zlat.values.astype('float32')) 
                 ds_out['lat_mod'].attrs['long_name']='Degrees north'
@@ -629,7 +644,7 @@ def MLD_MAPSF( zlon, zlat, zMLD_M, zMLD_S, zCONF, zCASE, zc_year, zncout ) :
         return
 
 ################################################################################################################################
-def DYN_MAPSF( zlon, zlat, zBSF, ds_eke, zdepth, zCONF, zCASE, zs_year, zncout ) :
+def DYN_MAPSF( zlon, zlat, zBSF, ds_eke, ds_topos, zdepth, zCONF, zCASE, zs_year, zncout ) :
 ################################################################################################################################
         """
         Function dedicated to plot the barotropic stream function as the EKE at the surface, 69m and 508m in the model
@@ -639,6 +654,7 @@ def DYN_MAPSF( zlon, zlat, zBSF, ds_eke, zdepth, zCONF, zCASE, zs_year, zncout )
             zlat       : latitude 2D 
             zBSF       : Barotropic function 
             ds_eke     : Dataset for the EKE 3D 
+            ds_topos   : Dataset for 2D topostrophy
             zdepth     : 1D depth (used to get the depth at a given level)
             zCONF      : the configuration name 
             zCASE      : the experiment name associated to the configuration
@@ -650,79 +666,87 @@ def DYN_MAPSF( zlon, zlat, zBSF, ds_eke, zdepth, zCONF, zCASE, zs_year, zncout )
         """
         # ----------------------------------------------------------------------
 
+        ###########################################################################################
+        # Plot barotropic stream function & topostrophy
+        ###########################################################################################
+
         plt.clf()
-        fig = plt.figure()
-        projection = ccrs.NorthPolarStereo(central_longitude=-60, true_scale_latitude=65)
+        fig, axes = plt.subplots( 1, 2, figsize=(11.7,8.3),  subplot_kw={'projection': ccrs.NorthPolarStereo(central_longitude=-60, true_scale_latitude=65)} )
+        axes = axes.flatten()
 
-        num_fram=220
-        # mean PSI
-        zMyvar='sobarstf'   ; fram=num_fram+4
-        ax = fig.add_subplot(fram, projection=projection)
-        DO_MAPS( zlon, zlat, zCONF, zCASE, zBSF, zMyvar, str(zs_year), ax=ax )
+        # Annual mean PSI
+        zMyvar='sobarstf'
+        DO_MAPS( zlon, zlat, zCONF, zCASE, zBSF, zMyvar, str(zs_year), ax=axes[0] )
 
-        # Get the model depth at the surface and at ~100m 
+	# Annual mean topostrophy 
+        zMyvar='topos'
+        DO_MAPS( zlon, zlat, zCONF, zCASE, ds_topos['topos'], zMyvar, zs_year, plot_obs=0, ax=axes[1] )
+        plt.tight_layout()
+
+        zfile_ext='_DYNPSIClim_'
+        plt.savefig(zCONF+'-'+zCASE+zfile_ext+'y'+str(zs_year)+'.png',dpi=300)
+
+        ###########################################################################################
+        # Plot EKE maps at the surface, ~70m and 500m
+        ###########################################################################################
+
+        plt.clf()
+        fig, axes = plt.subplots( 3, 2, figsize=(8.3,11.7),  subplot_kw={'projection': ccrs.NorthPolarStereo(central_longitude=-60, true_scale_latitude=65)} )
+        axes = axes.flatten()
+
+        # Get the model depth at the surface , in the halocline and and the Atlantic water 
         lev0 =  0 # ~  0m in the model
         lev1 = 20 # ~ 69m in the model; corresponds to the halocline depth 
         lev2 = 39 # ~503m in the model; corresponds to the AW depth 
         zd0 = int(zdepth.isel(nav_lev=lev0).values.item()) ;  zd1 = int(zdepth.isel(nav_lev=lev1).values.item())  ; zd2 = int(zdepth.isel(nav_lev=lev2).values.item())
 
-        # EKE inferred from Von Appen et al. VONAPPEN_EKE_OBS()
+        # -----------  Get the EKE data from Obs.
+        # -----------------------------------------------------------------------------------------
+        # EKE from Von Appen et al. 
         obs_VonAppeneke = VONAPPEN_EKE_OBS( )
-        #obs_vonapeneke = xr.where( obs_eke >= 9e20, npy.nan, obs_eke )
-
-        # Mean EKE at the surface 
-        zMyvar='voeke'   ; fram=num_fram+1
-        ax = fig.add_subplot(fram, projection=projection)
-        m = DO_MAPS( zlon, zlat, zCONF, zCASE, npy.log10(ds_eke[zMyvar].isel(z=lev0)), zMyvar, zs_year, slev=str(zd0) , ax=ax )
 
         # EKE from DOT observations (Armitage et al. 2017)
         obs_eke, lon_obs, lat_obs = EKE_OBS( t_year=zs_year )
         obs_eke = xr.where( obs_eke >= 9e20, npy.nan, obs_eke )
 
-        zMyvar='voeke'   ; fram=num_fram+2
-        ax = fig.add_subplot(fram, projection=projection)
-        DO_MAPS( lon_obs, lat_obs, zCONF, zCASE, npy.log10(obs_eke), zMyvar, zs_year, slev=str(zd0), plot_obs=1, ax=ax )
-        #plt.tight_layout()
-        #plt.subplots_adjust(wspace=0.05)
+        # ----------- Mean EKE at the surface 
+        # -----------------------------------------------------------------------------------------
+        zMyvar='voeke'
+        DO_MAPS( zlon, zlat, zCONF, zCASE, npy.log10(ds_eke[zMyvar].isel(z=lev0)), zMyvar, zs_year, slev=str(zd0) , ax=axes[0] )
 
-        zfile_ext='_DYNPSIClim_'
-        plt.savefig(zCONF+'-'+zCASE+zfile_ext+'y'+str(zs_year)+'.png',dpi=300)
+        zMyvar='voeke'
+        DO_MAPS( lon_obs, lat_obs, zCONF, zCASE, npy.log10(obs_eke), zMyvar, zs_year, slev=str(zd0), plot_obs=1, ax=axes[1] )
 
-
-        plt.clf()
-        fig = plt.figure()
-        num_fram=120
-        # Mean EKE at 69m 
-        zMyvar='voeke'   ; fram=num_fram+1
-        ax = fig.add_subplot(fram, projection=projection)
-        m = DO_MAPS( zlon, zlat, zCONF, zCASE, npy.log10(ds_eke[zMyvar].isel(z=lev1)), zMyvar, zs_year, slev=str(zd1) , ax=ax )
+        # ----------- Mean EKE at 69m 
+        # -----------------------------------------------------------------------------------------
+        zMyvar='voeke'
+        DO_MAPS( zlon, zlat, zCONF, zCASE, npy.log10(ds_eke[zMyvar].isel(z=lev1)), zMyvar, zs_year, slev=str(zd1) , ax=axes[2] )
 	# Select data in the halocline depth
         mask_halo = npy.logical_and(obs_VonAppeneke['Mean depth'] >= 50, obs_VonAppeneke['Mean depth'] <= 100)
         lons_halo = obs_VonAppeneke.Longitude.where(mask_halo)
         lats_halo = obs_VonAppeneke.Latitude.where(mask_halo)
-        #X_halo, Y_halo = m(lons_halo, lats_halo)
         eke_halo = obs_VonAppeneke.EKE.where(mask_halo)
 
         vmin = -6; vmax = -2
         cmap = plt.get_cmap('RdYlBu_r')
-        ax.scatter(lons_halo, lats_halo, s = 10, c = npy.log10(eke_halo), cmap = cmap, vmin = vmin, vmax = vmax, edgecolors = 'k', linewidths = 0.5, transform=ccrs.PlateCarree() )
-        #plt.scatter(X_halo, Y_halo, s = 10, c = npy.log10(eke_halo), cmap = cmap, vmin = vmin, vmax = vmax, edgecolors = 'k', linewidths = 0.5)
+        axes[2].scatter(lons_halo, lats_halo, s = 10, c = npy.log10(eke_halo), cmap = cmap, vmin = vmin, vmax = vmax, edgecolors = 'k', linewidths = 0.5, transform=ccrs.PlateCarree() )
 
-        # Mean EKE at 508m 
-        zMyvar='voeke'   ; fram=num_fram+2
-        ax = fig.add_subplot(fram, projection=projection)
-        m = DO_MAPS( zlon, zlat, zCONF, zCASE, npy.log10(ds_eke[zMyvar].isel(z=lev2)), zMyvar, zs_year, slev=str(zd2), ax=ax )
+        # ----------- Mean EKE at 508m 
+        # -----------------------------------------------------------------------------------------
+        zMyvar='voeke'
+        m = DO_MAPS( zlon, zlat, zCONF, zCASE, npy.log10(ds_eke[zMyvar].isel(z=lev2)), zMyvar, zs_year, slev=str(zd2), ax=axes[4] )
         # Select data in the AW layer 
         mask_aw = ~npy.isnan(obs_VonAppeneke['EKE at depth'])
         lons_aw = obs_VonAppeneke.Longitude.where(mask_aw)
         lats_aw = obs_VonAppeneke.Latitude.where(mask_aw)
-        #X_aw, Y_aw = m(lons_aw, lats_aw)
         eke_aw = obs_VonAppeneke['EKE at depth'].where(mask_aw)
 
         vmin = -6; vmax = -2
         cmap = plt.get_cmap('RdYlBu_r')
-        ax.scatter(lons_aw, lats_aw, s = 10, c = npy.log10(eke_aw), cmap = cmap, vmin = vmin, vmax = vmax, edgecolors = 'k', linewidths = 0.5, transform=ccrs.PlateCarree() )
-        #plt.scatter(X_aw, Y_aw, s = 10, c = npy.log10(eke_aw), cmap = cmap, vmin = vmin, vmax = vmax, edgecolors = 'k', linewidths = 0.5)
+        axes[4].scatter(lons_aw, lats_aw, s = 10, c = npy.log10(eke_aw), cmap = cmap, vmin = vmin, vmax = vmax, edgecolors = 'k', linewidths = 0.5, transform=ccrs.PlateCarree() )
+
+        fig.delaxes(axes[3])
+        fig.delaxes(axes[5])
 
         plt.tight_layout()
 
@@ -750,6 +774,10 @@ def DYN_MAPSF( zlon, zlat, zBSF, ds_eke, zdepth, zCONF, zCASE, zs_year, zncout )
                 ds_out['EKEz508_mod'].attrs['long_name']='Model annual mean EKE @ ~508m depth'
                 ds_out['EKEz508_mod'].attrs['units']='m2/s2'
 
+                ds_out['topos']= (('y','x'), ds_topos['topos'].values.astype('float32')) 
+                ds_out['topos'].attrs['long_name']='Model annual mean topostrophy '
+                ds_out['topos'].attrs['units']='m/s2'
+
                 ds_out['EKESurf_obs']= (('yobs','xobs'), obs_eke.values.astype('float32')) 
                 if zs_year >= 2003 and zs_year <= 2014 :
                         ds_out['EKESurf_obs'].attrs['long_name']='EKE annual mean derived from DOT (Armitage et al. 2017) in '+str(zs_year)
@@ -757,11 +785,11 @@ def DYN_MAPSF( zlon, zlat, zBSF, ds_eke, zdepth, zCONF, zCASE, zs_year, zncout )
                         ds_out['EKESurf_obs'].attrs['long_name']='EKE climatological mean derived from DOT (Armitage et al. 2017) over 2003-2014'
                 ds_out['EKESurf_obs'].attrs['units']='m2/s2'
 
-                ds_out['lat_obs']= (('yobs','xobs'), lat_obs.astype('float32')) 
+                ds_out['lat_obs']= (('yobs','xobs'), lat_obs.values.astype('float32')) 
                 ds_out['lat_obs'].attrs['long_name']='Degrees north'
                 ds_out['lat_obs'].attrs['units']='Deg'
                 
-                ds_out['lon_obs']= (('yobs','xobs'), lon_obs.astype('float32')) 
+                ds_out['lon_obs']= (('yobs','xobs'), lon_obs.values.astype('float32')) 
                 ds_out['lon_obs'].attrs['long_name']='Degrees east'
                 ds_out['lon_obs'].attrs['units']='Deg'
                 
@@ -909,7 +937,7 @@ def ATL_MAPSF( zlon, zlat, zMLD_M, zMLD_year, zTemp, zTemp_IS, zSSH, zdepth, zCO
         # March mean MLD
         zMyvar='mldr10_1'   ; fram=num_fram+1
         my_cblab=r'MLD (m)'   ;   my_cmap=plt.get_cmap('Blues')
-        ztitle=zCASE +' mean MLD01 over \n'+str(zc_year)+'  m03'
+        ztitle=zCASE +' mean MLD01 \n'+str(zc_year)+'  m03'
         vmin=0. ; vmax=2400. ; vint=100.   ;   contours=[0.,100.,200.,400.,800.,1200.,1600.,2000.,2400.]
         limits=[vmin,vmax,vint]  ;              myticks=[0.,100.,200.,400.,800.,1200.,1600.,2000.,2400.]
 
@@ -997,7 +1025,7 @@ def ATL_MAPSF( zlon, zlat, zMLD_M, zMLD_year, zTemp, zTemp_IS, zSSH, zdepth, zCO
         # March mean MLD
         zMyvar='mldr10_1'   ; fram=num_fram+1
         my_cblab=r'MLD (m)'   ;   my_cmap=plt.get_cmap('Blues')
-        ztitle=zCASE +' mean MLD01 over \n'+str(zc_year)+'  m03'
+        ztitle=zCASE +' mean MLD01 \n'+str(zc_year)+'  m03'
         vmin=0. ; vmax=1600. ; vint=100.   ;   contours=[0.,100.,200.,400.,600.,800.,1000.,1200.,1600.]
         limits=[vmin,vmax,vint]  ;              myticks=[0.,100.,200.,400.,600.,800.,1000.,1200.,1600.]
         plt.subplot(fram)
@@ -1016,7 +1044,7 @@ def ATL_MAPSF( zlon, zlat, zMLD_M, zMLD_year, zTemp, zTemp_IS, zSSH, zdepth, zCO
         # March mean MLD
         zMyvar='mldr10_1'   ; fram=num_fram+1
         my_cblab=r'MLD (m)'   ;   my_cmap=plt.get_cmap('Blues')
-        ztitle=zCASE +' mean MLD01 over \n'+str(zc_year)+'  m03'
+        ztitle=zCASE +' mean MLD01 \n'+str(zc_year)+'  m03'
         vmin=0. ; vmax=1600. ; vint=100.   ;   contours=[0.,100.,200.,400.,600.,800.,1000.,1200.,1600.]
         limits=[vmin,vmax,vint]  ;              myticks=[0.,100.,200.,400.,600.,800.,1000.,1200.,1600.]
         plt.subplot(fram)
@@ -1034,7 +1062,7 @@ def ATL_MAPSF( zlon, zlat, zMLD_M, zMLD_year, zTemp, zTemp_IS, zSSH, zdepth, zCO
         num_fram=110
         zMyvar='votemper'   ; fram=num_fram+1
         my_cblab=r'ISO 17 (DegC)'   ;   my_cmap=plt.get_cmap('jet')
-        ztitle=zCASE +' mean Iso 17 DegC over \n'+str(zc_year)
+        ztitle=zCASE +' mean Iso 17 DegC \n'+str(zc_year)
         vmin=0. ; vmax=2400. ; vint=100.   ;   contours=[0.,100.,200.,400.,800.,1200.,1600.,2000.,2400.]
         limits=[vmin,vmax,vint]  ;              myticks=[0.,100.,200.,400.,800.,1200.,1600.,2000.,2400.]
 
@@ -1056,7 +1084,7 @@ def ATL_MAPSF( zlon, zlat, zMLD_M, zMLD_year, zTemp, zTemp_IS, zSSH, zdepth, zCO
         num_fram=110
         zMyvar='sossheig'   ; fram=num_fram+1
         my_cblab=r'SSH (cm)'   ;   my_cmap=plt.get_cmap('coolwarm')
-        ztitle=zCASE +' mean SSH over \n'+str(zc_year)
+        ztitle=zCASE +' mean SSH \n'+str(zc_year)
         vmin=-100. ; vmax=100. ; vint=5.  ;   contours=npy.arange(vmin,vmax+vint,vint)
         limits=[vmin,vmax,vint]           ;   myticks=npy.arange(vmin,vmax+vint,vint)
 
@@ -1120,7 +1148,7 @@ def MOC_MAPSF( zlon, zlat, zAMOC, zdepth, zCONF, zCASE, zc_year, zs_year, ze_yea
                 plt.figure()
 
                 my_cblab=r'AMOC (Sv)'   ;   my_cmap=plt.get_cmap('jet')
-                ztitle=zCASE +' mean AMOC over \n'+str(zc_year)
+                ztitle=zCASE +' mean AMOC \n'+str(zc_year)
                 vmin=-15. ; vmax=15. ; vint=1.    ;   contours=npy.arange(vmin,vmax+vint,vint)
                 limits=[vmin,vmax,vint]  ;             myticks=npy.arange(vmin,vmax+vint,vint)
                 norm = mpl.colors.Normalize(vmin=limits[0], vmax=limits[1])
@@ -1281,34 +1309,35 @@ def MTS_MAPSF( zlon, zlat, zCONF, zCASE, zMLD_M, zMLD_S, zTS_M, zTS_S, zgdepw_0,
 	plt.clf()
 	fig = plt.figure()
 	projection = ccrs.NorthPolarStereo(central_longitude=-60, true_scale_latitude=65)
-	vmin=-2. ; vmax=6. ; vint=0.2
+
+	vmin=-2. ; vmax=3. ; vint=0.1
 	contours=npy.arange(vmin,vmax+vint,vint)  
 	limits=[vmin,vmax,vint]			 
 	myticks=npy.arange(vmin,vmax+vint,vint) 
 	my_cblab=r'($^\circ$C)'
 	my_cmap= plt.get_cmap('Spectral_r')
 	
-	fram=221
+	fram=231
 	ax = fig.add_subplot(fram, projection=projection)
-	ztitle=zCASE +' March ML mean T over \n'+str(zc_year)
+	ztitle=zCASE +' March MLT \n'+str(zc_year)
 	zoutmap = BATHY_MAP( ztype='isol1000', ax=ax )
 	PROJ_PLOT( zlon, zlat, T_mldM, contours, limits, zmy_ticks=myticks, name=ztitle, zmy_cblab=my_cblab, zmy_cmap=my_cmap, ax=ax )
 
-	fram=222
+	fram=234
 	ax = fig.add_subplot(fram, projection=projection)
-	ztitle=zCASE +' September ML mean T over \n'+str(zc_year)
+	ztitle=zCASE +' September MLT \n'+str(zc_year)
 	zoutmap = BATHY_MAP( ztype='isol1000', ax=ax )
 	PROJ_PLOT(zlon, zlat, T_mldS, contours, limits, zmy_ticks=myticks, name=ztitle, zmy_cblab=my_cblab, zmy_cmap=my_cmap, ax=ax )
 
-	fram=223
+	fram=232
 	ax = fig.add_subplot(fram, projection=projection)
-	ztitle='MIMOC March ML mean T'
+	ztitle='MIMOC March MLT'
 	zoutmap = BATHY_MAP( ztype='isol1000', ax=ax )
 	PROJ_PLOT( lon_obs, lat_obs, mlT_obs[2,:,:].squeeze(), contours, limits, zmy_ticks=myticks, name=ztitle, zmy_cblab=my_cblab, zmy_cmap=my_cmap, zplot_obs=1, ax=ax )
 
-	fram=224
+	fram=235
 	ax = fig.add_subplot(fram, projection=projection)
-	ztitle='MIMOC September ML mean T'
+	ztitle='MIMOC September MLT'
 	zoutmap = BATHY_MAP( ztype='isol1000', ax=ax )
 	PROJ_PLOT( lon_obs, lat_obs, mlT_obs[8,:,:].squeeze(), contours, limits, zmy_ticks=myticks, name=ztitle, zmy_cblab=my_cblab, zmy_cmap=my_cmap, zplot_obs=1, ax=ax )
 
@@ -1327,27 +1356,27 @@ def MTS_MAPSF( zlon, zlat, zCONF, zCASE, zMLD_M, zMLD_S, zTS_M, zTS_S, zgdepw_0,
 	my_cblab=r'(PSU)'
 	my_cmap= plt.get_cmap('Spectral_r')
 
-	fram=221
+	fram=231
 	ax = fig.add_subplot(fram, projection=projection)
-	ztitle=zCASE +' March ML mean S over \n'+str(zc_year)
+	ztitle=zCASE +' March MLS \n'+str(zc_year)
 	zoutmap = BATHY_MAP( ztype='isol1000', ax=ax )
 	PROJ_PLOT( zlon, zlat, S_mldM, contours, limits, zmy_ticks=myticks, name=ztitle, zmy_cblab=my_cblab, zmy_cmap=my_cmap, zvar='MLTSS', ax=ax )
 
-	fram=222
+	fram=234
 	ax = fig.add_subplot(fram, projection=projection)
-	ztitle=zCASE +' September ML mean S over \n'+str(zc_year)
+	ztitle=zCASE +' September MLS \n'+str(zc_year)
 	zoutmap = BATHY_MAP( ztype='isol1000', ax=ax )
 	PROJ_PLOT( zlon, zlat, S_mldS, contours, limits, zmy_ticks=myticks, name=ztitle, zmy_cblab=my_cblab, zmy_cmap=my_cmap, zvar='MLTSS', ax=ax )
 
-	fram=223
+	fram=232
 	ax = fig.add_subplot(fram, projection=projection)
-	ztitle='MIMOC March ML mean S'
+	ztitle='MIMOC March MLS'
 	zoutmap = BATHY_MAP( ztype='isol1000', ax=ax )
 	PROJ_PLOT( lon_obs, lat_obs, mlS_obs[2,:,:].squeeze(), contours, limits, zmy_ticks=myticks, name=ztitle, zmy_cblab=my_cblab, zmy_cmap=my_cmap, zvar='MLTSS', zplot_obs=1, ax=ax )
 
-	fram=224
+	fram=235
 	ax = fig.add_subplot(fram, projection=projection)
-	ztitle='MIMOC September ML mean S'
+	ztitle='MIMOC September MLS'
 	zoutmap = BATHY_MAP( ztype='isol1000', ax=ax )
 	PROJ_PLOT( lon_obs, lat_obs, mlS_obs[8,:,:].squeeze(), contours, limits, zmy_ticks=myticks, name=ztitle, zmy_cblab=my_cblab, zmy_cmap=my_cmap, zvar='MLTSS', zplot_obs=1, ax=ax )
 
@@ -1420,7 +1449,7 @@ def MTS_MAPSF( zlon, zlat, zCONF, zCASE, zMLD_M, zMLD_S, zTS_M, zTS_S, zgdepw_0,
 	return
 
 ################################################################################################################################
-def AWT_MAPSF( zlon, zlat, zTemp, zSali, zCONF, zCASE, zc_year, zncout) :
+def AWT_MAPSF( zlon, zlat, zTemp, zSali, zTempIS, zSaliIS, zCONF, zCASE, zc_year, zncout) :
 ################################################################################################################################
 	"""
 	Function dedicated to plot the Atlantic Water maximum temperature as its associated depth
@@ -1430,6 +1459,8 @@ def AWT_MAPSF( zlon, zlat, zTemp, zSali, zCONF, zCASE, zc_year, zncout) :
 	    zlat     : latitude 2D  
 	    zTemp    : Temperature 3D 
 	    zSali    : Salinity 3D 
+	    zTempIS  : Initial state Temperature 3D 
+	    zSaliIS  : Initial state Salinity 3D 
 	    zCONF    : configuration name 
 	    zCASE    : experiment name associated to the configuration
 	    zc_year  : current year 
@@ -1453,7 +1484,7 @@ def AWT_MAPSF( zlon, zlat, zTemp, zSali, zCONF, zCASE, zc_year, zncout) :
         # Now get the effective depth of T max 
 	deptht = zTemp['z']
 	zAWTmax_depth1 = deptht[depth_map.compute()]
-	zAWTmax_depth1 = xr.where( npy.isnan(zSali[0,:,:]) , npy.nan, zAWTmax_depth1 )
+	zAWTmax_depth1 = xr.where( npy.isnan(zSali[0,:,:]), npy.nan, zAWTmax_depth1 )
 
 	# Find the T max value over z 
 	temp_map = Temp_filled.max(dim='z',skipna=True)
@@ -1461,31 +1492,26 @@ def AWT_MAPSF( zlon, zlat, zTemp, zSali, zCONF, zCASE, zc_year, zncout) :
 	zAWTmax1 = temp_map.where(mask,npy.nan)
 
 	######################################################################################
-	# Now switch to PHC 3.0 Obs. data
-
-	# Read the associated data
-	zMy_varTinit, zMy_varSinit ,lon_obs, lat_obs = PHC3_OBS()
-	## Set depths manualy 
-	#zdepth_phc3=npy.array([0, 10, 20, 30, 50, 75, 100, 125, 150, 200, 250, 300, 400, 500, 600, \
-	#	     700, 800, 900, 1000, 1100, 1200, 1300, 1400, 1500, 1750, 2000, 2500, \
-	#	     3000, 3500, 4000, 4500, 5000, 5500 ])
+	# Initial state 
 
         # To keep Temp where S > 33.5 only (away from the surface)
-	Smask335 = (zMy_varSinit > 33.5)
-	TempInit = zMy_varTinit.where(Smask335)
-	TempInit_filled = (TempInit.fillna(-10)).compute()
+	SmaskIS335 = (zSaliIS > 33.5)
+	TempIS = zTempIS.where(SmaskIS335)
+	TempIS_filled = (TempIS.fillna(-10)).compute()
 
 	# Find the indices over z where T is max.
-	depthInit_map = TempInit_filled.argmax(dim='depth',skipna=True)
+	depth_mapIS = TempIS_filled.argmax(dim='z',skipna=True)
         # Now get the effective depth of T max 
-	zAWTmax_depthI = zMy_varTinit.depth[depthInit_map.compute()]
-	zAWTmax_depthI = xr.where( npy.isnan(zMy_varSinit[0,:,:]) , npy.nan, zAWTmax_depthI )
-	#zAWTmax_depthI = zdepth_phc3[depthInit_map].compute()]
+	depthtIS = zTempIS['z']
+	zAWTmax_depthIS = depthtIS[depth_mapIS.compute()]
+	zAWTmax_depthIS = xr.where( npy.isnan(zSaliIS[0,:,:]), npy.nan, zAWTmax_depthIS )
+	zAWTmax_depthIS = xr.where( zSaliIS[0,:,:] < 1., npy.nan, zAWTmax_depthIS )
 
 	# Find the T max value over z 
-	TempInit_map = TempInit_filled.max(dim='depth',skipna=True)
-	maskInit = (TempInit_map.compute()>-10)
-	zAWTmaxI = TempInit_map.where(maskInit,npy.nan)
+	temp_mapIS = TempIS_filled.max(dim='z',skipna=True)
+	maskIS = (temp_mapIS.compute()>-10)
+	zAWTmaxIS = temp_mapIS.where(maskIS,npy.nan)
+	zAWTmaxIS = xr.where( zSaliIS[0,:,:] <= 0., npy.nan, zAWTmaxIS )
 
 	# Make the plot for the AW Max Temp 
 	#############################################################################################
@@ -1502,16 +1528,16 @@ def AWT_MAPSF( zlon, zlat, zTemp, zSali, zCONF, zCASE, zc_year, zncout) :
 	projection = ccrs.NorthPolarStereo(central_longitude=-60, true_scale_latitude=65)
 
 	ax1 = fig.add_subplot(221, projection=projection)
-	ztitle=zCASE +' AW Max Temp over \n'+str(zc_year)
+	ztitle=zCASE +' AW Max Temp \n'+str(zc_year)
 	zoutmap = BATHY_MAP( ztype='isol1000', ax=ax1 )
 	zMyvar = 'votemper'	
 	PROJ_PLOT( zlon, zlat, zAWTmax1, contours, limits, zmy_ticks=myticks, name=ztitle, zmy_cblab=my_cblab, zmy_cmap=my_cmap, zvar=zMyvar, ax=ax1 )
 
 	ax2 = fig.add_subplot(222, projection=projection)
-	ztitle=' AW Max Temp from \n'+' PHC 3.0'
+	ztitle=' AW Max Temp from \n'+' WOA2009'
 	zoutmap = BATHY_MAP( ztype='isol1000', ax=ax2 )
 	zMyvar = 'votemper'	
-	PROJ_PLOT( lon_obs, lat_obs, zAWTmaxI, contours, limits, zmy_ticks=myticks, name=ztitle, zmy_cblab=my_cblab, zmy_cmap=my_cmap, zvar=zMyvar, zplot_obs=1, ax=ax2 ) 
+	PROJ_PLOT( zlon, zlat, zAWTmaxIS, contours, limits, zmy_ticks=myticks, name=ztitle, zmy_cblab=my_cblab, zmy_cmap=my_cmap, zvar=zMyvar, zplot_obs=0, ax=ax2 ) 
 	
 	# Make the plot for the AW Max Temp depth
 	#############################################################################################
@@ -1529,9 +1555,9 @@ def AWT_MAPSF( zlon, zlat, zTemp, zSali, zCONF, zCASE, zc_year, zncout) :
 	PROJ_PLOT( zlon, zlat, zAWTmax_depth1, contours, limits, zmy_ticks=myticks, name=ztitle, zmy_cblab=my_cblab, zmy_cmap=my_cmap, ax=ax3 )
 
 	ax4 = fig.add_subplot(224, projection=projection)
-	ztitle=' AW Max Temp depth from \n'+' PHC 3.0'
+	ztitle=' AW Max Temp depth from \n'+' WOA2009'
 	zoutmap = BATHY_MAP( ztype='isol1000', ax=ax4 )
-	PROJ_PLOT( lon_obs, lat_obs, zAWTmax_depthI, contours, limits, zmy_ticks=myticks, name=ztitle, zmy_cblab=my_cblab, zmy_cmap=my_cmap, zplot_obs=0, ax=ax4 )
+	PROJ_PLOT( zlon, zlat, zAWTmax_depthIS, contours, limits, zmy_ticks=myticks, name=ztitle, zmy_cblab=my_cblab, zmy_cmap=my_cmap, zplot_obs=0, ax=ax4 )
 	plt.tight_layout()
 	
 	zfile_ext='_AWTmaxDepth_'
@@ -1546,25 +1572,25 @@ def AWT_MAPSF( zlon, zlat, zTemp, zSali, zCONF, zCASE, zc_year, zncout) :
 		ds_out['AWTmax_mod'].attrs['long_name']='Model AWT max calculated using a salinity criteria value Sref=33.5'
 		ds_out['AWTmax_mod'].attrs['units']='DegC'
                 
-		ds_out['AWTmax_init']= (('yobs','xobs'), zAWTmaxI.values.astype('float32')) 
-		ds_out['AWTmax_init'].attrs['long_name']='Model Initial AWT max calculated using a salinity criteria value Sref=33.5'
+		ds_out['AWTmax_init']= (('y','x'), zAWTmaxIS.values.astype('float32')) 
+		ds_out['AWTmax_init'].attrs['long_name']='Initial state AWT max calculated using a salinity criteria value Sref=33.5'
 		ds_out['AWTmax_init'].attrs['units']='DegC'
                 
 		ds_out['AWTmaxDepth_mod']= (('y','x'), zAWTmax_depth1.values.astype('float32')) 
 		ds_out['AWTmaxDepth_mod'].attrs['long_name']='Model AWT max depth calculated using a salinity criteria value Sref=33.5'
 		ds_out['AWTmaxDepth_mod'].attrs['units']='m'
                 
-		ds_out['AWTmaxDepth_init']= (('yobs','xobs'), zAWTmax_depthI.values.astype('float32')) 
-		ds_out['AWTmaxDepth_init'].attrs['long_name']='Model AWT max depth calculated using a salinity criteria value Sref=33.5'
+		ds_out['AWTmaxDepth_init']= (('y','x'), zAWTmax_depthIS.values.astype('float32')) 
+		ds_out['AWTmaxDepth_init'].attrs['long_name']='Initial state AWT max depth calculated using a salinity criteria value Sref=33.5'
 		ds_out['AWTmaxDepth_init'].attrs['units']='m'
                 
-		ds_out['lat_obs']= (('yobs','xobs'), lat_obs.astype('float32')) 
-		ds_out['lat_obs'].attrs['long_name']='Degrees north'
-		ds_out['lat_obs'].attrs['units']='Deg'
+		ds_out['lat_mod']= (('y','x'), zlat.values.astype('float32')) 
+		ds_out['lat_mod'].attrs['long_name']='Degrees north'
+		ds_out['lat_mod'].attrs['units']='Deg'
 		
-		ds_out['lon_obs']= (('yobs','xobs'), lon_obs.astype('float32')) 
-		ds_out['lon_obs'].attrs['long_name']='Degrees east'
-		ds_out['lon_obs'].attrs['units']='Deg'
+		ds_out['lon_mod']= (('y','x'), zlon.values.astype('float32')) 
+		ds_out['lon_mod'].attrs['long_name']='Degrees east'
+		ds_out['lon_mod'].attrs['units']='Deg'
 		
 		ds_out['lat_mod']= (('y','x'), zlat.values.astype('float32')) 
 		ds_out['lat_mod'].attrs['long_name']='Degrees north'
@@ -1574,7 +1600,7 @@ def AWT_MAPSF( zlon, zlat, zTemp, zSali, zCONF, zCASE, zc_year, zncout) :
 		ds_out['lon_mod'].attrs['long_name']='Degrees east'
 		ds_out['lon_mod'].attrs['units']='Deg'
 
-		ds_out = ds_out.set_coords(['lat_obs','lon_obs','lat_mod','lon_mod'])
+		ds_out = ds_out.set_coords(['lat_mod','lon_mod'])
 		
 		# Write the NetCDF file 
 		ds_out.attrs['History'] = 'Diagnostics have been calculated using the Arctic monitoring tool '
@@ -1658,78 +1684,51 @@ def FWC_MAPSF( zlon, zlat, zSali, zSali_IS, zSSH, zCONF, zCASE, zc_year, ze3, zt
 		print('   		ze3[0:kdbg,jdbg,idbg]: ',ze3[0:kdbg,jdbg,idbg])
 		print('   		fwc2D[jdbg,idbg]: ',fwc2D[jdbg,idbg])
 
-	# Use obs. from Proshutinsky GRL2018
-	locpath='./DATA/'
-	locfile='BeaufortGyreFWC-Obs-Proshutinsky_GRL2018_y2003-2017.nc'
-	if chkfile(locpath+locfile,zstop=True) :
-		ds_obsfwc = xr.open_dataset(locpath+locfile)
-		fwc2D_obs = ds_obsfwc['BGFWC']
-		lat2D_obs = ds_obsfwc['lat']
-		lon2D_obs = ds_obsfwc['lon']
 
-		lat2D_obs = xr.where( lat2D_obs == 9999., npy.nan, lat2D_obs ) 
-		lon2D_obs = xr.where( lon2D_obs == 9999., npy.nan, lon2D_obs ) 
+	# Read FWC inferred from Obs. 
+	mean_FWCObs, lon2D_obs, lat2D_obs, obsper = FWC_OBS( t_year=int(zc_year) )
 
-	if int(zc_year) >= 2003 and int(zc_year) <= 2017 :
-		s_ind=int(zc_year)-2003  ; e_ind=s_ind+1
-		mean_FWCObs = fwc2D_obs[s_ind:e_ind,:,:].squeeze()
-		mean_FWCObs = xr.where( mean_FWCObs == 9999., npy.nan, mean_FWCObs )
-		obsper=str(zc_year)
-	else:
-		mean_FWCObs = fwc2D_obs.mean(dim='t').squeeze()
-		mean_FWCObs = fwc2D_obs.mean(dim='t').squeeze()
-		mean_FWCObs = xr.where( mean_FWCObs == 9999., npy.nan, mean_FWCObs )
-		obsper='2003-2017'
-
-	# Get observations SSH
+	# Read DOT observations 
 	obs_ssh, lon_obs, lat_obs, obs_ssh_per = SSH_OBS( t_year=int(zc_year) )
-	obs_ssh = xr.where( obs_ssh >= 9e20, npy.nan, obs_ssh )
 
 	plt.clf()
-	fig=plt.figure()
-	projection = ccrs.NorthPolarStereo(central_longitude=-60, true_scale_latitude=65)
+	fig, axes = plt.subplots( 2, 3, figsize=(11.7,8.3),  subplot_kw={'projection': ccrs.NorthPolarStereo(central_longitude=-60, true_scale_latitude=65)} )
+	axes = axes.flatten()
 
 	# Plot the FWC map mean over the year
 	#####################################
-	my_cblab=r'(m)'
-	ztitle=zCASE+' mean FWC (m) over \n'+str(zc_year)
-	vmin=0. ; vmax=25. ; vint=2.
-	contours=npy.arange(vmin,vmax+vint,vint)  # optional contours
-	limits=[vmin,vmax,vint]			       # limits for eke
-	myticks=npy.arange(vmin,vmax+vint,vint)   # optional colorbar ticks (None)
-	my_cmap=plt.get_cmap('Spectral_r')
 	
-	ax1 = fig.add_subplot(231, projection=projection)
 	zMyvar='FWC'
-	zoutmap = BATHY_MAP( ztype='isol1000', ax=ax1 )
-	PROJ_PLOT( zlon.values, zlat.values, fwc2D, contours, limits, zmy_ticks=myticks, name=ztitle, zmy_cblab=my_cblab, zmy_cmap=my_cmap, zvar=zMyvar, ax=ax1 )
+	seas=''
+	contours, limits, myticks, ztitle, zfile_ext, my_cblab, my_cmap, m_alpha = SET_ARC_CNT( zCASE, zc_year, seas, zMyvar )
+	zoutmap = BATHY_MAP( ztype='isol1000', ax=axes[0] )
+	PROJ_PLOT( zlon.values, zlat.values, fwc2D, contours, limits, zmy_ticks=myticks, name=ztitle, zmy_cblab=my_cblab, zmy_cmap=my_cmap, zvar=zMyvar, ax=axes[0] )
 
-	ax2 = fig.add_subplot(232, projection=projection)
 	maxval=npy.round(npy.nanmax(mean_FWCObs), decimals=2)
-	fig.text(0.45,0.80,'Max: '+str(maxval)+' m',fontsize=5,color='r')
-	ztitle=' Mean FWC (m) from \n'+' BG Obs Sys. (Proshutinsky et al. GRL2018) \n '+ ' over year ' + obsper
-	zoutmap = BATHY_MAP( ztype='isol1000', ax=ax2 )
-	PROJ_PLOT( lon2D_obs, lat2D_obs, mean_FWCObs, contours, limits, zmy_ticks=myticks, name=ztitle, zmy_cblab=my_cblab, zmy_cmap=my_cmap, zvar=zMyvar, ax=ax2, zplot_obs=1 )
+	fig.text(0.45,0.80,'Max: '+str(maxval)+' m',fontsize=9,color='r')
+	ztitle=' FWC (m) from \n'+' BG Obs Sys. (Proshutinsky et al. GRL2018) \n '+ ' year ' + obsper
+	zoutmap = BATHY_MAP( ztype='isol1000', ax=axes[1] )
+	PROJ_PLOT( lon2D_obs, lat2D_obs, mean_FWCObs, contours, limits, zmy_ticks=myticks, name=ztitle, zmy_cblab=my_cblab, zmy_cmap=my_cmap, zvar=zMyvar, ax=axes[1], zplot_obs=1 )
 
-	ax3 = fig.add_subplot(233, projection=projection)
-	ztitle=' Mean FWC (m) from \n'+' Init State '
-	zoutmap = BATHY_MAP( ztype='isol1000', ax=ax3 )
-	PROJ_PLOT( zlon, zlat, fwc2D_init, contours, limits, zmy_ticks=myticks, name=ztitle, zmy_cblab=my_cblab, zmy_cmap=my_cmap, zvar=zMyvar, ax=ax3 )
+	ztitle=' FWC (m) from \n'+' Init State '
+	zoutmap = BATHY_MAP( ztype='isol1000', ax=axes[2] )
+	PROJ_PLOT( zlon, zlat, fwc2D_init, contours, limits, zmy_ticks=myticks, name=ztitle, zmy_cblab=my_cblab, zmy_cmap=my_cmap, zvar=zMyvar, ax=axes[2] )
 	
-	ax4 = fig.add_subplot(234, projection=projection)
 	zMyvar='ssh'
 	seas=''
 	contours, limits, myticks, ztitle, zfile_ext, my_cblab, my_cmap, m_alpha = SET_ARC_CNT( zCASE, zc_year, seas, zMyvar )
-	zoutmap = BATHY_MAP( ztype='isol1000', ax=ax4 )
-	PROJ_PLOT( zlon, zlat, zSSH*m_alpha, contours, limits, zmy_ticks=myticks, name=ztitle, zmy_cblab=my_cblab, zmy_cmap=my_cmap, zvar=zMyvar, ax=ax4 )
+	zoutmap = BATHY_MAP( ztype='isol1000', ax=axes[3] )
+	PROJ_PLOT( zlon, zlat, zSSH*m_alpha, contours, limits, zmy_ticks=myticks, name=ztitle, zmy_cblab=my_cblab, zmy_cmap=my_cmap, zvar=zMyvar, ax=axes[3] )
 
-	ax5 = fig.add_subplot(235, projection=projection)
 	zMyvar='ssh'
 	seas=''
 	contours, limits, myticks, ztitle, zfile_ext, my_cblab, my_cmap, m_alpha = SET_ARC_CNT( zCASE, zc_year, seas, zMyvar, zplot_obs=1 )
-	zoutmap = BATHY_MAP( ztype='isol1000', ax=ax5 )
-	PROJ_PLOT( lon_obs, lat_obs, obs_ssh*m_alpha, contours, limits, zmy_ticks=myticks, name=ztitle, zmy_cblab=my_cblab, zmy_cmap=my_cmap, zvar=zMyvar, ax=ax5, zplot_obs=1 )
-	#plt.tight_layout()
+	zoutmap = BATHY_MAP( ztype='isol1000', ax=axes[4] )
+	ztitle = ztitle+obs_ssh_per
+	PROJ_PLOT( lon_obs, lat_obs, obs_ssh*m_alpha, contours, limits, zmy_ticks=myticks, name=ztitle, zmy_cblab=my_cblab, zmy_cmap=my_cmap, zvar=zMyvar, ax=axes[4], zplot_obs=1 )
+
+	fig.delaxes(axes[5])
+	plt.tight_layout()
 
 	zfile_ext='_FWCSSHClim_'
 	plt.savefig(zCONF+'-'+zCASE+zfile_ext+'y'+str(zc_year)+'.png',dpi=300)
@@ -1754,11 +1753,11 @@ def FWC_MAPSF( zlon, zlat, zSali, zSali_IS, zSSH, zCONF, zCASE, zc_year, ze3, zt
 						     ' from Proshutinsky et al. (GRL2018). Considered period: '+obsper
 		ds_out['fwc_obs'].attrs['units']='m'
 
-		ds_out['lat_obs']= (('yobs','xobs'), lat2D_obs.values.astype('float32')) 
+		ds_out['lat_obs']= (('yobs','xobs'), lat2D_obs.astype('float32')) 
 		ds_out['lat_obs'].attrs['long_name']='Degrees north'
 		ds_out['lat_obs'].attrs['units']='Deg'
 		
-		ds_out['lon_obs']= (('yobs','xobs'), lon2D_obs.values.astype('float32')) 
+		ds_out['lon_obs']= (('yobs','xobs'), lon2D_obs.astype('float32')) 
 		ds_out['lon_obs'].attrs['long_name']='Degrees east'
 		ds_out['lon_obs'].attrs['units']='Deg'
 		
@@ -1791,11 +1790,11 @@ def FWC_MAPSF( zlon, zlat, zSali, zSali_IS, zSSH, zCONF, zCASE, zc_year, ze3, zt
 		ds_out['ssh_obs'].attrs['long_name']='Observed DOT from Armitage et al. 2017 for the period: '+obs_ssh_per
 		ds_out['ssh_obs'].attrs['units']='m'
                 
-		ds_out['lat_obs']= (('yobs','xobs'), lat_obs.astype('float32')) 
+		ds_out['lat_obs']= (('yobs','xobs'), obs_ssh.lat.values.astype('float32')) 
 		ds_out['lat_obs'].attrs['long_name']='Degrees north'
 		ds_out['lat_obs'].attrs['units']='Deg'
 		
-		ds_out['lon_obs']= (('yobs','xobs'), lon_obs.astype('float32')) 
+		ds_out['lon_obs']= (('yobs','xobs'), obs_ssh.lon.values.astype('float32')) 
 		ds_out['lon_obs'].attrs['long_name']='Degrees east'
 		ds_out['lon_obs'].attrs['units']='Deg'
 		
@@ -1858,8 +1857,9 @@ def CREG_INIT( zCONF, zCASE ) :
 	    zCASE : the experiment name associated to the configuration
 	
 	Output:
-	    zTemp_IS : Initial temperature 3D  
-	    zSali_IS : Initial salinity 3D  
+	    ds_TSinit : Initial temperature/salinity 3D  
+	    zTemp_IS  : Initial temperature 3D  
+	    zSali_IS  : Initial salinity 3D  
 	"""
 	# ----------------------------------------------------------------------
 	# Read initial state to compare with
@@ -1872,7 +1872,44 @@ def CREG_INIT( zCONF, zCASE ) :
 		zTemp_IS = ds_TSinit['votemper'].squeeze()
 		zSali_IS = ds_TSinit['vosaline'].squeeze()
 	
-	return zTemp_IS, zSali_IS
+	return ds_TSinit, zTemp_IS, zSali_IS
+
+################################################################################################################################
+def WOA09_INIT( ) :
+################################################################################################################################
+	"""
+	Function dedicated to read the WOA09 climatological temperature/salinity (TEOS10)
+	Filename to read in the directory './DATA/':  
+		- woa09_SalAbs_monthly_1deg_SA_CMA_drowned_Ex_L75_SM5.nc 
+		- woa09_ConTem_monthly_1deg_CT_CMA_drowned_Ex_L75_SM5.nc 
+	
+	Input: 
+	      None
+	
+	Output:
+	    zTS_WOA   : Initial temperature/salinity 3D  
+	    zTemp_WOA : Initial temperature 3D  
+	    zSali_WOA : Initial salinity 3D  
+	"""
+	# ----------------------------------------------------------------------
+	# Read initial state to compare with
+	print('                      Read WOA09 climatology  ')
+	locpath='./DATA/'
+	locfileT='woa09_ConTem_monthly_1deg_CT_CMA_drowned_Ex_L75_SM5.nc'
+	locfileS='woa09_SalAbs_monthly_1deg_SA_CMA_drowned_Ex_L75_SM5.nc'
+	if chkfile(locpath+locfileS) and chkfile(locpath+locfileT) : 
+		ds_T = xr.open_dataset(locpath+locfileT, engine="netcdf4")
+		ds_S = xr.open_dataset(locpath+locfileS, engine="netcdf4")
+		zTS_WOA = xr.Dataset()
+		zTS_WOA['votemper'] = (('time_counter','z','lon0','lat0'),ds_T.CT.values )
+		zTS_WOA['vosaline'] = (('time_counter','z','lon0','lat0'),ds_S.SA.values )
+		zTS_WOA['lon'] = (('lon0','lat0'),ds_T.lon.values )
+		zTS_WOA['lat'] = (('lon0','lat0'),ds_T.lat.values )
+
+		zTemp_WOA = ds_T.CT.values
+		zSali_WOA = ds_S.SA.values
+	
+	return zTS_WOA, zTemp_WOA, zSali_WOA
 
 ################################################################################################################################
 def BATHY_MAP( ztype='isol1000', zarea='arctic', ax=None ) :
@@ -1996,7 +2033,7 @@ def BATHY_MAP( ztype='isol1000', zarea='arctic', ax=None ) :
 	return
 
 ################################################################################################################################
-def PROJ_PLOT( zlon, zlat, tab, contours, limits, name=None, zmy_ticks=None, zmy_cblab=None, zmy_cmap=None, zvar=None, zarea='arctic', data_ref=False, ax=None, zplot_obs=0 ) :
+def PROJ_PLOT( zlon, zlat, tab, contours, limits, name=None, zmy_ticks=None, zmy_cblab=None, zmy_cmap=None, zvar=None, zarea='arctic', data_ref=False, ax=None, zplot_obs=0, zmy_year=None ) :
 ################################################################################################################################
 	"""
 	Function dedicated to prepare the map projection depending the variable and geographical location to plot 
@@ -2027,21 +2064,25 @@ def PROJ_PLOT( zlon, zlat, tab, contours, limits, name=None, zmy_ticks=None, zmy
 	plt.rcParams['axes.unicode_minus'] = False
 	plt.rcParams['contour.negative_linestyle'] = 'solid'
 	#
+	if zvar == 'sivolu' or zvar == 'siconc'  or zvar == 'ssh' or zvar == 'FWC' or zvar == 'voeke' or zvar == 'mldr10_1' :
+		zfontsize=11.
+	elif zvar == 'sobarstf' or zvar == 'topos' : 
+		zfontsize=8.
+	else:
+		zfontsize=6.
+	
 	############################################################################################################
 	if zarea == 'arctic': # Focus on Arctic basin
-		if ( zvar == 'siconc' or zvar == 'mldr10_1' ) and zplot_obs == 1 : 
-			m = Basemap(projection='npstere',boundinglat=65,lon_0=-60, resolution='i')
-		else :
-			ax.set_aspect('equal')  
-			ax.set_extent([-180, 180, 65, 90], crs=ccrs.PlateCarree())
-			
-			ax.add_feature(cartopy.feature.LAND, facecolor='dimgray')
-			gridlines = ax.gridlines(draw_labels=True, linestyle=':', linewidth=0.4, alpha=0.7, xlocs=npy.arange(-180, 181, 20), y_inline=False, rotate_labels=False )
-			gridlines.xlabel_style={'fontsize': 4}
-			gridlines.ylabel_style={'fontsize': 4}
-			gridlines.top_labels=False
-			gridlines.left_labels=False
-			gridlines.right_labels=False
+		ax.set_aspect('equal')  
+		ax.set_extent([-180, 180, 65, 90], crs=ccrs.PlateCarree())
+		
+		ax.add_feature(cartopy.feature.LAND, facecolor='dimgray')
+		gridlines = ax.gridlines(draw_labels=True, linestyle=':', linewidth=0.4, alpha=0.7, xlocs=npy.arange(-180, 181, 20), y_inline=False, rotate_labels=False )
+		gridlines.xlabel_style={'fontsize': zfontsize}
+		gridlines.ylabel_style={'fontsize': zfontsize}
+		gridlines.top_labels=False
+		gridlines.left_labels=False
+		gridlines.right_labels=False
 
 	############################################################################################################
 	elif zarea == 'labsea': # Focus on Gulf Stream area
@@ -2094,21 +2135,6 @@ def PROJ_PLOT( zlon, zlat, tab, contours, limits, name=None, zmy_ticks=None, zmy
 	elif zarea == 'natl': # Focus on North Atlantic sector
 		 m = Basemap(width=6100000,height=5000000,lat_1=30.,lat_2=70,lon_0=-45,lat_0=45,projection='aea',resolution='i')
 	
-	if zvar == 'sivolu' or zvar == 'siconc'  or zvar == 'ssh' or zvar == 'FWC' or zvar == 'voeke' or zvar == 'sobarstf' :
-		zfontsize=4.
-	else:
-		zfontsize=6.
-	
-	if ( zvar == 'siconc' or zvar == 'mldr10_1' ) and zplot_obs == 1 : 
-		if zvar != 'Bathy' :
-			if zarea == 'arctic': 
-				m.drawparallels(npy.arange(-90.,91.,5.),labels=[False,False,False,False], size=zfontsize, linewidth=0.3)
-				m.drawmeridians(npy.arange(-180.,181.,20.),labels=[True,False,False,True], size=zfontsize, latmax=90.,linewidth=0.3)
-			else :
-				m.drawparallels(npy.arange(-90.,91.,2.),labels=[True,False,False,False], size=zfontsize, linewidth=0.3, color='grey',alpha=0.70 )
-				m.drawmeridians(npy.arange(-180.,181.,5.),labels=[False,False,False,True], size=zfontsize, latmax=90.,linewidth=0.3, color='grey',alpha=0.70 )
-			m.fillcontinents(color='grey',lake_color='white')
-
 	# Need to kepp the following lines for compatibility with Basemap
 	if zarea == 'GulfS' or zarea == 'labsea' or zarea == 'irmsea' or zarea == 'ginsea' or zarea == 'natl':
 		m.drawparallels(npy.arange(-90.,91.,2.),labels=[True,False,False,False], size=zfontsize, linewidth=0.3, color='grey',alpha=0.70 )
@@ -2136,22 +2162,22 @@ def PROJ_PLOT( zlon, zlat, tab, contours, limits, name=None, zmy_ticks=None, zmy
 
 	else:
 		if zplot_obs == 0 : 
-			C = tab.plot.pcolormesh( ax=ax, levels=contours, cmap=pal, extend='both', transform = ccrs.PlateCarree(), add_colorbar=False, add_labels=True )
+			C = tab.plot.pcolormesh( ax=ax, levels=contours, cmap=pal, transform = ccrs.PlateCarree(), add_colorbar=False, add_labels=True )
 		else :
-			if zvar == 'siconc' or zvar == 'mldr10_1' :
-				X,Y = m(zlon,zlat)
-				C = m.contourf( X,Y,tab,contours,cmap=pal,norm=norm,extend='both' )
+			if zvar == 'ssh' or zvar == 'mldr10_1' or zvar == 'siconc' :
+				C = ax.pcolormesh( zlon, zlat, tab, vmin=limits[0], vmax=limits[1], cmap=zmy_cmap, transform = ccrs.PlateCarree() )
+			elif zvar == 'voeke' :
+				if zmy_year >= 2015 : # Plot Cryosat data 
+					C = ax.pcolormesh( zlon, zlat, tab, vmin=limits[0], vmax=limits[1], cmap=zmy_cmap, transform = ccrs.PlateCarree() )
+				else :
+					C = ax.contourf( zlon, zlat, tab, levels=contours, cmap=pal, norm=norm, extend='both', transform = ccrs.PlateCarree() )
 			else :
-				C = ax.contourf( zlon, zlat, tab, contours, cmap=pal, norm=norm, extend='both', transform = ccrs.PlateCarree() )
-
-		if zvar == 'ssh' and zplot_obs == 1 :
-			#C = m.contourf( X,Y,tab,contours,cmap=pal,norm=norm,extend='both' )
-			CS = ax.contour( zlon, zlat, tab, linewidths=0.5, levels=npy.arange(limits[0],limits[1],5.), colors='k', alpha=0.4, transform=ccrs.PlateCarree() )
+				C = ax.contourf( zlon, zlat, tab, levels=contours, cmap=pal, norm=norm, extend='both', transform = ccrs.PlateCarree() )
 
 		############################################################################################################
 		############################################################################################################
 		moorplot=1
-		if zvar != 'siconc' and zvar != 'mldr10_1' and moorplot == 1 :
+		if moorplot == 1 :
 				bx_ARCB={'name':'B'  ,'lon_min':-150.,'lon_max':-150.,'lat_min':78.,'lat_max':78.}
 				bx_ARCM={'name':'M1' ,'lon_min': 125.,'lon_max': 125.,'lat_min':78.,'lat_max':78.}
 				bx_EURA={'name':'EUR','lon_min':  60.,'lon_max':  60.,'lat_min':85.,'lat_max':85.}
@@ -2168,12 +2194,26 @@ def PROJ_PLOT( zlon, zlat, tab, contours, limits, name=None, zmy_ticks=None, zmy
 		if zmy_ticks is None:
 			cbar = plt.colorbar(C,format='%.2f',orientation='vertical',shrink=0.8)
 		else:
-			if zvar == 'votemper' or zvar == 'vosaline' or zvar == 'sivolu' or zvar == 'sobarstf' : 
+			if zvar == 'votemper' or zvar == 'vosaline' or zvar == 'sivolu' :
 				cbar = plt.colorbar(C,format='%.2f',orientation='vertical',shrink=0.8,drawedges=True)
-			elif zvar == 'voeke' :
+			elif zvar == 'sobarstf' or zvar == 'topos' :
 				cbar = plt.colorbar(C,format='%.2f',orientation='vertical',shrink=0.6,drawedges=True)
 			elif zvar == 'MLTSS' :
 				cbar = plt.colorbar(C,ticks=zmy_ticks,format='%.0f',orientation='vertical',shrink=0.8,drawedges=True)
+			elif zvar == 'voeke' :
+				if zplot_obs == 1 :
+					if zmy_year >= 2015 : # Plot Cryosat data 
+						cbar = plt.colorbar(C,format='%.2f',orientation='vertical',shrink=0.8,extend='both')
+					else :
+						cbar = plt.colorbar(C,format='%.2f',orientation='vertical',shrink=0.8,drawedges=True)
+				else :
+					cbar = plt.colorbar(C,format='%.2f',orientation='vertical',shrink=0.8,drawedges=True)
+			elif zvar == 'mldr10_1' :
+				cbar = plt.colorbar(C,ticks=zmy_ticks,format='%.0f',orientation='vertical',shrink=0.6,extend='both')
+			elif zvar == 'ssh' or zvar == 'FWC' :
+				cbar = plt.colorbar(C,ticks=zmy_ticks,format='%.0f',orientation='vertical',shrink=0.6,extend='both')
+			elif zvar == 'siconc' :
+				cbar = plt.colorbar(C,format='%.0f',orientation='vertical',shrink=0.8,extend='both')
 			else:
 				cbar = plt.colorbar(C,format='%.0f',orientation='vertical',shrink=0.8,drawedges=True)
 
@@ -2185,12 +2225,12 @@ def PROJ_PLOT( zlon, zlat, tab, contours, limits, name=None, zmy_ticks=None, zmy
 			#	cbar.set_ticks(10**zticks)
 			#	cbar.ax.set_yticklabels(ztickslabels)
 	
-	plt.title(name,fontsize=zfontsize)
+	ax.set_title(name,fontsize=zfontsize)
 	
 	return
 
 ################################################################################################################################
-def DO_MAPS( zlon, zlat, zCONF, zCASE, zVar, zVarname, zc_year, slev=None, seas='', plot_obs=0, ano=0, ax=None ) :
+def DO_MAPS( zlon, zlat, zCONF, zCASE, zVar, zVarname, zc_year, slev=None, seas='', plot_obs=0, ano=0, ax=None, over_title=None ) :
 ################################################################################################################################
 	"""
 	Function dedicated to prepare the data projection on a map
@@ -2221,8 +2261,9 @@ def DO_MAPS( zlon, zlat, zCONF, zCASE, zVar, zVarname, zc_year, slev=None, seas=
 	
 	m_alpha = 1.
 	contours, limits, myticks, ztitle, zfile_ext, my_cblab, my_cmap, m_alpha = SET_ARC_CNT( zCASE, zc_year, seas, zVarname, zslev=slev, zplot_obs=plot_obs, zdiff=ano )
+	if over_title != None : ztitle = over_title 
 	BATHY_MAP( ztype='isol1000', ax=ax )
-	m = PROJ_PLOT( zlon, zlat, zVar[:,:]*m_alpha, contours, limits, name=ztitle, zmy_ticks=myticks, zmy_cblab=my_cblab, zmy_cmap=my_cmap, zvar=zVarname, zplot_obs=plot_obs, ax=ax )
+	m = PROJ_PLOT( zlon, zlat, zVar[:,:]*m_alpha, contours, limits, name=ztitle, zmy_ticks=myticks, zmy_cblab=my_cblab, zmy_cmap=my_cmap, zvar=zVarname, zplot_obs=plot_obs, ax=ax, zmy_year=zc_year )
 
 	return m 
 
@@ -2593,7 +2634,7 @@ def EKE_CALC( zlon, zlat, zCONF, zCASE, xiosfreq, zc_year, zdatadir, zncout ) :
 def CONV_SA2PS( zSAL, zlon, zlat ) :
 ################################################################################################################################
 	"""
-	Function to convert CT/SA to Tpot/PS units using tge GSW package 
+	Function to convert CT/SA to Tpot/PS units using the GSW package 
 	
 	Input:
 	    zSAL : 3D temperature/Salinity data array 
@@ -2634,3 +2675,167 @@ def P3Dzyx( zvector, zlat ):
 	zpressure3D = npy.tile( z2dt,( 1, zlat.shape[0], zlat.shape[1] ) )
 	
 	return zpressure3D
+
+################################################################################################################################
+def MLD_CALC( zTS, zlon, zlat, depthW, teos10, dtype='None' ) :
+################################################################################################################################
+	"""
+	Function to compute the MLD using a density criteria of 0.1 kg/m3 
+	
+	Input:
+	    zTS    : 3D temperature/salinity in March 
+	    zlon   : 2D longitude 
+	    zlat   : 2D latitude
+	    depthW : W-points depth
+	    teos10 : logical to specify the T/S nature, either EOS10 or EOS80
+	    dtype  : a name to set a specific treatment 
+	
+	Output:
+	    z_MLD : MLD 
+	"""
+
+	# Set the densitity criteria value [kg m3]
+	rn_crit = 0.1 
+
+	# Compute the Sigma_0 potential density from the surface 
+	if teos10 : 
+	#if not teos10 : 
+		Sigma_0 = gsw.sigma0( zTS['vosaline'].values, zTS['votemper'].values ) 
+	else :
+		# Need to compute SA & CT fields first
+		# Compute the pressure at each depth
+		pressure = gsw.p_from_z( -zTS.z.values.squeeze(), 77. )
+		pressure3D = P3Dzyx( pressure, zlat ) 
+
+		SA = gsw.SA_from_SP(zTS['vosaline'].values, pressure3D, zlon.values, zlat.values)
+		CT = gsw.CT_from_pt(SA, zTS['votemper'].values)
+
+		Sigma_0 = gsw.sigma0( SA, CT )
+
+	# Compute the density anomaly against the surface one
+	Sig0_ano = Sigma_0 - Sigma_0[0,:,:]
+
+	# Detect the MLD using a 0.1 kg/m3 density criteria
+	Sig0_ano_msk = ( Sig0_ano <= rn_crit )                        # Create a mask to identify T-points in the MLD 
+	if dtype == 'woa09' : Sig0_ano_msk[55:74] = False             # Specific tretment for woa09 data because data at depth are not masked 
+	Sig0_ano_msk_roll = npy.roll( Sig0_ano_msk, shift=1, axis=0 ) # Shift by 1 level over depth to get the effective W-point 
+	DeptW_mld = depthW.where( Sig0_ano_msk_roll )                 # Select only W-point depth in the MLD  
+	z_MLD = DeptW_mld.max(dim='z',skipna=True).compute()          # Finally, found the greater depth over depth
+	
+	return z_MLD.astype('float32')
+
+################################################################################################################################
+def TOPOS_CALC( zlon, zlat, zCONF, zCASE, zc_year, zdatadir ) :
+################################################################################################################################
+	"""
+	Function dedicated to compute topostrophy using monthly velocities 
+	
+	Input:
+	    zlon     : longitude 2D  
+	    zlat     : latitude 2D  
+	    zCONF    : the configuration name 
+	    zCASE    : the experiment name associated to the configuration
+	    zc_year  : the current year 
+	    zdatadir : path to access model outputs 
+	
+	Output:
+	    ds_tsphy : annual mean 2D Topostrophy in a Dataset
+	"""
+	# ----------------------------------------------------------------------
+
+	# Prepare all metrics 
+	datadir = Path('./'+zCONF+'/GRID/')
+	domcfg = open_domain_cfg(datadir=datadir, files=[zCONF+'_domain_cfg.nc'])
+	
+	metrics = { #define the name of the scaling factors
+	    ('X',): ['e1t', 'e1u', 'e1v', 'e1f'], # X distances
+	    ('Y',): ['e2t', 'e2u', 'e2v', 'e2f'], # Y distances
+	    ('Z',): ['e3t_0', 'e3u_0', 'e3v_0', 'e3f_0', 'e3w_0'], # Z distances
+	}   
+	grid = xgcm.Grid(domcfg, metrics=metrics, periodic=False) #create the grid
+
+	# Need to get the bathymetry
+	fileid = zCONF+'_domain_cfg.nc'
+	ds_bathy = xr.open_dataset(datadir / fileid )[['bathy_meter','time_counter']]
+	ds_bathy['time_counter'].attrs['bounds'] = ""  
+	ds_bathy = ds_bathy.swap_dims({'t':'time_counter'})
+	ds_bathy
+		
+	nemoBat = process_nemo( positions=[(ds_bathy, 'T')],domcfg=domcfg)
+	nemoBat
+	
+	# Set the proper coordinates for each mask
+	fileid = zCONF+'-'+zCASE+'_mask.nc'
+	ds_mesh=xr.open_dataset(datadir / fileid )[['tmask']]
+	ds_mesh = ds_mesh.rename({'nav_lev': 'z_c'}).assign_coords(z_c=domcfg.z_c.values)
+	ds_mesh['time_counter'].attrs['bounds'] = ""  
+	
+	ds_Tmsk = process_nemo( positions=[(ds_mesh.tmask, 'T')],domcfg=domcfg).squeeze()
+	ds_Tmsk = ds_Tmsk.reset_coords('t', drop=True)
+	
+	ds_mesh=xr.open_dataset(datadir / fileid )[['umask']]
+	ds_mesh = ds_mesh.rename({'nav_lev': 'z_c'}).assign_coords(z_c=domcfg.z_c.values)
+	ds_mesh['time_counter'].attrs['bounds'] = ""  
+	
+	ds_Umsk = process_nemo( positions=[(ds_mesh.umask, 'U')],domcfg=domcfg).squeeze()
+	ds_Umsk = ds_Umsk.reset_coords('t', drop=True)
+	
+	ds_mesh=xr.open_dataset(datadir / fileid )[['vmask']]
+	ds_mesh = ds_mesh.rename({'nav_lev': 'z_c'}).assign_coords(z_c=domcfg.z_c.values)
+	ds_mesh['time_counter'].attrs['bounds'] = ""  
+	
+	ds_Vmsk = process_nemo( positions=[(ds_mesh.vmask, 'V')],domcfg=domcfg).squeeze()
+	ds_Vmsk = ds_Vmsk.reset_coords('t', drop=True)
+	
+	# Read monthly velocities components 
+	nemo_mmUV = open_nemo(domcfg=domcfg, files=fs.glob(zdatadir+zCONF+'-'+zCASE+'_y'+str(zc_year)+'m*.1m_grid[UV].nc'))[['vozocrtx','vomecrty']]
+	
+	#1 Identify the last ocean T-point 
+	mask_bot_ano = (ds_Tmsk.tmask.roll(z_c=-1) - ds_Tmsk.tmask ).squeeze()
+	mask_bot = ( mask_bot_ano == -1)  
+	
+	#2 Bathymetry horizontal gradient 
+	# bathymetry interpolated at U-point and compute the zonal gradient at T-point
+	dbathy_dx = grid.derivative(grid.interp(nemoBat.bathy_meter,axis='X',to='right'),axis='X').squeeze()
+	# bathymetry interpolated at V-point and compute the meridional gradient at T-point
+	dbathy_dy = grid.derivative(grid.interp(nemoBat.bathy_meter,axis='Y',to='right'),axis='Y').squeeze()
+	
+	#3 Set velocities at T-point taking into account land point 
+	umsk_T = 1./ (ds_Umsk.umask.roll(x_f=1) + ds_Umsk.umask )
+	vmsk_T = 1./ (ds_Vmsk.vmask.roll(y_f=1) + ds_Vmsk.vmask )
+	
+	Ut_ztmp = (nemo_mmUV.vozocrtx.roll(x_f=1) + nemo_mmUV.vozocrtx ) * umsk_T
+	Vt_ztmp = (nemo_mmUV.vomecrty.roll(y_f=1) + nemo_mmUV.vomecrty ) * vmsk_T
+	
+	# Set the proper dimensions names as coordinates as well i.e. x_c etc ..
+	U_T= xr.DataArray( Ut_ztmp , dims=['t','z_c','y_c','x_c'], 
+	                  coords={'t':nemo_mmUV['t'].values,
+	                          'z_c':domcfg['z_c'].values, 
+	                          'y_c':domcfg['y_c'].values, 
+	                          'x_c':domcfg['x_c'].values})
+	V_T= xr.DataArray( Vt_ztmp , dims=['t','z_c','y_c','x_c'], 
+	                  coords={'t':nemo_mmUV['t'].values,
+	                          'z_c':domcfg['z_c'].values, 
+	                          'y_c':domcfg['y_c'].values, 
+	                          'x_c':domcfg['x_c'].values})
+	
+	#4 Select bottom velocoties only 
+	Ubot_zT = U_T.where(mask_bot)
+	Vbot_zT = V_T.where(mask_bot)
+	mask = ~npy.isnan(Ubot_zT)
+	# idz 3D (t,y,x) of bottom indices 
+	idz = mask.argmax(dim='z_c')  # Trouve l'index de la première valeur non-NaN (ici 1)
+	
+	# .compute() is required to get a nd.array field to fid .isel (.persist would also work)
+	Ubot_T = Ubot_zT.isel(z_c=idz.compute())
+	Vbot_T = Vbot_zT.isel(z_c=idz.compute())
+	
+	#5 Final calculation of fxU . grad H
+	topos_T= -1.*domcfg.ff_t*Vbot_T*dbathy_dx + domcfg.ff_t*Ubot_T*dbathy_dy
+
+	# Save annual mean topostrophy in a dataset with appropriate coordinates 
+	ds_tsphy = xr.Dataset()
+	ds_tsphy = ds_tsphy.assign_coords( t=nemo_mmUV.t, longitude=zlon, latitude=zlat )
+	ds_tsphy['topos'] = (('y','x'), topos_T.mean(dim='t').values)
+
+	return ds_tsphy 
