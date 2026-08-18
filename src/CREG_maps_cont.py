@@ -227,4 +227,34 @@ def SET_ARC_CNT( zCASE, zc_year, seas, zMyvar, zslev=0, zplot_obs=0, zdiff=0 ) :
 	   limits=[vmin,vmax,vint]			  # limits for eke
 	   myticks=npy.arange(vmin,vmax+vint,vint)	# optional colorbar ticks (None)
 
+	######### MLT #########
+	if zMyvar == 'mlt' :
+	   my_cblab=r'($^\circ$C)'
+	   my_cmap=plt.get_cmap('Spectral_r')
+
+	   zfile_ext='_MLTClim_'
+	   if zplot_obs == 1 :
+	           ztitle = 'MIMOC MLT '+seas
+	   else:
+	           ztitle = zCASE+' MLT '+seas+'\n'+str(zc_year)
+	   vmin=-2. ; vmax=3. ; vint=0.2
+	   contours=npy.arange(vmin,vmax+vint,vint)  # optional contours
+	   limits=[vmin,vmax,vint]			  # limits for eke
+	   myticks=npy.arange(vmin,vmax+vint,vint)	# optional colorbar ticks (None)
+
+	######### MLS #########
+	if zMyvar == 'mls' :
+	   my_cblab=r'(PSU)'
+	   my_cmap=plt.get_cmap('Spectral_r')
+
+	   zfile_ext='_MLSClim_'
+	   if zplot_obs == 1 :
+	           ztitle = 'MIMOC MLS '+seas
+	   else:
+	           ztitle = zCASE+' MLS '+seas+'\n'+str(zc_year)
+	   vmin=26. ; vmax=36. ; vint=0.5
+	   contours=npy.arange(vmin,vmax+vint,vint)  # optional contours
+	   limits=[vmin,vmax,vint]			  # limits for eke
+	   myticks=npy.arange(vmin,vmax+vint,vint)	# optional colorbar ticks (None)
+
 	return contours, limits, myticks, ztitle, zfile_ext, my_cblab, my_cmap, m_alpha

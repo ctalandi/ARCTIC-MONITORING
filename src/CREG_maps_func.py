@@ -839,53 +839,45 @@ def TSD_MAPSF( zlon, zlat, zTemp, zSali, zTemp_IS, zSali_IS, zdepth, zCONF, zCAS
         #zd1 = npy.round(zdepth.isel(nav_lev=0).values).item()  ; zd2 = npy.round(zdepth.isel(nav_lev=23).values).item()
 
         plt.clf()
-        fig = plt.figure()
-        projection = ccrs.NorthPolarStereo(central_longitude=-60, true_scale_latitude=65)
+        fig, axes = plt.subplots( 2, 2, figsize=(11.7,8.3),  subplot_kw={'projection': ccrs.NorthPolarStereo(central_longitude=-60, true_scale_latitude=65)} )
+        axes = axes.flatten()
 
-        num_fram=220
         # Surface temperature
-        zMyvar='votemper'   ; fram=num_fram+1
-        ax = fig.add_subplot(fram, projection=projection)
-        DO_MAPS( zlon, zlat, zCONF, zCASE, npy.squeeze(zTemp[0,:,:]-zTemp_IS[0,:,:]), zMyvar, zc_year, slev=str(zd1) , ano=1, ax=ax )
+        zMyvar='votemper'   
+        DO_MAPS( zlon, zlat, zCONF, zCASE, npy.squeeze(zTemp[0,:,:]-zTemp_IS[0,:,:]), zMyvar, zc_year, slev=str(zd1) , ano=1, ax=axes[0] )
         # ~100m temperature
-        zMyvar='votemper'   ; fram=num_fram+2
-        ax = fig.add_subplot(fram, projection=projection)
-        DO_MAPS( zlon, zlat, zCONF, zCASE, npy.squeeze(zTemp[23,:,:]-zTemp_IS[23,:,:]), zMyvar, zc_year, slev=str(zd2), ano=1, ax=ax )
+        zMyvar='votemper'   
+        DO_MAPS( zlon, zlat, zCONF, zCASE, npy.squeeze(zTemp[23,:,:]-zTemp_IS[23,:,:]), zMyvar, zc_year, slev=str(zd2), ano=1, ax=axes[1])
         # Surface salinity
-        zMyvar='vosaline'   ; fram=num_fram+3
-        ax = fig.add_subplot(fram, projection=projection)
-        DO_MAPS( zlon, zlat, zCONF, zCASE, npy.squeeze(zSali[0,:,:]-zSali_IS[0,:,:]), zMyvar, zc_year, slev=str(zd1), ano=1, ax=ax )
+        zMyvar='vosaline'   
+        DO_MAPS( zlon, zlat, zCONF, zCASE, npy.squeeze(zSali[0,:,:]-zSali_IS[0,:,:]), zMyvar, zc_year, slev=str(zd1), ano=1, ax=axes[2])
         # ~100m  salinity
-        zMyvar='vosaline'   ; fram=num_fram+4
-        ax = fig.add_subplot(fram, projection=projection)
-        DO_MAPS( zlon, zlat, zCONF, zCASE, npy.squeeze(zSali[23,:,:]-zSali_IS[23,:,:]), zMyvar, zc_year, slev=str(zd2), ano=1, ax=ax )
+        zMyvar='vosaline'   
+        DO_MAPS( zlon, zlat, zCONF, zCASE, npy.squeeze(zSali[23,:,:]-zSali_IS[23,:,:]), zMyvar, zc_year, slev=str(zd2), ano=1, ax=axes[3])
         plt.tight_layout()
 
         zfile_ext='_TSDIffClim_@'+str(zd1)+'m@'+str(zd2)+'m_'
         plt.savefig(zCONF+'-'+zCASE+zfile_ext+'y'+str(zc_year)+'.png',dpi=300)
 
         plt.clf()
+        fig, axes = plt.subplots( 2, 2, figsize=(11.7,8.3),  subplot_kw={'projection': ccrs.NorthPolarStereo(central_longitude=-60, true_scale_latitude=65)} )
+        axes = axes.flatten()
 
         # Get the model depth at ~200m and at ~300m 
         zd3 = int(zdepth.isel(nav_lev=30).values.item())  ; zd4 = int(zdepth.isel(nav_lev=34).values.item())
 
-        num_fram=220
         # ~200m temperature
-        zMyvar='votemper'   ; fram=num_fram+1
-        ax = fig.add_subplot(fram, projection=projection)
-        DO_MAPS( zlon, zlat, zCONF, zCASE, npy.squeeze(zTemp[30,:,:]-zTemp_IS[30,:,:]), zMyvar, zc_year, slev=str(zd3) , ano=1, ax=ax )
+        zMyvar='votemper'   
+        DO_MAPS( zlon, zlat, zCONF, zCASE, npy.squeeze(zTemp[30,:,:]-zTemp_IS[30,:,:]), zMyvar, zc_year, slev=str(zd3) , ano=1, ax=axes[0] )
         # ~300m temperature
-        zMyvar='votemper'   ; fram=num_fram+2
-        ax = fig.add_subplot(fram, projection=projection)
-        DO_MAPS( zlon, zlat, zCONF, zCASE, npy.squeeze(zTemp[34,:,:]-zTemp_IS[34,:,:]), zMyvar, zc_year, slev=str(zd4), ano=1, ax=ax )
+        zMyvar='votemper'   
+        DO_MAPS( zlon, zlat, zCONF, zCASE, npy.squeeze(zTemp[34,:,:]-zTemp_IS[34,:,:]), zMyvar, zc_year, slev=str(zd4), ano=1, ax=axes[1] )
         # ~200m salinity
-        zMyvar='vosaline'   ; fram=num_fram+3
-        ax = fig.add_subplot(fram, projection=projection)
-        DO_MAPS( zlon, zlat, zCONF, zCASE, npy.squeeze(zSali[30,:,:]-zSali_IS[30,:,:]), zMyvar, zc_year, slev=str(zd3), ano=1, ax=ax )
+        zMyvar='vosaline'   
+        DO_MAPS( zlon, zlat, zCONF, zCASE, npy.squeeze(zSali[30,:,:]-zSali_IS[30,:,:]), zMyvar, zc_year, slev=str(zd3), ano=1, ax=axes[2] )
         # ~300m  salinity
-        zMyvar='vosaline'   ; fram=num_fram+4
-        ax = fig.add_subplot(fram, projection=projection)
-        DO_MAPS( zlon, zlat, zCONF, zCASE, npy.squeeze(zSali[34,:,:]-zSali_IS[34,:,:]), zMyvar, zc_year, slev=str(zd4), ano=1, ax=ax )
+        zMyvar='vosaline'   
+        DO_MAPS( zlon, zlat, zCONF, zCASE, npy.squeeze(zSali[34,:,:]-zSali_IS[34,:,:]), zMyvar, zc_year, slev=str(zd4), ano=1, ax=axes[3] )
         plt.tight_layout()
 
         zfile_ext='_TSDIffClim_@'+str(zd3)+'m@'+str(zd4)+'m_'
@@ -1307,82 +1299,59 @@ def MTS_MAPSF( zlon, zlat, zCONF, zCASE, zMLD_M, zMLD_S, zTS_M, zTS_S, zgdepw_0,
 	# Plots Temperature maps 
 	########################
 	plt.clf()
-	fig = plt.figure()
-	projection = ccrs.NorthPolarStereo(central_longitude=-60, true_scale_latitude=65)
+	fig, axes = plt.subplots( 2, 3, figsize=(11.7,8.3),  subplot_kw={'projection': ccrs.NorthPolarStereo(central_longitude=-60, true_scale_latitude=65)} )
+	axes = axes.flatten()
 
-	vmin=-2. ; vmax=3. ; vint=0.1
-	contours=npy.arange(vmin,vmax+vint,vint)  
-	limits=[vmin,vmax,vint]			 
-	myticks=npy.arange(vmin,vmax+vint,vint) 
-	my_cblab=r'($^\circ$C)'
-	my_cmap= plt.get_cmap('Spectral_r')
-	
-	fram=231
-	ax = fig.add_subplot(fram, projection=projection)
-	ztitle=zCASE +' March MLT \n'+str(zc_year)
-	zoutmap = BATHY_MAP( ztype='isol1000', ax=ax )
-	PROJ_PLOT( zlon, zlat, T_mldM, contours, limits, zmy_ticks=myticks, name=ztitle, zmy_cblab=my_cblab, zmy_cmap=my_cmap, ax=ax )
+	# March ML temperature
+	zMyvar='mlt'
+	DO_MAPS( zlon, zlat, zCONF, zCASE, T_mldM, zMyvar, zc_year, seas='m03', ax=axes[0] )
 
-	fram=234
-	ax = fig.add_subplot(fram, projection=projection)
-	ztitle=zCASE +' September MLT \n'+str(zc_year)
-	zoutmap = BATHY_MAP( ztype='isol1000', ax=ax )
-	PROJ_PLOT(zlon, zlat, T_mldS, contours, limits, zmy_ticks=myticks, name=ztitle, zmy_cblab=my_cblab, zmy_cmap=my_cmap, ax=ax )
+	# September ML temperature
+	zMyvar='mlt'
+	DO_MAPS( zlon, zlat, zCONF, zCASE, T_mldS, zMyvar, zc_year, seas='m09', ax=axes[3] )
 
-	fram=232
-	ax = fig.add_subplot(fram, projection=projection)
-	ztitle='MIMOC March MLT'
-	zoutmap = BATHY_MAP( ztype='isol1000', ax=ax )
-	PROJ_PLOT( lon_obs, lat_obs, mlT_obs[2,:,:].squeeze(), contours, limits, zmy_ticks=myticks, name=ztitle, zmy_cblab=my_cblab, zmy_cmap=my_cmap, zplot_obs=1, ax=ax )
+	# MIMOC March ML temperature
+	zMyvar='mlt'
+	DO_MAPS( lon_obs, lat_obs, zCONF, zCASE, mlT_obs[2,:,:].squeeze(), zMyvar, zc_year, seas='m03', plot_obs=1, ax=axes[1] )
 
-	fram=235
-	ax = fig.add_subplot(fram, projection=projection)
-	ztitle='MIMOC September MLT'
-	zoutmap = BATHY_MAP( ztype='isol1000', ax=ax )
-	PROJ_PLOT( lon_obs, lat_obs, mlT_obs[8,:,:].squeeze(), contours, limits, zmy_ticks=myticks, name=ztitle, zmy_cblab=my_cblab, zmy_cmap=my_cmap, zplot_obs=1, ax=ax )
+	# MIMOC September ML temperature
+	zMyvar='mlt'
+	DO_MAPS( lon_obs, lat_obs, zCONF, zCASE, mlT_obs[8,:,:].squeeze(), zMyvar, zc_year, seas='m09', plot_obs=1, ax=axes[4] )
 
+	fig.delaxes(axes[2])
+	fig.delaxes(axes[5])
 	plt.tight_layout()
 
-	zfile_ext='_MTSClimT_'
+	zfile_ext='_MLTClim_'
 	plt.savefig(zCONF+'-'+zCASE+zfile_ext+'y'+str(zc_year)+'.png',dpi=300)
 
 	# Plots Salinity maps 
 	##################### 
 	plt.clf()
-	vmin=26. ; vmax=36. ; vint=0.5
-	contours=npy.arange(vmin,vmax+vint,vint)  
-	limits=[vmin,vmax,vint]			 
-	myticks=npy.arange(vmin,vmax+2.*vint,2.*vint) 
-	my_cblab=r'(PSU)'
-	my_cmap= plt.get_cmap('Spectral_r')
+	fig, axes = plt.subplots( 2, 3, figsize=(11.7,8.3),  subplot_kw={'projection': ccrs.NorthPolarStereo(central_longitude=-60, true_scale_latitude=65)} )
+	axes = axes.flatten()
 
-	fram=231
-	ax = fig.add_subplot(fram, projection=projection)
-	ztitle=zCASE +' March MLS \n'+str(zc_year)
-	zoutmap = BATHY_MAP( ztype='isol1000', ax=ax )
-	PROJ_PLOT( zlon, zlat, S_mldM, contours, limits, zmy_ticks=myticks, name=ztitle, zmy_cblab=my_cblab, zmy_cmap=my_cmap, zvar='MLTSS', ax=ax )
+	# March ML salinity
+	zMyvar='mls'
+	DO_MAPS( zlon, zlat, zCONF, zCASE, S_mldM, zMyvar, zc_year, seas='m03', ax=axes[0] )
 
-	fram=234
-	ax = fig.add_subplot(fram, projection=projection)
-	ztitle=zCASE +' September MLS \n'+str(zc_year)
-	zoutmap = BATHY_MAP( ztype='isol1000', ax=ax )
-	PROJ_PLOT( zlon, zlat, S_mldS, contours, limits, zmy_ticks=myticks, name=ztitle, zmy_cblab=my_cblab, zmy_cmap=my_cmap, zvar='MLTSS', ax=ax )
+	# September ML salinity
+	zMyvar='mls'
+	DO_MAPS( zlon, zlat, zCONF, zCASE, S_mldS, zMyvar, zc_year, seas='m09', ax=axes[3] )
 
-	fram=232
-	ax = fig.add_subplot(fram, projection=projection)
-	ztitle='MIMOC March MLS'
-	zoutmap = BATHY_MAP( ztype='isol1000', ax=ax )
-	PROJ_PLOT( lon_obs, lat_obs, mlS_obs[2,:,:].squeeze(), contours, limits, zmy_ticks=myticks, name=ztitle, zmy_cblab=my_cblab, zmy_cmap=my_cmap, zvar='MLTSS', zplot_obs=1, ax=ax )
+	# MIMOC March ML temperature
+	zMyvar='mls'
+	DO_MAPS( lon_obs, lat_obs, zCONF, zCASE, mlS_obs[2,:,:].squeeze(), zMyvar, zc_year, seas='m03', plot_obs=1, ax=axes[1] )
 
-	fram=235
-	ax = fig.add_subplot(fram, projection=projection)
-	ztitle='MIMOC September MLS'
-	zoutmap = BATHY_MAP( ztype='isol1000', ax=ax )
-	PROJ_PLOT( lon_obs, lat_obs, mlS_obs[8,:,:].squeeze(), contours, limits, zmy_ticks=myticks, name=ztitle, zmy_cblab=my_cblab, zmy_cmap=my_cmap, zvar='MLTSS', zplot_obs=1, ax=ax )
+	# MIMOC September ML temperature
+	zMyvar='mls'
+	DO_MAPS( lon_obs, lat_obs, zCONF, zCASE, mlS_obs[8,:,:].squeeze(), zMyvar, zc_year, seas='m09', plot_obs=1, ax=axes[4] )
 
+	fig.delaxes(axes[2])
+	fig.delaxes(axes[5])
 	plt.tight_layout()
 
-	zfile_ext='_MTSClimS_'
+	zfile_ext='_MLSClim_'
 	plt.savefig(zCONF+'-'+zCASE+zfile_ext+'y'+str(zc_year)+'.png',dpi=300)
 
 	if zncout:
@@ -2211,8 +2180,8 @@ def PROJ_PLOT( zlon, zlat, tab, contours, limits, name=None, zmy_ticks=None, zmy
 				cbar = plt.colorbar(C,format='%.2f',orientation='vertical',shrink=0.8,drawedges=True)
 			elif zvar == 'sobarstf' or zvar == 'topos' :
 				cbar = plt.colorbar(C,format='%.2f',orientation='vertical',shrink=0.6,drawedges=True)
-			elif zvar == 'MLTSS' :
-				cbar = plt.colorbar(C,ticks=zmy_ticks,format='%.0f',orientation='vertical',shrink=0.8,drawedges=True)
+			elif zvar == 'mlt' or zvar == 'mls' :
+				cbar = plt.colorbar(C,ticks=zmy_ticks,format='%.1f',orientation='vertical',shrink=0.7)
 			elif zvar == 'voeke' :
 				if zplot_obs == 1 :
 					if zmy_year >= 2015 : # Plot Cryosat data 
