@@ -1937,7 +1937,7 @@ def BATHY_MAP( ztype='isol1000', zarea='arctic', ax=None ) :
 		zBathy = ds_bat['bathy_meter'].squeeze()
 	
 	spval = 0.
-	zzBathy = xr.where( zzBathy <= spval, npy.nan, zzBathy )
+	zzBathy = xr.where( zBathy <= spval, npy.nan, zBathy )
 
 	# Detect the longitude jump of the curvilinear grid 
 	# If not doing that, a polygon will be drawn on the polar projection
