@@ -49,11 +49,16 @@ def SET_ARC_CNT( zCASE, zc_year, seas, zMyvar, zslev=0, zplot_obs=0, zdiff=0 ) :
 	   
 	   zfile_ext='_FWCSSHClim_'
 	   if zplot_obs == 1 :
-	        ztitle=' DOT from Armitage et al. 2017 \n '
-	        vmin=-40. ; vmax=40. ; vint=2.  ; ztik=5.
+	        ztitle=' DOT from Armitage et al. 2017 \n '	
+	        if zc_year >= 2015 : 
+			# Cryosat era 
+	        	vmin=-150. ; vmax=-50. ; vint=10.  ; ztik=1.
+	        else :
+			# Envisat era 
+	        	vmin=-30. ; vmax=80. ; vint=10.  ; ztik=1.
 	   else:
 	        ztitle=zCASE +' SSH anomaly '
-	        vmin=-36. ; vmax=36. ; vint=2.  ; ztik=3.
+	        vmin=-36. ; vmax=36. ; vint=5.  ; ztik=2.
 
 	   contours=npy.arange(vmin,vmax+vint,vint)       # optional contours
 	   limits=[vmin,vmax,vint]			  # limits for eke

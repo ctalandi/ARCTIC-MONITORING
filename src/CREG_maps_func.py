@@ -66,13 +66,6 @@ except:
 	print('  matplotlib is not available on your machine')
 	print('  check python path or install this package') ; exit()
 
-# Basemap
-try:
-	from mpl_toolkits.basemap import Basemap
-except:
-	print('  Basemap is not available on your machine')
-	print('  check python path or install this package') ; exit()
-
 ################################################################################################################################
 def BFG_MAPSF( zlon, zlat, zvar_ssh, zbathy, zarea, zCONF, zCASE, zs_year, zlgTS_ys, zlgTS_ye, zncout ) :
 ################################################################################################################################
@@ -912,6 +905,113 @@ def ATL_MAPSF( zlon, zlat, zMLD_M, zMLD_year, zTemp, zTemp_IS, zSSH, zdepth, zCO
         """
         # ----------------------------------------------------------------------
 
+        #------------ MLD IN THE LABRADOR SEA IN MARCH
+        #-----------------------------------------------------------------------
+        projection_lab = ccrs.AlbersEqualArea( central_longitude=-60.0, central_latitude=59.5, false_easting=0.0, false_northing=0.0, standard_parallels=(30., 50.) )
+        fig, axes = plt.subplots( 1, 1, figsize=(11.7,8.3),  subplot_kw={'projection': projection_lab} )
+
+        # March mean MLD
+        zMyvar='mldr10_1' 
+        my_cblab=r'MLD (m)'   ;   my_cmap=plt.get_cmap('Blues')
+        ztitle=zCASE +' mean MLD01 \n'+str(zc_year)+'  m03'
+        vmin=0. ; vmax=2400. ; vint=100.   ;   contours=[0.,100.,200.,400.,800.,1200.,1600.,2000.,2400.]
+        limits=[vmin,vmax,vint]  ;              myticks=[0.,100.,200.,400.,800.,1200.,1600.,2000.,2400.]
+
+        BATHY_MAP( ztype='isol1000', zarea='labsea', ax=axes )
+        PROJ_PLOT( zlon, zlat, zMLD_M, contours, limits, zmy_ticks=myticks, name=ztitle, zmy_cblab=my_cblab, zmy_cmap=my_cmap, zvar=zMyvar, zarea='labsea', ax=axes )
+        bx_LABK1={'name':'K1'  ,'lon_min':-52.4,'lon_max':-52.4,'lat_min':56.3,'lat_max':56.3}
+        axes.scatter(bx_LABK1['lon_min'],bx_LABK1['lat_min'], s=10, marker='o', color='r', transform=ccrs.PlateCarree())
+        plt.tight_layout()
+
+        zfile_ext='_LAB_MLDClimm03_'
+        plt.savefig(zCONF+'-'+zCASE+zfile_ext+'y'+str(zc_year)+'.png',dpi=300)
+
+        #----------- MLD IN THE IRMINGER SEA IN MARCH
+        #-----------------------------------------------------------------------
+        plt.clf()
+        projection_irm = ccrs.AlbersEqualArea( central_longitude=-30.0, central_latitude=59.5, false_easting=0.0, false_northing=0.0, standard_parallels=(30., 50.) )
+        fig, axes = plt.subplots( 1, 1, figsize=(11.7,8.3),  subplot_kw={'projection': projection_irm} )
+
+        # March mean MLD
+        zMyvar='mldr10_1'  
+        my_cblab=r'MLD (m)'   ;   my_cmap=plt.get_cmap('Blues')
+        ztitle=zCASE +' mean MLD01 \n'+str(zc_year)+'  m03'
+        vmin=0. ; vmax=1600. ; vint=100.   ;   contours=[0.,100.,200.,400.,600.,800.,1000.,1200.,1600.]
+        limits=[vmin,vmax,vint]  ;              myticks=[0.,100.,200.,400.,600.,800.,1000.,1200.,1600.]
+
+        BATHY_MAP( ztype='isol1000', zarea='irmsea', ax=axes )
+        PROJ_PLOT( zlon, zlat, zMLD_M, contours, limits, zmy_ticks=myticks, name=ztitle, zmy_cblab=my_cblab, zmy_cmap=my_cmap, zvar=zMyvar, zarea='irmsea', ax=axes )
+        bx_ISB={'name':'ISB'  ,'lon_min':-37.,'lon_max':-37.,'lat_min':61.,'lat_max':61.}
+        axes.scatter(bx_ISB['lon_min'],bx_ISB['lat_min'], s=10, marker='o', color='r', transform=ccrs.PlateCarree())
+        plt.tight_layout()
+
+        zfile_ext='_IRM_MLDClimm03_'
+        plt.savefig(zCONF+'-'+zCASE+zfile_ext+'y'+str(zc_year)+'.png',dpi=300)
+
+        #----------- MLD IN THE GIN SEAS IN MARCH
+        #-----------------------------------------------------------------------
+        plt.clf()
+        projection_gin = ccrs.AlbersEqualArea( central_longitude=0.0, central_latitude=74., false_easting=0.0, false_northing=0.0, standard_parallels=(30., 50.) )
+        fig, axes = plt.subplots( 1, 1, figsize=(11.7,8.3),  subplot_kw={'projection': projection_gin} )
+
+        # March mean MLD
+        zMyvar='mldr10_1'   
+        my_cblab=r'MLD (m)'   ;   my_cmap=plt.get_cmap('Blues')
+        ztitle=zCASE +' mean MLD01 \n'+str(zc_year)+'  m03'
+        vmin=0. ; vmax=1600. ; vint=100.   ;   contours=[0.,100.,200.,400.,600.,800.,1000.,1200.,1600.]
+        limits=[vmin,vmax,vint]  ;              myticks=[0.,100.,200.,400.,600.,800.,1000.,1200.,1600.]
+
+        BATHY_MAP( ztype='isol1000', zarea='ginsea', ax=axes )
+        PROJ_PLOT( zlon, zlat, zMLD_M, contours, limits, zmy_ticks=myticks, name=ztitle, zmy_cblab=my_cblab, zmy_cmap=my_cmap, zvar=zMyvar, zarea='ginsea', ax=axes )
+        plt.tight_layout()
+
+        zfile_ext='_GIN_MLDClimm03_'
+        plt.savefig(zCONF+'-'+zCASE+zfile_ext+'y'+str(zc_year)+'.png',dpi=300)
+
+        #----------- PLOT ISOTHERM 17 Deg OFF CAPE HATTERAS
+        #-----------------------------------------------------------------------
+        plt.clf()
+        projection_gfs = ccrs.PlateCarree()
+        fig, axes = plt.subplots( 1, 1, figsize=(11.7,8.3),  subplot_kw={'projection': projection_gfs} )
+
+        zMyvar='votemper'   
+        my_cblab=r'ISO 17 (DegC)'   ;   my_cmap=plt.get_cmap('jet')
+        ztitle=zCASE +' mean Iso 17 DegC \n'+str(zc_year)
+        vmin=0. ; vmax=2400. ; vint=100.   ;   contours=[0.,100.,200.,400.,800.,1200.,1600.,2000.,2400.]
+        limits=[vmin,vmax,vint]  ;              myticks=[0.,100.,200.,400.,800.,1200.,1600.,2000.,2400.]
+
+        klev=29
+        BATHY_MAP( ztype='isol1000', zarea='GulfS', ax=axes )
+        zzlon = zlon.values   ; zzlat = zlat.values 
+        PROJ_PLOT( zzlon, zzlat, npy.squeeze(zTemp[klev,:,:]), contours, limits,  name=ztitle, zmy_cblab=my_cblab, zmy_cmap=my_cmap, zvar=zMyvar, zarea='GulfS', ax=axes )
+        PROJ_PLOT( zzlon, zzlat, npy.squeeze(zTemp_IS[klev,:,:]), contours, limits, name=ztitle, zmy_cblab=my_cblab, zmy_cmap=my_cmap, zvar=zMyvar, zarea='GulfS', data_ref=True, ax=axes )
+        plt.tight_layout()
+
+        zfile_ext='_ATL_ISO17Clim_'
+        plt.savefig(zCONF+'-'+zCASE+zfile_ext+'y'+str(zc_year)+'.png',dpi=300)
+
+        # PLOT SSH OVER THE ATLANTIC AREA
+        #-----------------------------------------------------------------------
+        plt.clf()
+        projection_atl = ccrs.AlbersEqualArea( central_longitude=-45.0, central_latitude=45.0, false_easting=0.0, false_northing=0.0, standard_parallels=(30., 70.) )
+        fig, axes = plt.subplots( 1, 1, figsize=(11.7,8.3),  subplot_kw={'projection': projection_atl} )
+
+        zMyvar='sossheig'
+        my_cblab=r'SSH (cm)'   ;   my_cmap=plt.get_cmap('RdBu_r')
+        ztitle=zCASE +' mean SSH \n'+str(zc_year)
+        vmin=-100. ; vmax=100. ; vint=5.  ;   contours=npy.arange(vmin,vmax+vint,vint)
+        limits=[vmin,vmax,vint]           ;   myticks=npy.arange(vmin,vmax+vint,vint)
+
+        BATHY_MAP( ztype='isol1000', zarea='natl', ax=axes )
+        PROJ_PLOT( zzlon,  zzlat, zSSH*100. , contours, limits, zmy_ticks=myticks, name=ztitle, zmy_cblab=my_cblab, zmy_cmap=my_cmap, zvar=zMyvar, zarea='natl', ax=axes )
+
+        zfile_ext='_ATL_SSHClim_'
+        plt.savefig(zCONF+'-'+zCASE+zfile_ext+'y'+str(zc_year)+'.png',dpi=300)
+
+        # Plot the Time-serie for MLD at a specific location K1 mooring in the Labrador Sea and in Irminger Sea
+        # After Schott et al. DSRI2009 56.33N, -52.40W
+        #-----------------------------------------------------------------------
+
         # Define time axis for plot
         time_grid = npy.arange(zs_year,ze_year+2,1.,dtype=int)
         newlocsx = npy.array(time_grid,'f')
@@ -921,28 +1021,6 @@ def ATL_MAPSF( zlon, zlat, zMLD_M, zMLD_year, zTemp, zTemp_IS, zSSH, zdepth, zCO
         t_months = (npy.arange(12)*30.+15.)/365.
         time_axis = npy.tile(zs_year,12)+t_months
 
-        # MLD IN THE LABRADOR SEA IN MARCH
-        ###################################
-        plt.figure()
-
-        num_fram=110
-        # March mean MLD
-        zMyvar='mldr10_1'   ; fram=num_fram+1
-        my_cblab=r'MLD (m)'   ;   my_cmap=plt.get_cmap('Blues')
-        ztitle=zCASE +' mean MLD01 \n'+str(zc_year)+'  m03'
-        vmin=0. ; vmax=2400. ; vint=100.   ;   contours=[0.,100.,200.,400.,800.,1200.,1600.,2000.,2400.]
-        limits=[vmin,vmax,vint]  ;              myticks=[0.,100.,200.,400.,800.,1200.,1600.,2000.,2400.]
-
-        plt.subplot(fram)
-        zoutmap = BATHY_MAP( ztype='isol1000',zarea='labsea' )
-        PROJ_PLOT( zlon, zlat, zMLD_M, contours, limits, zmy_ticks=myticks, name=ztitle, zmy_cblab=my_cblab, zmy_cmap=my_cmap, zvar=zMyvar, zarea='labsea' )
-        plt.tight_layout()
-
-        zfile_ext='_LAB_MLDClimm03_'
-        plt.savefig(zCONF+'-'+zCASE+zfile_ext+'y'+str(zc_year)+'.png',dpi=300)
-
-        # Plot the Time-serie for MLD at a specific location K1 mooring in the Labrador Sea and in Irminger Sea
-        # After Schott et al. DSRI2009 56.33N, -52.40W
         plt.clf()
         plt.figure()
         if zCONF == 'CREG12.L75' : 
@@ -1009,83 +1087,6 @@ def ATL_MAPSF( zlon, zlat, zMLD_M, zMLD_year, zTemp, zTemp_IS, zSSH, zdepth, zCO
         zfile_ext='_LABM52W58N-MLDClim_LGTS_'
         plt.savefig(zCONF+'-'+zCASE+zfile_ext+'y'+str(zs_year)+'LASTy.png',dpi=300)
 
-        plt.clf()
-        plt.figure()
-        # MLD IN THE IRMINGER SEA IN MARCH
-        ###################################
-        num_fram=110
-        # March mean MLD
-        zMyvar='mldr10_1'   ; fram=num_fram+1
-        my_cblab=r'MLD (m)'   ;   my_cmap=plt.get_cmap('Blues')
-        ztitle=zCASE +' mean MLD01 \n'+str(zc_year)+'  m03'
-        vmin=0. ; vmax=1600. ; vint=100.   ;   contours=[0.,100.,200.,400.,600.,800.,1000.,1200.,1600.]
-        limits=[vmin,vmax,vint]  ;              myticks=[0.,100.,200.,400.,600.,800.,1000.,1200.,1600.]
-        plt.subplot(fram)
-        zoutmap = BATHY_MAP( ztype='isol1000',zarea='irmsea' )
-        PROJ_PLOT( zlon, zlat, zMLD_M, contours, limits, zmy_ticks=myticks, name=ztitle, zmy_cblab=my_cblab, zmy_cmap=my_cmap, zvar=zMyvar, zarea='irmsea' )
-        plt.tight_layout()
-
-        zfile_ext='_IRM_MLDClimm03_'
-        plt.savefig(zCONF+'-'+zCASE+zfile_ext+'y'+str(zc_year)+'.png',dpi=300)
-
-        plt.clf()
-        plt.figure()
-        # MLD IN THE GIN SEAS IN MARCH
-        ###################################
-        num_fram=110
-        # March mean MLD
-        zMyvar='mldr10_1'   ; fram=num_fram+1
-        my_cblab=r'MLD (m)'   ;   my_cmap=plt.get_cmap('Blues')
-        ztitle=zCASE +' mean MLD01 \n'+str(zc_year)+'  m03'
-        vmin=0. ; vmax=1600. ; vint=100.   ;   contours=[0.,100.,200.,400.,600.,800.,1000.,1200.,1600.]
-        limits=[vmin,vmax,vint]  ;              myticks=[0.,100.,200.,400.,600.,800.,1000.,1200.,1600.]
-        plt.subplot(fram)
-        zoutmap = BATHY_MAP( ztype='isol1000',zarea='ginsea' )
-        PROJ_PLOT( zlon, zlat, zMLD_M, contours, limits, zmy_ticks=myticks, name=ztitle, zmy_cblab=my_cblab, zmy_cmap=my_cmap, zvar=zMyvar, zarea='ginsea' )
-        plt.tight_layout()
-
-        zfile_ext='_GIN_MLDClimm03_'
-        plt.savefig(zCONF+'-'+zCASE+zfile_ext+'y'+str(zc_year)+'.png',dpi=300)
-
-        plt.clf()
-        plt.figure()
-        # PLOT ISOTHERM 17 Deg OFF CAPE HATTERAS
-        ########################################
-        num_fram=110
-        zMyvar='votemper'   ; fram=num_fram+1
-        my_cblab=r'ISO 17 (DegC)'   ;   my_cmap=plt.get_cmap('jet')
-        ztitle=zCASE +' mean Iso 17 DegC \n'+str(zc_year)
-        vmin=0. ; vmax=2400. ; vint=100.   ;   contours=[0.,100.,200.,400.,800.,1200.,1600.,2000.,2400.]
-        limits=[vmin,vmax,vint]  ;              myticks=[0.,100.,200.,400.,800.,1200.,1600.,2000.,2400.]
-
-        plt.subplot(fram)
-        klev=29
-        zoutmap = BATHY_MAP( ztype='isol1000', zarea='GulfS' )
-        zzlon = zlon.values   ; zzlat = zlat.values 
-        PROJ_PLOT( zzlon, zzlat, npy.squeeze(zTemp[klev,:,:]), contours, limits, zmy_ticks=myticks, name=ztitle, zmy_cblab=my_cblab, zmy_cmap=my_cmap, zvar=zMyvar, zarea='GulfS' )
-        PROJ_PLOT( zzlon, zzlat, npy.squeeze(zTemp_IS[klev,:,:]), contours, limits, zmy_ticks=myticks, name=ztitle, zmy_cblab=my_cblab, zmy_cmap=my_cmap, zvar=zMyvar, zarea='GulfS', data_ref=True )
-        plt.tight_layout()
-
-        zfile_ext='_ATL_ISO17Clim_'
-        plt.savefig(zCONF+'-'+zCASE+zfile_ext+'y'+str(zc_year)+'.png',dpi=300)
-
-        plt.clf()
-        plt.figure()
-        # PLOT SSH OVER THE ATLANTIC AREA
-        #################################
-        num_fram=110
-        zMyvar='sossheig'   ; fram=num_fram+1
-        my_cblab=r'SSH (cm)'   ;   my_cmap=plt.get_cmap('coolwarm')
-        ztitle=zCASE +' mean SSH \n'+str(zc_year)
-        vmin=-100. ; vmax=100. ; vint=5.  ;   contours=npy.arange(vmin,vmax+vint,vint)
-        limits=[vmin,vmax,vint]           ;   myticks=npy.arange(vmin,vmax+vint,vint)
-
-        zoutmap = BATHY_MAP( ztype='isol1000', zarea='natl' )
-        PROJ_PLOT( zzlon,  zzlat, zSSH*100. , contours, limits, zmy_ticks=myticks, name=ztitle, zmy_cblab=my_cblab, zmy_cmap=my_cmap, zvar=zMyvar, zarea='natl' )
-        #plt.tight_layout()
-
-        zfile_ext='_ATL_SSHClim_'
-        plt.savefig(zCONF+'-'+zCASE+zfile_ext+'y'+str(zc_year)+'.png',dpi=300)
 
         return
 
@@ -1955,62 +1956,8 @@ def BATHY_MAP( ztype='isol1000', zarea='arctic', ax=None ) :
 	#
 	zcolorbat='grey'  ;  zalpha=0.4
 
-	if zarea == 'arctic': # Focus on Arctic
-		#m = Basemap(projection='npstere',boundinglat=65,lon_0=-60, resolution='i')
-		ax.set_aspect('equal')  # Important pour éviter les distorsions
-		ax.set_extent([-180, 180, 65, 90], crs=ccrs.PlateCarree())  # Optionnel : limite la vue
-	elif zarea == 'labsea': # Focus on Labrador Sea
-		m = Basemap(width=1400000,height=1600000,lat_1=50.,lat_2=65,lon_0=-50,lat_0=59.5,projection='aea',resolution='i')
-	elif zarea == 'GulfS': # Focus on Gulf Stream area
-		my_area = {'lonmin':-80., 'lonmax':-40.,'latmin':30.,'latmax':50.}
-		m = Basemap(projection='cyl',llcrnrlat=my_area['latmin'],urcrnrlat=my_area['latmax'],\
-					     llcrnrlon=my_area['lonmin'],urcrnrlon=my_area['lonmax'],resolution='i')
-	elif zarea == 'irmsea': # Focus on Irminger Sea
-		m = Basemap(width=1800000,height=1600000,lat_1=50.,lat_2=65,lon_0=-30,lat_0=59.5,projection='aea',resolution='i')
-		############################################################################################################
-		bx_ISB={'name':'ISB'  ,'lon_min':-37.,'lon_max':-37.,'lat_min':61.,'lat_max':61.}
-		All_box=[bx_ISB]
-		for box in All_box:
-			lats = [box['lat_min'],box['lat_max']]
-			lons = [box['lon_min'],box['lon_max']]
-			x,y = m(lons,lats)
-			m.scatter(x,y,1,marker='o', color='r')
-		############################################################################################################
-	elif zarea == 'ginsea': # Focus on GIN Seas
-		m = Basemap(width=1400000,height=1600000,lat_1=50.,lat_2=65,lon_0=0,lat_0=74.,projection='aea',resolution='i')
-	############################################################################################################
-	elif zarea == 'cassis_BGZoom' :
-		#m = Basemap(llcrnrlon=-180,llcrnrlat=66,urcrnrlon=-80,urcrnrlat=80, resolution='i',\
-		#            projection='cass',lon_0=-140,lat_0=60)    
-		ax.set_extent([-180, -100, 66, 80], crs=ccrs.PlateCarree())
-
-		ax.add_feature(cartopy.feature.LAND, facecolor='dimgray')
-		gridlines = ax.gridlines(draw_labels=True, linestyle=':', linewidth=0.4, alpha=0.7, xlocs=npy.arange(-180, -80, 10), y_inline=True, rotate_labels=False )
-		gridlines.xlabel_style={'fontsize': 4}
-		gridlines.ylabel_style={'fontsize': 4}
-		gridlines.top_labels=False
-		gridlines.left_labels=True
-		gridlines.right_labels=False
-	############################################################################################################
-	elif zarea == 'cassis_BGZoom_HR' :
-		#m = Basemap(llcrnrlon=-80,llcrnrlat=80,urcrnrlon=-180,urcrnrlat=60, resolution='i',\
-		#            projection='cass',lon_0=0,lat_0=80)    
-		ax.set_extent([-180, -80, 66, 80], crs=ccrs.PlateCarree())
-	############################################################################################################
-	else: # Focus on North Atlantic sector
-		m = Basemap(width=6100000,height=5000000,lat_1=30.,lat_2=70,lon_0=-45,lat_0=45,projection='aea',resolution='i')
-		zcolorbat='grey'   ;  zalpha=0.7
-
-	norm = mpl.colors.Normalize(vmin=limits[0], vmax=limits[1])
-	pal = plt.get_cmap('binary')
-
-	# contour (optional)
-	if zarea == 'cassis_BGZoom' or zarea == 'cassis_BGZoom_HR' or zarea == 'arctic' :
-		CS2 = ax.contour( lon, lat, zBathy.values, linewidths=0.5, levels=contours, colors=zcolorbat, alpha=zalpha, transform=ccrs.PlateCarree() )
-	else :
-		X,Y = m(lon.values,lat.values)
-		CS2 = m.contour( X, Y, zBathy.values, linewidths=0.5,levels=contours, colors=zcolorbat, alpha=zalpha )
-	plt.clabel(CS2, CS2.levels, inline=True, fmt='%.0f', fontsize=3)
+	CS2 = ax.contour( lon, lat, zBathy.values, linewidths=0.5, levels=contours, colors=zcolorbat, alpha=zalpha, transform=ccrs.PlateCarree() )
+	plt.clabel(CS2, CS2.levels, inline=True, fmt='%.0f', fontsize=7)
 
 	return
 
@@ -2053,159 +2000,132 @@ def PROJ_PLOT( zlon, zlat, tab, contours, limits, name=None, zmy_ticks=None, zmy
 	else:
 		zfontsize=6.
 	
+	# Set default space between 2 successive longitude lines & specify if latitudes labels should be added on the left axis
+	lon_delta = 10.   ;   zleft_lab = True
+
 	############################################################################################################
 	if zarea == 'arctic': # Focus on Arctic basin
 		ax.set_aspect('equal')  
 		ax.set_extent([-180, 180, 65, 90], crs=ccrs.PlateCarree())
-		
-		ax.add_feature(cartopy.feature.LAND, facecolor='dimgray')
-		gridlines = ax.gridlines(draw_labels=True, linestyle=':', linewidth=0.4, alpha=0.7, xlocs=npy.arange(-180, 181, 20), y_inline=False, rotate_labels=False )
-		gridlines.xlabel_style={'fontsize': zfontsize}
-		gridlines.ylabel_style={'fontsize': zfontsize}
-		gridlines.top_labels=False
-		gridlines.left_labels=False
-		gridlines.right_labels=False
+
+		lon_delta = 20.   ;   zleft_lab = False
 
 	############################################################################################################
-	elif zarea == 'labsea': # Focus on Gulf Stream area
-		m = Basemap(width=1400000,height=1600000,lat_1=50.,lat_2=65,lon_0=-50,lat_0=59.5,projection='aea',resolution='i')
-		bx_LABK1={'name':'K1'  ,'lon_min':-52.4,'lon_max':-52.4,'lat_min':56.3,'lat_max':56.3}
-		All_box=[bx_LABK1]
-		for box in All_box:
-			lats = [box['lat_min'],box['lat_max']]
-			lons = [box['lon_min'],box['lon_max']]
-			x,y = m(lons,lats)
-			m.scatter(x,y,1,marker='o', color='r')
+	elif zarea == 'labsea': # Focus on Labrador area
+		ax.set_extent([-70, -30, 50, 65], crs=ccrs.PlateCarree())
+
 	############################################################################################################
 	elif zarea == 'GulfS': # Focus on Gulf Stream area
-		my_area = {'lonmin':-80., 'lonmax':-40.,'latmin':30.,'latmax':50.}
-		m = Basemap(projection='cyl',llcrnrlat=my_area['latmin'],urcrnrlat=my_area['latmax'],\
-					     llcrnrlon=my_area['lonmin'],urcrnrlon=my_area['lonmax'],resolution='i')
+		ax.set_extent([-80, -40, 30, 50], crs=ccrs.PlateCarree())
+		lon_delta = 5.
+
 	############################################################################################################
 	elif zarea == 'irmsea': # Focus on Irminger Sea
-		m = Basemap(width=1800000,height=1600000,lat_1=50.,lat_2=65,lon_0=-30,lat_0=59.5,projection='aea',resolution='i')
-		bx_ISB={'name':'ISB'  ,'lon_min':-37.,'lon_max':-37.,'lat_min':61.,'lat_max':61.}
-		All_box=[bx_ISB]
-		for box in All_box:
-			lats = [box['lat_min'],box['lat_max']]
-			lons = [box['lon_min'],box['lon_max']]
-			x,y = m(lons,lats)
-			m.scatter(x,y,1,marker='o', color='r')
+		ax.set_extent([-45, -15, 50, 65], crs=ccrs.PlateCarree())
+
 	############################################################################################################
-	elif zarea == 'cassis_BGZoom' :
-		#m = Basemap(llcrnrlon=-180,llcrnrlat=66,urcrnrlon=-80,urcrnrlat=80, resolution='i',\
-		#            projection='cass',lon_0=-140,lat_0=60)    
-		#ax.set_extent([-180, -80, 66, 80], crs=ccrs.PlateCarree())
-		#ax.set_extent([-180, -120, 66, 80], crs=ccrs.PlateCarree())
+	elif zarea == 'cassis_BGZoom' : # Focus on Beaufort Gyre 
 		ax.set_extent([-180, -80, 66, 85], crs=ccrs.PlateCarree())
 
-		ax.add_feature(cartopy.feature.LAND, facecolor='dimgray')
-		gridlines = ax.gridlines(draw_labels=False, linestyle=':', linewidth=0.4, alpha=0.7, xlocs=npy.arange(-180, -80, 10), y_inline=True, rotate_labels=False )
-		gridlines.xlabel_style={'fontsize': 4}
-		gridlines.ylabel_style={'fontsize': 4}
-		gridlines.top_labels=False
-		gridlines.left_labels=True
-		gridlines.right_labels=False
 	############################################################################################################
-	elif zarea == 'cassis_BGZoom_HR' :
-		m = Basemap(llcrnrlon=-80,llcrnrlat=80,urcrnrlon=-180,urcrnrlat=60, resolution='i',\
-		            projection='cass',lon_0=0,lat_0=80)    
+	elif zarea == 'cassis_BGZoom_HR' : # Focus on Beaufort Gyre 
+		ax.set_extent([-180, -80, 66, 80], crs=ccrs.PlateCarree())
+
 	############################################################################################################
 	elif zarea == 'ginsea': # Focus on GIN Seas
-		m = Basemap(width=1400000,height=1600000,lat_1=50.,lat_2=65,lon_0=0,lat_0=74.,projection='aea',resolution='i')
+		ax.set_extent([-25, 25, 66, 82], crs=ccrs.PlateCarree())
+
 	############################################################################################################
 	elif zarea == 'natl': # Focus on North Atlantic sector
-		 m = Basemap(width=6100000,height=5000000,lat_1=30.,lat_2=70,lon_0=-45,lat_0=45,projection='aea',resolution='i')
-	
-	# Need to kepp the following lines for compatibility with Basemap
-	if zarea == 'GulfS' or zarea == 'labsea' or zarea == 'irmsea' or zarea == 'ginsea' or zarea == 'natl':
-		m.drawparallels(npy.arange(-90.,91.,2.),labels=[True,False,False,False], size=zfontsize, linewidth=0.3, color='grey',alpha=0.70 )
-		m.drawmeridians(npy.arange(-180.,181.,5.),labels=[False,False,False,True], size=zfontsize, latmax=90.,linewidth=0.3, color='grey',alpha=0.70 )
-		m.fillcontinents(color='grey',lake_color='white')
+		ax.set_extent([-80, 0, 25, 70], crs=ccrs.PlateCarree())
+
+	# Set gridlines
+	ax.add_feature(cartopy.feature.LAND, facecolor='dimgray')
+	gridlines = ax.gridlines(draw_labels=True, linestyle=':', linewidth=0.4, alpha=0.7, xlocs=npy.arange(-180, 181, lon_delta), y_inline=False, rotate_labels=False )
+	gridlines.xlabel_style={'fontsize': zfontsize}
+	gridlines.ylabel_style={'fontsize': zfontsize}
+	gridlines.top_labels=False
+	gridlines.left_labels=zleft_lab
+	gridlines.right_labels=False
+
 	
 	norm = mpl.colors.Normalize(vmin=limits[0], vmax=limits[1])
 	
-	if zmy_cmap != None :
-		pal = zmy_cmap
-	else:
-		pal = plt.get_cmap('coolwarm')
-	
-	if zarea == 'GulfS' and zvar == 'votemper' :
-		if data_ref :
-			zlinewidths=1.1   ; zcolor='g'
-		else:	
-			zlinewidths=0.8   ; zcolor='r'
-		X,Y = m(zlon,zlat)
-		C = m.contour( X, Y, tab, linewidths=zlinewidths, levels=[17.], colors=zcolor )
+	pal = plt.get_cmap('RdBu_r')
+	if zmy_cmap != None : pal = zmy_cmap
 
-	elif zarea == 'labsea' or zarea == 'irmsea' or zarea == 'ginsea' or zarea == 'natl' :
-		X,Y = m(zlon,zlat)
-		C = m.contourf( X,Y,tab,contours,cmap=pal,norm=norm,extend='both' )
-
-	else:
-		if zplot_obs == 0 : 
-			C = tab.plot.pcolormesh( ax=ax, levels=contours, cmap=pal, transform = ccrs.PlateCarree(), add_colorbar=False, add_labels=True )
+	if zplot_obs == 0 : 
+		if zarea == 'GulfS' and zvar == 'votemper' :
+			if data_ref :
+				zlinewidths=1.1   ; zcolor='g'
+			else:	
+				zlinewidths=0.8   ; zcolor='r'
+			C = ax.contour( zlon, zlat, tab, linewidths=zlinewidths, levels=[17.], colors=zcolor )
 		else :
-			if zvar == 'ssh' or zvar == 'mldr10_1' or zvar == 'siconc' :
+			C = tab.plot.pcolormesh( ax=ax, levels=contours, cmap=pal, transform = ccrs.PlateCarree(), add_colorbar=False, add_labels=True )
+	else :
+		if zvar == 'ssh' or zvar == 'mldr10_1' or zvar == 'siconc' :
+			C = ax.pcolormesh( zlon, zlat, tab, vmin=limits[0], vmax=limits[1], cmap=zmy_cmap, transform = ccrs.PlateCarree() )
+			if zvar == 'ssh' :
+				ax.contour( zlon, zlat, tab, linewidths=0.6, levels=npy.arange((limits[1]-limits[0])/5+1)*5+limits[0], colors='grey', transform = ccrs.PlateCarree()  )
+		elif zvar == 'voeke' :
+			if zmy_year >= 2015 : # Plot Cryosat data 
 				C = ax.pcolormesh( zlon, zlat, tab, vmin=limits[0], vmax=limits[1], cmap=zmy_cmap, transform = ccrs.PlateCarree() )
-			elif zvar == 'voeke' :
-				if zmy_year >= 2015 : # Plot Cryosat data 
-					C = ax.pcolormesh( zlon, zlat, tab, vmin=limits[0], vmax=limits[1], cmap=zmy_cmap, transform = ccrs.PlateCarree() )
-				else :
-					C = ax.contourf( zlon, zlat, tab, levels=contours, cmap=pal, norm=norm, extend='both', transform = ccrs.PlateCarree() )
 			else :
 				C = ax.contourf( zlon, zlat, tab, levels=contours, cmap=pal, norm=norm, extend='both', transform = ccrs.PlateCarree() )
+		else :
+			C = ax.contourf( zlon, zlat, tab, levels=contours, cmap=pal, norm=norm, extend='both', transform = ccrs.PlateCarree() )
 
-		############################################################################################################
-		############################################################################################################
-		moorplot=1
-		if moorplot == 1 :
-				bx_ARCB={'name':'B'  ,'lon_min':-150.,'lon_max':-150.,'lat_min':78.,'lat_max':78.}
-				bx_ARCM={'name':'M1' ,'lon_min': 125.,'lon_max': 125.,'lat_min':78.,'lat_max':78.}
-				bx_EURA={'name':'EUR','lon_min':  60.,'lon_max':  60.,'lat_min':85.,'lat_max':85.}
+	############################################################################################################
+	############################################################################################################
+	moorplot=1
+	if moorplot == 1 :
+			bx_ARCB={'name':'B'  ,'lon_min':-150.,'lon_max':-150.,'lat_min':78.,'lat_max':78.}
+			bx_ARCM={'name':'M1' ,'lon_min': 125.,'lon_max': 125.,'lat_min':78.,'lat_max':78.}
+			bx_EURA={'name':'EUR','lon_min':  60.,'lon_max':  60.,'lat_min':85.,'lat_max':85.}
 
-				All_box=[bx_ARCB,bx_EURA]
-				for box in All_box:
-					lats = [box['lat_min'],box['lat_max']]
-					lons = [box['lon_min'],box['lon_max']]
-					ax.scatter(lons,lats,1,marker='o', color='r', transform=ccrs.PlateCarree())
-		############################################################################################################
-		############################################################################################################
+			All_box=[bx_ARCB,bx_EURA]
+			for box in All_box:
+				lats = [box['lat_min'],box['lat_max']]
+				lons = [box['lon_min'],box['lon_max']]
+				ax.scatter(lons,lats,1,marker='o', color='r', transform=ccrs.PlateCarree())
+	############################################################################################################
+	############################################################################################################
 	
-		# colorbar	
-		if zmy_ticks is None:
-			cbar = plt.colorbar(C,format='%.2f',orientation='vertical',shrink=0.8)
-		else:
-			if zvar == 'votemper' or zvar == 'vosaline' or zvar == 'sivolu' :
-				cbar = plt.colorbar(C,format='%.2f',orientation='vertical',shrink=0.8,drawedges=True)
-			elif zvar == 'sobarstf' or zvar == 'topos' :
-				cbar = plt.colorbar(C,format='%.2f',orientation='vertical',shrink=0.6,drawedges=True)
-			elif zvar == 'mlt' or zvar == 'mls' :
-				cbar = plt.colorbar(C,ticks=zmy_ticks,format='%.1f',orientation='vertical',shrink=0.7)
-			elif zvar == 'voeke' :
-				if zplot_obs == 1 :
-					if zmy_year >= 2015 : # Plot Cryosat data 
-						cbar = plt.colorbar(C,format='%.2f',orientation='vertical',shrink=0.8,extend='both')
-					else :
-						cbar = plt.colorbar(C,format='%.2f',orientation='vertical',shrink=0.8,drawedges=True)
+	# colorbar	
+	if zmy_ticks is None and zarea != 'GulfS' :
+		cbar = plt.colorbar(C,format='%.2f',orientation='vertical',shrink=0.8)
+	elif zarea != 'GulfS' :
+		if zvar == 'votemper' or zvar == 'vosaline' or zvar == 'sivolu' :
+			cbar = plt.colorbar(C,format='%.2f',orientation='vertical',shrink=0.8,drawedges=True)
+		elif zvar == 'sobarstf' or zvar == 'topos' :
+			cbar = plt.colorbar(C,format='%.2f',orientation='vertical',shrink=0.6,drawedges=True)
+		elif zvar == 'mlt' or zvar == 'mls' :
+			cbar = plt.colorbar(C,ticks=zmy_ticks,format='%.1f',orientation='vertical',shrink=0.7)
+		elif zvar == 'voeke' :
+			if zplot_obs == 1 :
+				if zmy_year >= 2015 : # Plot Cryosat data 
+					cbar = plt.colorbar(C,format='%.2f',orientation='vertical',shrink=0.8,extend='both')
 				else :
 					cbar = plt.colorbar(C,format='%.2f',orientation='vertical',shrink=0.8,drawedges=True)
-			elif zvar == 'mldr10_1' :
-				cbar = plt.colorbar(C,ticks=zmy_ticks,format='%.0f',orientation='vertical',shrink=0.6,extend='both')
-			elif zvar == 'ssh' or zvar == 'FWC' :
-				cbar = plt.colorbar(C,ticks=zmy_ticks,format='%.0f',orientation='vertical',shrink=0.6,extend='both')
-			elif zvar == 'siconc' :
-				cbar = plt.colorbar(C,format='%.0f',orientation='vertical',shrink=0.8,extend='both')
-			else:
-				cbar = plt.colorbar(C,format='%.0f',orientation='vertical',shrink=0.8,drawedges=True)
+			else :
+				cbar = plt.colorbar(C,format='%.2f',orientation='vertical',shrink=0.8,drawedges=True)
+		elif zvar == 'mldr10_1' :
+			cbar = plt.colorbar(C,ticks=zmy_ticks,format='%.0f',orientation='vertical',shrink=0.6,extend='both')
+		elif zvar == 'ssh' or zvar == 'FWC' :
+			cbar = plt.colorbar(C,ticks=zmy_ticks,format='%.0f',orientation='vertical',shrink=0.6,extend='both')
+		elif zvar == 'siconc' :
+			cbar = plt.colorbar(C,format='%.0f',orientation='vertical',shrink=0.8,extend='both')
+		else:
+			cbar = plt.colorbar(C,format='%.0f',orientation='vertical',shrink=0.8,drawedges=True)
 
-			cbar.set_label(zmy_cblab,fontsize=zfontsize)
-			cl = plt.getp(cbar.ax, 'ymajorticklabels')
-			plt.setp(cl, fontsize=zfontsize)
-			#if ztickslabels != None and zvar == 'voeke' : 
-			#	zticks = npy.linspace(1e-6, 1e-2, 5)
-			#	cbar.set_ticks(10**zticks)
-			#	cbar.ax.set_yticklabels(ztickslabels)
+		cbar.set_label(zmy_cblab,fontsize=zfontsize)
+		cl = plt.getp(cbar.ax, 'ymajorticklabels')
+		plt.setp(cl, fontsize=zfontsize)
+		#if ztickslabels != None and zvar == 'voeke' : 
+		#	zticks = npy.linspace(1e-6, 1e-2, 5)
+		#	cbar.set_ticks(10**zticks)
+		#	cbar.ax.set_yticklabels(ztickslabels)
 	
 	ax.set_title(name,fontsize=zfontsize)
 	

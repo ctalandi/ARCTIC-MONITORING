@@ -64,13 +64,10 @@ def SSH_OBS( t_year=1959 ) :
 	
 		# Compute the mean over the obs. monthly period 2003-2014
 		out_ssh_OBS = ssh_init.mean(dim='date').squeeze()
-		ssh_OBS_obsper = 'Envisat 2003-2014'
-	
-		# Remove the domain mean to get an anomaly
-		out_ssh_OBS = out_ssh_OBS - ssh_init.mean()
 		out_ssh_OBS.coords['lat'] =(('y','x'), SSH_lat2D)
 		out_ssh_OBS.coords['lon'] =(('y','x'), SSH_lon2D)
-
+		ssh_OBS_obsper = 'Envisat 2003-2014'
+	
 	elif t_year >= 2003 and t_year <=2014 :
 		locpath='./DATA/'
 		locfile='EKE_DOT_based_2003-2014.nc'
@@ -86,12 +83,9 @@ def SSH_OBS( t_year=1959 ) :
 		# Get the specific year
 		s_ind=(t_year-2003)*12	 
 		out_ssh_OBS = ssh_init.isel(date=slice(s_ind,s_ind+12)).mean(dim='date').squeeze()
-		ssh_OBS_obsper = 'Envisat '+str(t_year)
-
-		# Remove the domain mean to get an anomaly
-		out_ssh_OBS = out_ssh_OBS - ssh_init.mean()
 		out_ssh_OBS.coords['lat'] =(('y','x'), SSH_lat2D)
 		out_ssh_OBS.coords['lon'] =(('y','x'), SSH_lon2D)
+		ssh_OBS_obsper = 'Envisat '+str(t_year)
 
 	# Focus on the CRYOSAT-2 observation period 
 	############################################
@@ -116,10 +110,23 @@ def SSH_OBS( t_year=1959 ) :
 		# Remove all data before 2015 and after 2024 (2025 is from January to September)
 		ssh_20152024 = ssh_init.where(ssh_init.time.dt.year >= 2015, drop=True)
 		ssh_20152024 = ssh_20152024.where(ssh_20152024.time.dt.year <= 2024, drop=True)
-		out_ssh_OBS = ssh_20152024.sel(time=str(t_year)).mean(dim='time') - ssh_20152024.mean()
+		out_ssh_OBS = ssh_20152024.sel(time=str(t_year)).mean(dim='time')
 		out_ssh_OBS.coords['lat'] =(('y','x'), SSH_lat2D.values)
 		out_ssh_OBS.coords['lon'] =(('y','x'), SSH_lon2D.values)
 		ssh_OBS_obsper = 'Cryosat-2 '+str(t_year)
+
+		# Detect the longitude jump of the curvilinear grid 
+		# If not doing that, a polygon will be drawn on the polar projection
+		dlon_x = npy.abs( npy.diff(SSH_lon2D.values, axis=1) )
+		dlon_y = npy.abs( npy.diff(SSH_lon2D.values, axis=0) )
+		
+		seam = npy.zeros( out_ssh_OBS.shape, dtype=bool )
+		seam[:, :-1] |= dlon_x > 180
+		seam[:, 1:]  |= dlon_x > 180
+		seam[:-1, :] |= dlon_y > 180
+		seam[1:, :]  |= dlon_y > 180
+		
+		out_ssh_OBS = out_ssh_OBS.where(~seam)
 
 	return out_ssh_OBS, SSH_lon2D, SSH_lat2D, ssh_OBS_obsper
 
