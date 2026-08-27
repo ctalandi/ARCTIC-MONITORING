@@ -592,21 +592,21 @@ if lgTS_ye-lgTS_ys+1 > 1 :
 	xwind=312
 	ax=plt.subplot(xwind+1)
 	plt.plot(time_axis, LongTS_VEICE*100 , 'k', label='Model CRF box' , linewidth=0.5 )
-	plt.plot(time_axis_obs, IABPObservations*100 , 'g', label='Obs. CRF box', linewidth=0.5  )
+	plt.plot(time_axis_obs, IABPObservations*100 , 'g', label='NSIDC v4.1 Obs. 1979-2023 ', linewidth=0.5  )
 	plt.text(1981,13.,str(npy.round(npy.nanmean(LongTS_VEICE)*100. ,decimals=1)),color='k',size=6)
 	plt.text(1984,13.,str(npy.round(npy.nanmean(IABPObservations)*100. ,decimals=1)),color='g',size=6)
 	plt.xlim([lgTS_ys-1.,2025.])
-	plt.ylim([0,15])
+	plt.ylim([0,20])
 	plt.xticks(newlocsx,newlabelsx,size=5)
 	plt.setp(ax.get_xticklabels(),rotation=90)
 	plt.yticks(size=6)
 	plt.grid(True, linestyle='--', which='both', color='grey', alpha=0.50)
 	plt.ylabel('Ice drift '+r'(cm $s^{-1}$)',size=7)
 	
-	plt.legend(loc='lower left',ncol=2)
+	plt.legend(loc='upper left',ncol=2)
 	leg = plt.gca().get_legend()
 	ltext = leg.get_texts()
-	plt.setp(ltext, fontsize=4)
+	plt.setp(ltext, fontsize=3)
 
 	plt.tight_layout()
 	plt.savefig(CONFIG+'-'+CASE+'_FWC-WEK-ICEDrift-LGTS_y'+str(lgTS_ys)+'LASTy.png',dpi=400)
@@ -697,7 +697,7 @@ if lgTS_ye-lgTS_ys+1 > 1 :
 		ds_outTS['LongTS_OBS_CRFFWC'].attrs['long_name']='Freshwater content over the CRF box from Proshutinsky et al. GRL2018 observations'
 		ds_outTS['LongTS_OBS_CRFFWC'].attrs['units']="m/s"
 		ds_outTS['IABPObservations']= (('time_axis_obs'), IABPObservations.astype('float32')) 
-		ds_outTS['IABPObservations'].attrs['long_name']='Sea-ice drift from IABP observation system'
+		ds_outTS['IABPObservations'].attrs['long_name']='Sea-ice drift from NSIDC v4.1 observation (using the velocity field available '
 		ds_outTS['IABPObservations'].attrs['units']="m/s"
 
 		if MassSaltFLX :

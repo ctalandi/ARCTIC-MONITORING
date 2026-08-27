@@ -58,7 +58,7 @@ def READ_OBS_LGTS_DATA(CONFIG,lgTS_ys,lgTS_ye) :
         Respective filenames are :
         	- PIOMAS_icevol_maskedBeringSea_interp+CONFIG+_1-12_1979-2024.nc (over the range 1979-2024)
         	- NSIDC-G02202-v6_ice_area_and_extent_TiSe_y1978-11-2026-03_maskBeringSea_fullPoleGap.nc (over the range 1979-2025)
-        	- IABP_ice_drift_BG_1979-2016.mat (over the range 1979-2016)
+        	- NSIDC_Arctic-Eurasia-Beaufort_IceDrift_monthly_25km_19792023.nc (over the range 1979-2023)
         
         Compute also the ice extent and its September minimum as well
         
@@ -128,19 +128,19 @@ def READ_OBS_LGTS_DATA(CONFIG,lgTS_ys,lgTS_ye) :
         LongTS_OBS_Septiceext = ds_fld['ice_extent'].sel(time=ds_fld.time.dt.month == 9)
         LongTS_OBS_Septiceext_time = pd.date_range(start='1979-01',end='2025-12',freq='YS') + pd.DateOffset(days=257)
 
-        # Ice drift from IABP
-        # Data start in 18/01/1979, with 784 Buoys and 2 smapling / day : 0 & 12 
+        # Ice drift from NSIDC v4.1
+        # Monthly data 1979-01-15 to 2023-12-15
         locpath='./DATA/'
-        locfile='IABP_ice_drift_BG_1979-2016.mat'
+        locfile='NSIDC_Arctic-Eurasia-Beaufort_IceDrift_monthly_25km_19792023.nc'
         if chkfile(locpath+locfile) :
-                IABPObservations_read = sio.loadmat(locpath+locfile,squeeze_me=True)
-                IABPObservations = npy.array(IABPObservations_read['time_series'])
+                IABPObservations_read = xr.open_dataset(locpath+locfile)
+                IABPObservations = (IABPObservations_read['BG_icedrift']*100.).values
         else:
-                IABPObservations = npy.arange(456)+npy.nan
+                IABPObservations = npy.arange(540)+npy.nan
         
         # Set the time axis for observations
         lgts_year=1979    ;      start = 1
-        while  lgts_year <= 2016  :
+        while  lgts_year <= 2023  :
                 y_years=npy.tile(lgts_year,12)+t_months
                 if start == 1:
                         time_axis_IABP=y_years
