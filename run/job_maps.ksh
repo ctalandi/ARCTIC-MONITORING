@@ -91,6 +91,8 @@ if [ $getfiles -eq 1 ] ; then
         ln -sf ${OBS_DIR}/OCEAN/EKEGeos_CPOM_DOT_2003-2014_Yearlymean.nc .
         ln -sf ${OBS_DIR}/OCEAN/Full_DOT_data_Arco_2025_09.nc .
         ln -sf ${OBS_DIR}/OCEAN/Full_EKEGeos_data_Arco_2011-2024.nc .
+        ln -sf ${OBS_DIR}/OCEAN/BFG_inc15cm_monthly_2011-2025_fromDOT_data_Arco.nc .
+        ln -sf ${OBS_DIR}/OCEAN/BFG_inc15cm_monthly_2003-2014_fromCPOM_DOT.nc .
         ln -sf ${OBS_DIR}/OCEAN/MLD_MIMOC_based_monthlyClim_rhocrit0.1.nc .
         ln -sf ${OBS_DIR}/OCEAN/MIMOC_ML_v2.2_PT_S_MLP_Clim.nc .
         ln -sf ${OBS_DIR}/OCEAN/BeaufortGyreFWC-Obs-Proshutinsky_GRL2018_y2003-2017.nc .

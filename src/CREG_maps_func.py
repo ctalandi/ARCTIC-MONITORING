@@ -70,7 +70,7 @@ except:
 def BFG_MAPSF( zlon, zlat, zvar_ssh, zbathy, zarea, zCONF, zCASE, zs_year, zlgTS_ys, zlgTS_ye, zncout ) :
 ################################################################################################################################
 	"""
-	Function dedicated to compute the Beaufort Gyre mass center as closed contours using the SSH 
+	Function dedicated to compute the Beaufort Gyre mass center as closed contours using the SSH as well
 	
 	History: This code has been developed by Heather Regan and slightly adapted to be included into the MONARC
 		 See Regan et al. JPO2020 ; https://doi.org/10.1175/JPO-D-19-0234.1
@@ -100,6 +100,7 @@ def BFG_MAPSF( zlon, zlat, zvar_ssh, zbathy, zarea, zCONF, zCASE, zs_year, zlgTS
 	    LongTS_OBS_Septiceext_time : NSIDC data time axis for September minimum ice extent 
 	"""
 	# ----------------------------------------------------------------------
+	ll_dbg = False 		# Debug prints 
 
 	## This is the increment that will be iterated on for identifying closed contours
 	## smaller value = smaller increments, so takes longer, but less likely to miss small variations in contour edges so better for higher resolutions
@@ -116,17 +117,20 @@ def BFG_MAPSF( zlon, zlat, zvar_ssh, zbathy, zarea, zCONF, zCASE, zs_year, zlgTS
 	########################################
 	# Compute the Beaufort Gyre center location and closed contour
 	########################################
+	print()
+	print(' 		Compute the BFG DOT contours ')
+	print()
 	#------------------------------------------------------------------------------------------------------------------------
 
 	timetype = 'yearly'
+	zincr = increment_in*1
 
 	# Compute the annual mean SSH
 	zssh_ym = zvar_ssh.mean(dim='time_counter').values.squeeze()
-	zincr = increment_in*1
 
-	start_time = time.time()
+	if ll_dbg : start_time = time.time()
 	msk_ym, BG_maxval_ym, BG_minval_ym, BG_maxlat_ym, BG_maxlon_ym, BG_area_ym = BFG_COMPUTE( zlon, zlat, zssh_ym, zbathy, 'SSH', zincr, zarea )
-	print('			Computing wall time (s) : ',time.time() - start_time)
+	if ll_dbg : print('			Computing wall time (s) : ',time.time() - start_time)
 
 	#------------------------------------------------------------------------------------------------------------------------
 
@@ -139,68 +143,122 @@ def BFG_MAPSF( zlon, zlat, zvar_ssh, zbathy, zarea, zCONF, zCASE, zs_year, zlgTS
 
 	timetype = 'monthly'
 
-	# For monthly mean 
+	# For monthly mean SSH
 	for zmm in range(0,12):
 	
-		print()
-		print(' Considered month : ',calendar.month_name[zmm+1])
-
-		zincr = increment_in*1
-
-		# Select one month 
+		if ll_dbg : print()
+		if ll_dbg : print(' 	Considered month : ',calendar.month_name[zmm+1])
+	
+		# Select one monthly mean SSH
 		zssh = zvar_ssh.isel(time_counter=zmm).values.squeeze()
-
-		start_time = time.time()
+	
+		if ll_dbg : start_time = time.time()
 		msk[zmm,:,:], BG_maxval[zmm], BG_minval[zmm], BG_maxlat[zmm], BG_maxlon[zmm], BG_area[zmm] = BFG_COMPUTE( zlon, zlat, zssh, zbathy, 'SSH', zincr, zarea )
-		print('			Computing wall time (s) : ',time.time() - start_time)
+		if ll_dbg :  print('			Computing wall time (s) : ',time.time() - start_time)
 
 	#------------------------------------------------------------------------------------------------------------------------
 
-	# Plot the yearly closed contours as the BFG center as well 
+        #----------- MODEL YEARLY CLOSED CONTOURS AS THE BFG CENTER 
+	#------------------------------------------------------------------------------------------------------------------------
 	plt.clf()
-	fig=plt.figure()
-	projection = ccrs.Orthographic(central_longitude=-160, central_latitude=60)
+	fig, axes = plt.subplots( 2, 2, figsize=(11.7,8.3),  subplot_kw={'projection': ccrs.NorthPolarStereo(central_longitude=-150, true_scale_latitude=60)} )
+	axes = axes.flatten()
+
+	ax1 = axes[0] ; ax2 = axes[1] ; ax3 = axes[2] ; ax4 = axes[3]
 	
-	fram=211
-	ax = fig.add_subplot(fram, projection=projection)
-	zoutmap = BATHY_MAP( ztype='isol1000', zarea='cassis_BGZoom', ax=ax )	
+	BATHY_MAP( ztype='isol1000', ax=ax1 )
 
 	if npy.nansum(msk_ym) > 0:
 		msk_plot = xr.where( npy.isnan(msk_ym), 0., msk_ym*1 )
-		CS2 = ax.contour( zlon, zlat, msk_plot, linewidths=0.5, colors='k', transform=ccrs.PlateCarree() )
+		zMyvar='bfgcnt'
+		contours = [1.] ; limits = [0., 1.]
+		PROJ_PLOT( zlon, zlat, msk_plot, contours, limits, zvar=zMyvar, zarea='cassis_BGZoom', ax=ax1, zcolor='k' )
+
 	# Get indices of the BFG center 
 	[r,c] = npy.nonzero( msk_ym*zssh_ym == npy.nanmax(msk_ym*zssh_ym) )
-	
 	clat = [zlat[r.item(),c.item()].values,]
 	clon = [zlon[r.item(),c.item()].values,]
-	ax.scatter(clon[0],clat[0], s=10, marker='o', color='k', transform=ccrs.PlateCarree())
-	plt.title( zCASE+' BFG SSH contours \n yearly mean SSH '+str(zs_year), fontsize=6 )
 
+	ax1.scatter(clon[0],clat[0], s=15, marker='o', color='k', transform=ccrs.PlateCarree())
+	ax1.set_title( zCASE+' BFG SSH contours \n yearly mean SSH '+str(zs_year), fontsize=6 )
 
-        # Plot the monthly closed contours as the BFG center as well 
+        #----------- MODEL MONTHLY CLOSED CONTOURS AS THE BFG CENTER 
+	#------------------------------------------------------------------------------------------------------------------------
 	cmap = plt.get_cmap('Spectral_r')
 	colors = [cmap(i) for i in npy.linspace(0, 1, 12)]
 
-	fram=212
-	ax = fig.add_subplot(fram, projection=projection)
-	zoutmap = BATHY_MAP( ztype='isol1000', zarea='cassis_BGZoom', ax=ax )	
-
+	BATHY_MAP( ztype='isol1000', ax=ax3 )
+ 
 	for zmm in range(0,12):
 		if npy.nansum(msk[zmm,:,:]) > 0:
 			msk_plot = xr.where( npy.isnan(msk[zmm,:,:]), 0., msk[zmm,:,:]*1 )
-			CS2 = ax.contour( zlon, zlat, msk_plot, linewidths=0.5, colors=colors[zmm], transform=ccrs.PlateCarree() )
+			zMyvar='bfgcnt'
+			contours = [1.] ; limits = [0., 1.]
+			PROJ_PLOT( zlon, zlat, msk_plot, contours, limits, zvar=zMyvar, zarea='cassis_BGZoom', ax=ax3, zcolor=colors[zmm] )
+
 		# Get indices of the BFG center 
 		[r,c] = npy.nonzero( msk[zmm,:,:]*zvar_ssh.isel(time_counter=zmm) == npy.nanmax(msk[zmm,:,:]*zvar_ssh.isel(time_counter=zmm)) )
-		
 		clat = [zlat[r.values.item(),c.values.item()],]
 		clon = [zlon[r.values.item(),c.values.item()],]
-		ax.scatter(clon[0],clat[0], s=10, marker='o', color=colors[zmm], transform=ccrs.PlateCarree())
+
+		ax3.scatter(clon[0],clat[0], s=15, marker='o', color=colors[zmm], transform=ccrs.PlateCarree())
+	
+	legend_elements = [ Line2D([0], [0], color=colors[i], lw=1, label=calendar.month_name[i+1]) for i in range(len(colors)) ]
+	ax3.legend(handles=legend_elements, bbox_to_anchor=(0.95, 0.85), ncol=1, fontsize=6, handlelength=1.5, handletextpad=0.5, borderpad=0.2, labelspacing=0.2)
+	ax3.set_title( ' monthly mean SSH '+str(zs_year), fontsize=6 )
+	plt.tight_layout()
+ 
+
+        #----------- OBS YEARLY CLOSED CONTOURS AS THE BFG CENTER 
+	#------------------------------------------------------------------------------------------------------------------------
+
+	ds_obs_BFG, zlon_obs, zlat_obs, lat_Hmax, lon_Hmax, obs_data_name = BFGDOT_OBS( t_year=int(zs_year) ) 
+
+	# Compute the annual mean contour
+	obsmsk_ym = ds_obs_BFG.mean(dim='time')
+
+	BATHY_MAP( ztype='isol1000', ax=ax2 )
+ 
+	if npy.nansum(obsmsk_ym) > 0:
+		msk_plot = xr.where( npy.isnan(obsmsk_ym), 0., obsmsk_ym*1 )
+		zMyvar='bfgcnt'
+		contours = [1.] ; limits = [0., 1.]
+		PROJ_PLOT( zlon_obs, zlat_obs, msk_plot, contours, limits, zvar=zMyvar, zarea='cassis_BGZoom', ax=ax2, zcolor='k')
+	
+	# Get indices of the BFG center 
+	clat = lat_Hmax.mean(dim='time')
+	clon = lon_Hmax.mean(dim='time')
+
+	ax2.scatter(clon,clat, s=15, marker='o', color='k', transform=ccrs.PlateCarree())
+	ax2.set_title( obs_data_name+' BFG DOT contours \n yearly mean  '+str(zs_year), fontsize=6 )
+	
+	#----------- OBS MONTHLY CLOSED CONTOURS AS THE BFG CENTER 
+	#------------------------------------------------------------------------------------------------------------------------
+	cmap = plt.get_cmap('Spectral_r')
+	colors = [cmap(i) for i in npy.linspace(0, 1, 12)]
+	
+	obsmsk = ds_obs_BFG
+	
+	BATHY_MAP( ztype='isol1000', ax=ax4 )
+
+	for zmm in range(0,12):
+		if npy.nansum(obsmsk[zmm,:,:]) > 0:
+			msk_plot = xr.where( npy.isnan(obsmsk[zmm,:,:]), 0., obsmsk[zmm,:,:]*1 )
+			zMyvar='bfgcnt'
+			contours = [1.] ; limits = [0., 1.]
+			PROJ_PLOT( zlon_obs, zlat_obs, msk_plot, contours, limits, zvar=zMyvar, zarea='cassis_BGZoom', ax=ax4, zcolor=colors[zmm] )
+	
+		# Get indices of the BFG center 
+		clat = lat_Hmax[zmm]
+		clon = lon_Hmax[zmm]
+
+		ax4.scatter(clon,clat, s=15, marker='o', color=colors[zmm], transform=ccrs.PlateCarree())
 
 	legend_elements = [ Line2D([0], [0], color=colors[i], lw=1, label=calendar.month_name[i+1]) for i in range(len(colors)) ]
-	plt.legend(handles=legend_elements, bbox_to_anchor=(0.95, 0.85), ncol=1, fontsize=6, handlelength=1.5, handletextpad=0.5, borderpad=0.2, labelspacing=0.2)
-	plt.title( ' monthly mean SSH '+str(zs_year), fontsize=6 )
+	ax4.legend(handles=legend_elements, bbox_to_anchor=(0.95, 0.85), ncol=1, fontsize=6, handlelength=1.5, handletextpad=0.5, borderpad=0.2, labelspacing=0.2)
+	ax4.set_title( obs_data_name+' BFG DOT contours \n monthly mean '+str(zs_year), fontsize=6 )
 	plt.tight_layout()
-
+ 
 	zfile_ext='_BFGCenter_'+'y'+str(zs_year)
 	plt.savefig(zCONF+'-'+zCASE+zfile_ext+'.png',dpi=300)
 
@@ -218,7 +276,7 @@ def BFG_MAPSF( zlon, zlat, zvar_ssh, zbathy, zarea, zCONF, zCASE, zs_year, zlgTS
 		ds_out.coords['BGlon'] = (('y','x'), zlon.values.astype('float32')) 
 		ds_out.coords['BGlon'].attrs['long_name'] = 'longitude'
 		ds_out.coords['BGlon'].attrs['units'] = 'degrees_east'
- 
+
 		# Save diags. based on yearly mean SSH
 		timevalue_ym = pd.to_datetime(str(zs_year)+'-06-30')
 		ds_out.coords['time_ym'] = (('time_ym'), [timevalue_ym] )
@@ -298,18 +356,8 @@ def BFG_MAPSF( zlon, zlat, zvar_ssh, zbathy, zarea, zCONF, zCASE, zs_year, zlgTS
 		print()
 		
 		# Read Obs. data set 
+		ds_envisat, ds_cryosat = BFGTISE_OBS()
 		#######################################################################################################
-		obs_datafile = './DATA/BGmask_2003to2014.nc'
-		ds_obsrssh = xr.open_dataset( obs_datafile, engine="netcdf4" ) 
-		# Rebuild a proper new time axis 
-		timevalue = pd.date_range(start='2003-01',end='2014-12',freq='MS')+ pd.DateOffset(days=14)
-		obs_time_axis = timevalue.year + (timevalue.month - 1 + 0.5) / 12
-		ds_obs = xr.Dataset()
-		ds_obs.coords['time'] = (('time'), timevalue)
-		ds_obs['maxheight'] = (('time'), ds_obsrssh["maxheight"].values.squeeze())
-		ds_obs['area_m2'] = (('time'), ds_obsrssh["area_m2"].values.squeeze())
-		ds_obs['maxh_lat'] = (('time'), ds_obsrssh["maxh_lat"].values.squeeze())
-		ds_obs['maxh_lon'] = (('time'), ds_obsrssh["maxh_lon"].values.squeeze())
 		
 		# Read model data set 
 		#######################################################################################################
@@ -332,14 +380,15 @@ def BFG_MAPSF( zlon, zlat, zvar_ssh, zbathy, zarea, zCONF, zCASE, zs_year, zlgTS
 		ax=plt.subplot(xwind+1)
 		ax.set_title(zCASE,size=7)
 		plt.plot(mod_time_axis,ds_rssh['BGmax'].values,color='k', linewidth=0.6, label='model')
-		plt.plot(obs_time_axis,ds_obs['maxheight'],color='g', linewidth=0.6, label='obs')
+		plt.plot(ds_envisat['time'],ds_envisat['maxheight'],color='g', linewidth=0.6, label='Envisat')
+		plt.plot(ds_cryosat['time'],ds_cryosat['BGmax'],color='r', linewidth=0.6, label='Cryosat')
 		plt.xlim([1978,2025])
 		plt.grid(True, linestyle='--', which='both', color='grey', alpha=0.50)
 		plt.ylabel(' max ssh at gyre centre \n (m)',size=6)
 		plt.xticks(newlocsx,newlabelsx,size=5)
 		plt.setp(ax.get_xticklabels(),visible=False)
 		plt.yticks(size=6)
-		plt.legend(fontsize='small', ncol=2)
+		plt.legend(fontsize='small', ncol=3)
 		leg = plt.gca().get_legend()
 		ltext = leg.get_texts()
 		plt.setp(ltext, fontsize=4)
@@ -347,8 +396,9 @@ def BFG_MAPSF( zlon, zlat, zvar_ssh, zbathy, zarea, zCONF, zCASE, zs_year, zlgTS
 		# Gyre area 
 		################
 		ax=plt.subplot(xwind+2)
-		plt.plot(mod_time_axis,(ds_rssh['BGarea'].values)*1e-12,color='k', linewidth=0.6, label='model')
-		plt.plot(obs_time_axis,(ds_obs['area_m2'].values)*1e-12,color='g', linewidth=0.6, label='obs')
+		plt.plot(mod_time_axis,(ds_rssh['BGarea'].values)*1e-12,color='k', linewidth=0.6 )
+		plt.plot(ds_envisat['time'],(ds_envisat['area_m2'].values)*1e-12,color='g', linewidth=0.6 )
+		plt.plot(ds_cryosat['time'],(ds_cryosat['BGarea'].values)*1e-12,color='r', linewidth=0.6 )
 		plt.xlim([1978,2025])
 		plt.grid(True, linestyle='--', which='both', color='grey', alpha=0.50)
 		ax.yaxis.set_major_locator(MultipleLocator(0.25))
@@ -361,7 +411,8 @@ def BFG_MAPSF( zlon, zlat, zvar_ssh, zbathy, zarea, zCONF, zCASE, zs_year, zlgTS
 		######################
 		ax=plt.subplot(xwind+3)
 		plt.plot(mod_time_axis,ds_rssh["BGmaxhlat"].values,color='k', linewidth=0.6, label='model')
-		plt.plot(obs_time_axis,ds_obs['maxh_lat'].values,color='g', linewidth=0.6, label='obs')
+		plt.plot(ds_envisat['time'],(ds_envisat['maxh_lat'].values),color='g', linewidth=0.6 )
+		plt.plot(ds_cryosat['time'],(ds_cryosat['BGmaxhlat'].values),color='r', linewidth=0.6 )
 		plt.xlim([1978,2025])
 		plt.grid(True, linestyle='--', which='both', color='grey', alpha=0.50)
 		ax.yaxis.set_major_locator(MultipleLocator(2))
@@ -374,7 +425,8 @@ def BFG_MAPSF( zlon, zlat, zvar_ssh, zbathy, zarea, zCONF, zCASE, zs_year, zlgTS
 		######################
 		ax=plt.subplot(xwind+4)
 		plt.plot(mod_time_axis,ds_rssh["BGmaxhlon"].values,color='k', linewidth=0.6, label='model')
-		plt.plot(obs_time_axis,ds_obs['maxh_lon'].values,color='g', linewidth=0.6, label='obs')
+		plt.plot(ds_envisat['time'],(ds_envisat['maxh_lon'].values),color='g', linewidth=0.6 )
+		plt.plot(ds_cryosat['time'],(ds_cryosat['BGmaxhlon'].values),color='r', linewidth=0.6 )
 		plt.xlim([1978,2025])
 		plt.grid(True, linestyle='--', which='both', color='grey', alpha=0.50)
 		ax.yaxis.set_major_locator(MultipleLocator(5))
@@ -1659,7 +1711,7 @@ def FWC_MAPSF( zlon, zlat, zSali, zSali_IS, zSSH, zCONF, zCASE, zc_year, ze3, zt
 	mean_FWCObs, lon2D_obs, lat2D_obs, obsper = FWC_OBS( t_year=int(zc_year) )
 
 	# Read DOT observations 
-	obs_ssh, lon_obs, lat_obs, obs_ssh_per = SSH_OBS( t_year=int(zc_year) )
+	obs_ssh, obs_ssh_mm, lon_obs, lat_obs, obs_ssh_per = SSH_OBS( t_year=int(zc_year) )
 
 	plt.clf()
 	fig, axes = plt.subplots( 2, 3, figsize=(11.7,8.3),  subplot_kw={'projection': ccrs.NorthPolarStereo(central_longitude=-60, true_scale_latitude=65)} )
@@ -1962,7 +2014,7 @@ def BATHY_MAP( ztype='isol1000', zarea='arctic', ax=None ) :
 	return
 
 ################################################################################################################################
-def PROJ_PLOT( zlon, zlat, tab, contours, limits, name=None, zmy_ticks=None, zmy_cblab=None, zmy_cmap=None, zvar=None, zarea='arctic', data_ref=False, ax=None, zplot_obs=0, zmy_year=None ) :
+def PROJ_PLOT( zlon, zlat, tab, contours, limits, name=None, zmy_ticks=None, zmy_cblab=None, zmy_cmap=None, zvar=None, zarea='arctic', data_ref=False, ax=None, zplot_obs=0, zmy_year=None, zcolor=None ) :
 ################################################################################################################################
 	"""
 	Function dedicated to prepare the map projection depending the variable and geographical location to plot 
@@ -2025,7 +2077,7 @@ def PROJ_PLOT( zlon, zlat, tab, contours, limits, name=None, zmy_ticks=None, zmy
 
 	############################################################################################################
 	elif zarea == 'cassis_BGZoom' : # Focus on Beaufort Gyre 
-		ax.set_extent([-180, -80, 66, 85], crs=ccrs.PlateCarree())
+		ax.set_extent([-170, -120, 66, 80], crs=ccrs.PlateCarree())
 
 	############################################################################################################
 	elif zarea == 'cassis_BGZoom_HR' : # Focus on Beaufort Gyre 
@@ -2061,6 +2113,8 @@ def PROJ_PLOT( zlon, zlat, tab, contours, limits, name=None, zmy_ticks=None, zmy
 			else:	
 				zlinewidths=0.8   ; zcolor='r'
 			C = ax.contour( zlon, zlat, tab, linewidths=zlinewidths, levels=[17.], colors=zcolor )
+		elif zvar == 'bfgcnt' :
+			C = ax.contour( zlon, zlat, tab, linewidths=0.4, colors=zcolor, transform = ccrs.PlateCarree() )
 		else :
 			C = tab.plot.pcolormesh( ax=ax, levels=contours, cmap=pal, transform = ccrs.PlateCarree(), add_colorbar=False, add_labels=True )
 	else :
@@ -2093,39 +2147,36 @@ def PROJ_PLOT( zlon, zlat, tab, contours, limits, name=None, zmy_ticks=None, zmy
 	############################################################################################################
 	
 	# colorbar	
-	if zmy_ticks is None and zarea != 'GulfS' :
-		cbar = plt.colorbar(C,format='%.2f',orientation='vertical',shrink=0.8)
-	elif zarea != 'GulfS' :
-		if zvar == 'votemper' or zvar == 'vosaline' or zvar == 'sivolu' :
-			cbar = plt.colorbar(C,format='%.2f',orientation='vertical',shrink=0.8,drawedges=True)
-		elif zvar == 'sobarstf' or zvar == 'topos' :
-			cbar = plt.colorbar(C,format='%.2f',orientation='vertical',shrink=0.6,drawedges=True)
-		elif zvar == 'mlt' or zvar == 'mls' :
-			cbar = plt.colorbar(C,ticks=zmy_ticks,format='%.1f',orientation='vertical',shrink=0.7)
-		elif zvar == 'voeke' :
-			if zplot_obs == 1 :
-				if zmy_year >= 2015 : # Plot Cryosat data 
-					cbar = plt.colorbar(C,format='%.2f',orientation='vertical',shrink=0.8,extend='both')
+	if zvar != 'bfgcnt' : 
+		if zmy_ticks is None and zarea != 'GulfS' :
+			cbar = plt.colorbar(C,format='%.2f',orientation='vertical',shrink=0.8)
+		elif zarea != 'GulfS' :
+			if zvar == 'votemper' or zvar == 'vosaline' or zvar == 'sivolu' :
+				cbar = plt.colorbar(C,format='%.2f',orientation='vertical',shrink=0.8,drawedges=True)
+			elif zvar == 'sobarstf' or zvar == 'topos' :
+				cbar = plt.colorbar(C,format='%.2f',orientation='vertical',shrink=0.6,drawedges=True)
+			elif zvar == 'mlt' or zvar == 'mls' :
+				cbar = plt.colorbar(C,ticks=zmy_ticks,format='%.1f',orientation='vertical',shrink=0.7)
+			elif zvar == 'voeke' :
+				if zplot_obs == 1 :
+					if zmy_year >= 2015 : # Plot Cryosat data 
+						cbar = plt.colorbar(C,format='%.2f',orientation='vertical',shrink=0.8,extend='both')
+					else :
+						cbar = plt.colorbar(C,format='%.2f',orientation='vertical',shrink=0.8,drawedges=True)
 				else :
 					cbar = plt.colorbar(C,format='%.2f',orientation='vertical',shrink=0.8,drawedges=True)
-			else :
-				cbar = plt.colorbar(C,format='%.2f',orientation='vertical',shrink=0.8,drawedges=True)
-		elif zvar == 'mldr10_1' :
-			cbar = plt.colorbar(C,ticks=zmy_ticks,format='%.0f',orientation='vertical',shrink=0.6,extend='both')
-		elif zvar == 'ssh' or zvar == 'FWC' :
-			cbar = plt.colorbar(C,ticks=zmy_ticks,format='%.0f',orientation='vertical',shrink=0.6,extend='both')
-		elif zvar == 'siconc' :
-			cbar = plt.colorbar(C,format='%.0f',orientation='vertical',shrink=0.8,extend='both')
-		else:
-			cbar = plt.colorbar(C,format='%.0f',orientation='vertical',shrink=0.8,drawedges=True)
+			elif zvar == 'mldr10_1' :
+				cbar = plt.colorbar(C,ticks=zmy_ticks,format='%.0f',orientation='vertical',shrink=0.6,extend='both')
+			elif zvar == 'ssh' or zvar == 'FWC' :
+				cbar = plt.colorbar(C,ticks=zmy_ticks,format='%.0f',orientation='vertical',shrink=0.6,extend='both')
+			elif zvar == 'siconc' :
+				cbar = plt.colorbar(C,format='%.0f',orientation='vertical',shrink=0.8,extend='both')
+			else:
+				cbar = plt.colorbar(C,format='%.0f',orientation='vertical',shrink=0.8,drawedges=True)
 
-		cbar.set_label(zmy_cblab,fontsize=zfontsize)
-		cl = plt.getp(cbar.ax, 'ymajorticklabels')
-		plt.setp(cl, fontsize=zfontsize)
-		#if ztickslabels != None and zvar == 'voeke' : 
-		#	zticks = npy.linspace(1e-6, 1e-2, 5)
-		#	cbar.set_ticks(10**zticks)
-		#	cbar.ax.set_yticklabels(ztickslabels)
+			cbar.set_label(zmy_cblab,fontsize=zfontsize)
+			cl = plt.getp(cbar.ax, 'ymajorticklabels')
+			plt.setp(cl, fontsize=zfontsize)
 	
 	ax.set_title(name,fontsize=zfontsize)
 	
@@ -2197,6 +2248,7 @@ def BFG_COMPUTE( lon, lat, ssh_raw, depth, var_type, increment, grid_area, rm_la
 	    lon        : longitude
 	    BG_area    : Surface area of the closed contour 
 	"""
+	ll_dbg = False 		# debug prints if required 
 	# ----------------------------------------------------------------------
 
 	## Step 1: set up coastline to determine when the contour is no longer closed
@@ -2236,7 +2288,7 @@ def BFG_COMPUTE( lon, lat, ssh_raw, depth, var_type, increment, grid_area, rm_la
 	masked_shelf[masked_shelf==0] = npy.nan;
 	masked_shelf[npy.isnan(masked_shelf)] = npy.nan;
 	maxarr = npy.nanmax(masked_shelf);
-	print('			max '+str(maxarr))
+	if ll_dbg : print('			max '+str(maxarr))
 	maxarr_whole = maxarr.copy();
 	
 	if var_type == 'MSL':
@@ -2270,7 +2322,7 @@ def BFG_COMPUTE( lon, lat, ssh_raw, depth, var_type, increment, grid_area, rm_la
 	## LOOP #########################################
 	#################################################
 	if abs(maxarr) == 0:
-	    print('		BG not found')
+	    if ll_dbg : print('		BG not found')
 	    all_met = 1;
 	else:
 	    all_met = 0;
@@ -2354,15 +2406,15 @@ def BFG_COMPUTE( lon, lat, ssh_raw, depth, var_type, increment, grid_area, rm_la
 	            increment = increment/2;
 	            maxarr = maxarr - increment;
 	            maskarr_new = maskarr.copy();
-	            print('		non-ocean cells. Try lower increment')
+	            if ll_dbg : print('		non-ocean cells. Try lower increment')
 	        elif npy.nansum(new_edges_withland) < npy.nansum(new_edges):
 	            maxarr = maxarr + increment;
 	            increment = increment/2;
 	            maxarr = maxarr - increment;
 	            maskarr_new = maskarr.copy();
-	            print('		met a wall? reversing')
+	            if ll_dbg : print('		met a wall? reversing')
 	        elif size_of_new_mask > size_of_old_mask:
-	            print('		continuing to increment out')
+	            if ll_dbg : print('		continuing to increment out')
 	            maxarr = maxarr - increment;
 	            maskarr = maskarr_new.copy();
 	            size_of_old_mask = size_of_new_mask.copy();
@@ -2371,11 +2423,11 @@ def BFG_COMPUTE( lon, lat, ssh_raw, depth, var_type, increment, grid_area, rm_la
 	            increment = increment/2;
 	            maxarr = maxarr - increment;
 	            maskarr_new = maskarr.copy();
-	            print('		other')
+	            if ll_dbg : print('		other')
 	    else:
 	        all_met = 1; maskarr_out = maskarr.copy();
 	    
-	    print('		next '+str(while_loop)+' max '+str(maxarr)+' no vals '+str(npy.sum(maskarr_new))+' inc '+str(increment))
+	    if ll_dbg : print('		next '+str(while_loop)+' max '+str(maxarr)+' no vals '+str(npy.sum(maskarr_new))+' inc '+str(increment))
 	
 	############################
 	mask_full[x1:x2,y1:y2] = maskarr_out.copy();
@@ -2389,7 +2441,7 @@ def BFG_COMPUTE( lon, lat, ssh_raw, depth, var_type, increment, grid_area, rm_la
 	mask_nan[mask_full==0] = npy.nan
 	BG_max_val = npy.nanmax(mask_nan*ssh_full)
 	[r,c] = npy.where(mask_nan*ssh_full == BG_max_val)
-	print('			',r,c,len(r))
+	if ll_dbg : print('			',r,c,len(r))
 	BG_max_lat = lat[r[0],c[0]]
 	BG_max_lon = lon[r[0],c[0]]
 	BG_area = npy.nansum((grid_area*mask_nan)[:]) 

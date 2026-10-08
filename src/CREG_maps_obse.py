@@ -3,6 +3,8 @@ CREG_maps_obse.py
 
 Description:
 This module defines a set of functions dedicated to read Obs. or reanalysis data set :
+- BFGDOT_OBS       : Beaufort Gyre DOT contours derived from either ENVISAT or CRYOSAT obs. 
+- BFGTISE_OBS      : Beaufort Gyre DOT characteristics time-series derived from either ENVISAT or CRYOSAT obs.
 - EKE_OBS          : EKE deduced from DOT field. File: EKE_DOT_based_2003-2014.nc
 - ICE_THICK_OBS    : ice thickness from PIOMAS reanalysis data set. File: PIOMAS_icethic_interpCREGXX.L75_1-12_1979-2024.nc
 - ICE_CONCE_OBS    : September/March ice concentration from NSIDC v6 release. File: NSIDC-G02202-v6_sic_psn25_197811-202603_v06r00.nc
@@ -44,7 +46,7 @@ def SSH_OBS( t_year=1959 ) :
 	"""
 	# ----------------------------------------------------------------------
 
-	# DOT data set his based on the following satelite:
+	# DOT data set his based on the following satellite:
 	# From 2003 - 2011 : Envisat 
 	# From 2012 - 2025 : Cryosat-2 
 
@@ -64,10 +66,13 @@ def SSH_OBS( t_year=1959 ) :
 	
 		# Compute the mean over the obs. monthly period 2003-2014
 		out_ssh_OBS = ssh_init.mean(dim='date').squeeze()
-		out_ssh_OBS.coords['lat'] =(('y','x'), SSH_lat2D)
-		out_ssh_OBS.coords['lon'] =(('y','x'), SSH_lon2D)
+		out_ssh_OBS_mm = npy.nan
 		ssh_OBS_obsper = 'Envisat 2003-2014'
 	
+		# Set geographical coordinates 
+		out_ssh_OBS.coords['lat'] =(('y','x'), SSH_lat2D)
+		out_ssh_OBS.coords['lon'] =(('y','x'), SSH_lon2D)
+
 	elif t_year >= 2003 and t_year <=2014 :
 		locpath='./DATA/'
 		locfile='EKE_DOT_based_2003-2014.nc'
@@ -83,9 +88,12 @@ def SSH_OBS( t_year=1959 ) :
 		# Get the specific year
 		s_ind=(t_year-2003)*12	 
 		out_ssh_OBS = ssh_init.isel(date=slice(s_ind,s_ind+12)).mean(dim='date').squeeze()
+		out_ssh_OBS_mm = ssh_init.isel(date=slice(s_ind,s_ind+12))
+		ssh_OBS_obsper = 'Envisat '+str(t_year)
+
+		# Set geographical coordinates
 		out_ssh_OBS.coords['lat'] =(('y','x'), SSH_lat2D)
 		out_ssh_OBS.coords['lon'] =(('y','x'), SSH_lon2D)
-		ssh_OBS_obsper = 'Envisat '+str(t_year)
 
 	# Focus on the CRYOSAT-2 observation period 
 	############################################
@@ -111,6 +119,7 @@ def SSH_OBS( t_year=1959 ) :
 		ssh_20152024 = ssh_init.where(ssh_init.time.dt.year >= 2015, drop=True)
 		ssh_20152024 = ssh_20152024.where(ssh_20152024.time.dt.year <= 2024, drop=True)
 		out_ssh_OBS = ssh_20152024.sel(time=str(t_year)).mean(dim='time')
+		out_ssh_OBS_mm = ssh_20152024.sel(time=str(t_year))
 		out_ssh_OBS.coords['lat'] =(('y','x'), SSH_lat2D.values)
 		out_ssh_OBS.coords['lon'] =(('y','x'), SSH_lon2D.values)
 		ssh_OBS_obsper = 'Cryosat-2 '+str(t_year)
@@ -127,8 +136,9 @@ def SSH_OBS( t_year=1959 ) :
 		seam[1:, :]  |= dlon_y > 180
 		
 		out_ssh_OBS = out_ssh_OBS.where(~seam)
+		out_ssh_OBS_mm = out_ssh_OBS_mm.where(~seam)
 
-	return out_ssh_OBS, SSH_lon2D, SSH_lat2D, ssh_OBS_obsper
+	return out_ssh_OBS, out_ssh_OBS_mm, SSH_lon2D, SSH_lat2D, ssh_OBS_obsper
 
 ################################################################################################################################
 def MLD_OBS() :
@@ -480,27 +490,128 @@ def FWC_OBS( t_year=1959 ) :
 		mean_FWCObs = xr.where( mean_FWCObs == 9999., npy.nan, mean_FWCObs )
 		obsper='2003-2023'
 
-# origin	# Use obs. from Proshutinsky GRL2018 extended to 2023 
-# origin	locpath='./DATA/'
-# origin	locfile='BGFWC_OI_2023_2DGRID.nc'
-# origin	if chkfile(locpath+locfile,zstop=True) :
-# origin		ds_obsfwc = xr.open_dataset(locpath+locfile)
-# origin		fwc2D_obs = ds_obsfwc['fwc']
-# origin		lat2D_obs = ds_obsfwc['lat']
-# origin		lon2D_obs = ds_obsfwc['lon']
-# origin
-# origin		lat2D_obs = xr.where( lat2D_obs == 9999., npy.nan, lat2D_obs ) 
-# origin		lon2D_obs = xr.where( lon2D_obs == 9999., npy.nan, lon2D_obs ) 
-# origin
-# origin	if int(t_year) >= 2003 and int(t_year) <= 2023 :
-# origin		s_ind=int(t_year)-2003  ; e_ind=s_ind+1
-# origin		mean_FWCObs = fwc2D_obs[s_ind:e_ind,:].squeeze()
-# origin		mean_FWCObs = xr.where( mean_FWCObs == 9999., npy.nan, mean_FWCObs )
-# origin		obsper=str(t_year)
-# origin	else:
-# origin		mean_FWCObs = fwc2D_obs.mean(dim='year').squeeze()
-# origin		mean_FWCObs = fwc2D_obs.mean(dim='year').squeeze()
-# origin		mean_FWCObs = xr.where( mean_FWCObs == 9999., npy.nan, mean_FWCObs )
-# origin		obsper='2003-2023'
-
 	return mean_FWCObs, lon2D_obs, lat2D_obs, obsper
+
+################################################################################################################################
+def BFGDOT_OBS( t_year=1959 ) :
+################################################################################################################################
+	"""
+	Function dedicated to read Beaufort Gyre SSH contours and mass center infered from DOT obs.
+	# DOT data set is based on the following satellite device :
+	# From 2003 - 2014 : Envisat 
+	# From 2011 - 2025 : Cryosat-2 
+
+	Filenames are :
+		- BGmask_2003to2014.nc Envisat  [2003-2014] 
+		- BFG_inc15cm_monthly_2011-2025_fromDOT_data_Arco.nc Cryosat  [2011-2025] 
+	
+	Input:
+	    t_year : current year to read 
+	
+	Output:
+	    out_CNT_OBS : Mask of the BFG DOT interior 
+	    lon2D       : 2D longitude 
+	    lat2D       : 2D latitude 
+	"""
+	# ----------------------------------------------------------------------
+
+	# Focus on the ENVISAT observation period 
+	############################################
+	if t_year >= 2003 and t_year <= 2014 : 
+		locpath='./DATA/'
+		locfile = 'BFG_inc15cm_monthly_2003-2014_fromCPOM_DOT.nc'
+		out_name='ENVISAT'
+		ds_msk = xr.open_dataset( locpath+locfile )
+		if chkfile(locpath+locfile) : 
+			ds_msk = xr.open_dataset(locpath+locfile)
+			lon2D = ds_msk['BGlon']
+			lat2D = ds_msk['BGlat']
+			dotcnt = ds_msk['BGmask']
+			Hmax_lat = ds_msk['BGmaxhlat']
+			Hmax_lon = ds_msk['BGmaxhlon']
+
+		# Rebuild a proper new time axis 
+		timevalue = pd.date_range(start='2003-01',end='2014-12',freq='MS')+ pd.DateOffset(days=14)
+		dotcnt['time'] = (('time'), timevalue)
+		Hmax_lat['time'] = (('time'), timevalue)
+		Hmax_lon['time'] = (('time'), timevalue)
+
+		# Select the corresponding year 
+		out_CNT_OBS = dotcnt.sel(time=str(t_year))
+		out_Hmax_lat = Hmax_lat.sel(time=str(t_year))
+		out_Hmax_lon = Hmax_lon.sel(time=str(t_year))
+		
+	# Focus on the CRYOSAT-2 observation period 
+	############################################
+	elif t_year >= 2015 and t_year <= 2024 : 
+
+		locpath='./DATA/'
+		locfile='BFG_inc15cm_monthly_2011-2025_fromDOT_data_Arco.nc'
+		out_name='CRYOSAT'
+		if chkfile(locpath+locfile,zstop=True) :
+			ds_msk = xr.open_dataset(locpath+locfile)
+			lon2D = ds_msk['BGlon']
+			lat2D = ds_msk['BGlat']
+			dotcnt = ds_msk['BGmask']
+			Hmax_lat = ds_msk['BGmaxhlat']
+			Hmax_lon = ds_msk['BGmaxhlon']
+	
+		# Remove all data before 2015 and after 2024 (2025 is from January to September)
+		msk_20152024 = dotcnt.where(dotcnt.time.dt.year >= 2015, drop=True)
+		msk_20152024 = msk_20152024.where(msk_20152024.time.dt.year <= 2024, drop=True)
+		out_CNT_OBS = msk_20152024.sel(time=str(t_year))
+		out_Hmax_lat = Hmax_lat.sel(time=str(t_year))
+		out_Hmax_lon = Hmax_lon.sel(time=str(t_year))
+
+	else :
+		dotcnt = npy.nan
+		lon2D = npy.nan
+		lat2D = npy.nan
+
+	return out_CNT_OBS, lon2D, lat2D, out_Hmax_lat, out_Hmax_lon, out_name
+
+################################################################################################################################
+def BFGTISE_OBS( ) :
+################################################################################################################################
+	"""
+	Function dedicated to read Beaufort Gyre SSH contours characteristics time series derived from DOT obs.
+	# DOT data set is based on the following satellite device :
+	# From 2003 - 2011 : Envisat 
+	# From 2012 - 2025 : Cryosat-2 
+
+	Filenames are :
+		- BGmask_2003to2014.nc Envisat  [2003-2014] 
+		- BFG_inc15cm_monthly_2011-2025_fromDOT_data_Arco.nc Cryosat  [2011-2025] 
+	
+	Input:
+	    t_year : current year to read 
+	
+	Output:
+	    ds_envisat : DOT time-series characteristics from Envisat 
+	    ds_cryo    : DOT time-series characteristics from Cryosat 
+	"""
+	# ----------------------------------------------------------------------
+
+	# Focus on the ENVISAT observation period
+	##########################################
+	locpath='./DATA/'
+	locfile='BGmask_2003to2014.nc'
+	if chkfile(locpath+locfile,zstop=True) :
+		ds_envisat = xr.open_dataset( locpath+locfile )
+		timevalue = pd.date_range(start='2003-01',end='2014-12',freq='MS')+ pd.DateOffset(days=14)
+
+	# Focus on the CRYOSAT-2 observation period 
+	############################################
+	locpath='./DATA/'
+	locfile='BFG_inc15cm_monthly_2011-2025_fromDOT_data_Arco.nc'
+	if chkfile(locpath+locfile,zstop=True) :
+		ds_obsenv = xr.open_dataset(locpath+locfile)
+	
+	# Remove all data before 2015 and after 2024 (2025 is from January to September)
+	ds_cryo = ds_obsenv.where(ds_obsenv.time.dt.year >= 2015, drop=True)
+	ds_cryo = ds_cryo.where(ds_cryo.time.dt.year <= 2024, drop=True)
+	timevalue = pd.date_range(start='2015-01',end='2024-12',freq='MS')+ pd.DateOffset(days=14)
+	obs_time_axis = timevalue.year + (timevalue.month - 1 + 0.5) / 12
+	ds_cryo['time'] = (('time'), obs_time_axis)
+
+	return ds_envisat, ds_cryo
