@@ -46,22 +46,22 @@ def DEF_LOC_SEC( CONFIG, zsect ) :
 	if CONFIG == "CREG025.L75" :
 		if zsect['name'] == "Bering"   : loc_sec={'name':"Bering"   ,'is': 202,'ie':223 ,'jloc':601 ,'depthlim':(-500.,0.) ,'templim':(-2.,3.,0.5), 'salilim':(28.,35.,0.5) , 'velolim':(-5.,5.,1.)   ,'denslim':(24.0,27.9,0.2),'tkeklim':(-7.,1.5,1.)}
 		if zsect['name'] == "SouthG"   : loc_sec={'name':"SouthG"   ,'is':  54,'ie':324 ,'jloc':  2 ,'depthlim':(-5000.,0.),'templim':( 4.,27.,2.), 'salilim':(33.,36.,0.2) , 'velolim':(-50.,50.,10.),'denslim':(27.6,28.9,0.1),'tkeklim':(-7.,1.5,1.)}
-		if zsect['name'] == "FramS"    : loc_sec={'name':"FramS"    ,'is': 301,'ie':333 ,'jloc':338 ,'depthlim':(-1000.,0.),'templim':(-2.,6.,0.5), 'salilim':(33.,36.,0.2) , 'velolim':(-5.,5.,1.)   ,'denslim':(27.6,28.9,0.1),'tkeklim':(-7.,1.5,1.)}
+		if zsect['name'] == "FramS"    : loc_sec={'name':"FramS"    ,'is': 301,'ie':333 ,'jloc':338 ,'depthlim':(-1000.,0.),'templim':(-2.,4.,0.5), 'salilim':(33.,35.2,0.2), 'velolim':(-6.,6.,1.)   ,'denslim':(27.6,28.9,0.1),'tkeklim':(-7.,1.5,1.)}
 		if zsect['name'] == "FramObs"  : loc_sec={'name':"FramObs"  ,'is': 326,'ie':333 ,'jloc':333 ,'depthlim':(-1000.,0.),'templim':(-2.,6.,0.5), 'salilim':(33.,36.,0.2) , 'velolim':(-5.,5.,1.)   ,'denslim':(27.6,28.9,0.1),'tkeklim':(-7.,1.5,1.)}
 		if zsect['name'] == "Davis"    : loc_sec={'name':"Davis"    ,'is': 162,'ie':190 ,'jloc':252 ,'depthlim':(-1000.,0.),'templim':(-2.,6.,0.5), 'salilim':(32.,35.,0.25), 'velolim':(-10.,10.,2.) ,'denslim':(27.6,28.9,0.1),'tkeklim':(-7.,1.5,1.)}
-		if zsect['name'] == "Beaufort" : loc_sec={'name':"Beaufort" ,'is': 395,'ie':560 ,'jloc':197 ,'depthlim':(-600.,0.) ,'templim':(-2.,2.,0.2), 'salilim':(28.,35.,0.5) , 'velolim':(-5.,5.,1.)   ,'denslim':(24.0,27.9,0.2),'tkeklim':(-7.,1.5,1.)}
+		if zsect['name'] == "Beaufort" : loc_sec={'name':"Beaufort" ,'is': 395,'ie':560 ,'jloc':197 ,'depthlim':(-600.,0.) ,'templim':(-2.,1.,0.2), 'salilim':(28.,35.,0.5) , 'velolim':(-5.,5.,1.)   ,'denslim':(24.0,27.9,0.2),'tkeklim':(-7.,1.5,1.)}
 		if zsect['name'] == "ArcAnna"  : loc_sec={'name':"ArcAnna"  ,'is': 334,'ie':358 ,'jloc':395 ,'depthlim':(-1000.,0.),'templim':(-2.,6.,0.5), 'salilim':(33.,35.,0.1) , 'velolim':(-10.,10.,1.) ,'denslim':(27.6,28.9,0.1),'tkeklim':(-7.,1.,10.)}
-		if zsect['name'] == "Kara"     : loc_sec={'name':"Kara"     ,'is': 291,'ie':362 ,'jloc':447 ,'depthlim':(-1000.,0.),'templim':(-2.,4.,0.5), 'salilim':(33.5,35.,0.1), 'velolim':(-10.,10.,1.) ,'denslim':(27.6,28.9,0.1),'tkeklim':(-7.,1.5,1.)}
+		if zsect['name'] == "Kara"     : loc_sec={'name':"Kara"     ,'is': 291,'ie':362 ,'jloc':447 ,'depthlim':(-1000.,0.),'templim':(-2.,2.,0.5), 'salilim':(33.5,35.,0.1), 'velolim':(-12.,12.,1.) ,'denslim':(27.6,28.9,0.1),'tkeklim':(-7.,1.5,1.)}
 		if zsect['name'] == "Barents"  : loc_sec={'name':"Barents"  ,'is': 280,'ie':470 ,'jloc':355 ,'depthlim':(-300. ,0.),'templim':(-2.,6.,0.5), 'salilim':(33.,36.,0.2) , 'velolim':(-5.,5.,1.)   ,'denslim':(27.6,28.9,0.1),'tkeklim':(-7.,1.5,1.)}
 	elif CONFIG == "CREG12.L75" :
 		if zsect['name'] == "Bering"   : loc_sec={'name':"Bering"   ,'is':  620,'ie':  646,'jloc':1799,'depthlim':(-500.,0.) ,'templim':(-2.,3.,0.5), 'salilim':(28.,35.,0.5) , 'velolim':(-5.,5.,1.)	, 'denslim':(24.0,27.9,0.2),'tkeklim':(-7.,1.5,1.)}
 		if zsect['name'] == "SouthG"   : loc_sec={'name':"SouthG"   ,'is':  161,'ie':  964,'jloc':2   ,'depthlim':(-5000.,0.),'templim':( 4.,27.,2.), 'salilim':(33.,36.,0.2) , 'velolim':(-50.,50.,10.), 'denslim':(27.6,28.9,0.1),'tkeklim':(-7.,1.5,1.)}
-		if zsect['name'] == "FramS"    : loc_sec={'name':"FramS"    ,'is':  880,'ie': 1000,'jloc':1011,'depthlim':(-1000.,0.),'templim':(-2.,6.,0.5), 'salilim':(33.,36.,0.2) , 'velolim':(-5.,5.,1.)	, 'denslim':(27.6,28.9,0.1),'tkeklim':(-7.,1.5,1.)}
+		if zsect['name'] == "FramS"    : loc_sec={'name':"FramS"    ,'is':  880,'ie': 1000,'jloc':1011,'depthlim':(-1000.,0.),'templim':(-2.,4.,0.5), 'salilim':(33.,35.2,0.2), 'velolim':(-6.,6.,1.)	, 'denslim':(27.6,28.9,0.1),'tkeklim':(-7.,1.5,1.)}
 		if zsect['name'] == "FramObs"  : loc_sec={'name':"FramObs"  ,'is':  976,'ie':  992,'jloc':990 ,'depthlim':(-700. ,0.),'templim':(-2.,6.,0.5), 'salilim':(33.,36.,0.2) , 'velolim':(-5.,5.,1.)	, 'denslim':(27.6,28.9,0.1),'tkeklim':(-7.,1.5,1.)}
 		if zsect['name'] == "Davis"    : loc_sec={'name':"Davis"    ,'is':  483,'ie':  567,'jloc':751 ,'depthlim':(-1000.,0.),'templim':(-2.,6.,0.5), 'salilim':(32.,35.,0.25), 'velolim':(-10.,10.,2.) , 'denslim':(27.6,28.9,0.1),'tkeklim':(-7.,1.5,1.)}
-		if zsect['name'] == "Beaufort" : loc_sec={'name':"Beaufort" ,'is': 1181,'ie': 1675,'jloc':589 ,'depthlim':(-600. ,0.),'templim':(-2.,2.,0.2), 'salilim':(28.,35.,0.5) , 'velolim':(-5.,5.,1.)	, 'denslim':(24.0,27.9,0.2),'tkeklim':(-7.,1.,10.)}
+		if zsect['name'] == "Beaufort" : loc_sec={'name':"Beaufort" ,'is': 1181,'ie': 1675,'jloc':589 ,'depthlim':(-600. ,0.),'templim':(-2.,1.,0.2), 'salilim':(28.,35.,0.5) , 'velolim':(-5.,5.,1.)	, 'denslim':(24.0,27.9,0.2),'tkeklim':(-7.,1.,10.)}
 		if zsect['name'] == "ArcAnna"  : loc_sec={'name':"ArcAnna"  ,'is': 1000,'ie': 1070,'jloc':1180,'depthlim':(-1000.,0.),'templim':(-2.,6.,0.5), 'salilim':(33.,35.,0.1) , 'velolim':(-10.,10.,1.) , 'denslim':(27.6,28.9,0.1),'tkeklim':(-7.,1.,10.)}
-		if zsect['name'] == "Kara"     : loc_sec={'name':"Kara"     ,'is':  870,'ie': 1083,'jloc':1336,'depthlim':(-1000.,0.),'templim':(-2.,4.,0.5), 'salilim':(33.5,35.,0.1) , 'velolim':(-10.,10.,1.), 'denslim':(27.6,28.9,0.1),'tkeklim':(-7.,1.5,1.)}
+		if zsect['name'] == "Kara"     : loc_sec={'name':"Kara"     ,'is':  870,'ie': 1083,'jloc':1336,'depthlim':(-1000.,0.),'templim':(-2.,2.,0.5), 'salilim':(33.5,35.,0.1), 'velolim':(-12.,12.,1.) , 'denslim':(27.6,28.9,0.1),'tkeklim':(-7.,1.5,1.)}
 		if zsect['name'] == "Barents"  : loc_sec={'name':"Barents"  ,'is':  838,'ie': 1408,'jloc':1060,'depthlim':(-500. ,0.),'templim':(-2.,6.,0.5), 'salilim':(33.,36.,0.2) , 'velolim':(-10.,10.,2.) , 'denslim':(27.6,28.9,0.1),'tkeklim':(-7.,1.5,1.)}
 
 	return loc_sec
@@ -690,7 +690,7 @@ def PLOT_SECTION( zCONF, zCASE, strait, Tsec, Ssec, Usec, Tsec_init, Ssec_init, 
 	zcont = npy.arange(vmin,vmax+vint,vint)
 	znorm = mpl.colors.Normalize(vmin=vmin, vmax=vmax)
 	zisol = npy.arange(vmin,vmax+vint,vint*2.)
-	zcol = plt.get_cmap('jet')
+	zcol = plt.get_cmap('RdYlBu_r')
 
 	PLOT_SEC(321,lon2D,-z2D,Tsec ,zcont,znorm,zcol,zisol,data_type='T',zgrid='gridT',zstrait=strait,ztitle=ltitle,zfig=fig)
 	PLOT_SEC(322,lon2D,-z2D,Tsec_init,zcont,znorm,zcol,zisol,zgrid='gridT',zstrait=strait,ztitle=ititle)
@@ -712,7 +712,7 @@ def PLOT_SECTION( zCONF, zCASE, strait, Tsec, Ssec, Usec, Tsec_init, Ssec_init, 
 	zcont = npy.arange(vmin,vmax+vint,vint)
 	znorm = mpl.colors.Normalize(vmin=vmin, vmax=vmax)
 	zisol = npy.arange(vmin,vmax+vint,vint)
-	zcol = plt.get_cmap('bwr')
+	zcol = plt.get_cmap('RdBu_r')
 
 	PLOT_SEC(325,lon2D,-z2D,Usec*100.,zcont,znorm,zcol,zisol, data_type='V',zgrid='gridV',zstrait=strait,zfig=fig)
 

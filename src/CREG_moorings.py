@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 """
 CREG_moorings.py
 

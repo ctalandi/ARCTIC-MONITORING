@@ -36,20 +36,20 @@ def SET_CONT( lbox, lvarname, lano_cmp=0 ) :
 			   norm = mpl.colors.Normalize(vmin=-2., vmax=2.)
 			   contours = npy.arange(-2.,2.+1,0.2)
 			   isoline  = npy.arange(-2.,2.+1,0.2)
-			   cmap=plt.cm.get_cmap('seismic')
+			   cmap=plt.cm.get_cmap('RdBu_r')
 		else:
 			   vmin=lbox['templim'][0]    ;  vmax=lbox['templim'][1]    ;  vint=lbox['templim'][2]
 			   norm = mpl.colors.Normalize(vmin=vmin, vmax=vmax)
 			   contours = npy.arange(vmin,vmax+vint,vint)
 			   isoline  = npy.arange(vmin,vmax+vint,vint*2)
-			   cmap=plt.cm.get_cmap('rainbow')
+			   cmap=plt.cm.get_cmap('RdYlBu_r')
 	elif lvarname == "vosaline":
 		# Salinity
 		if lano_cmp == 1 :
 			   norm = mpl.colors.Normalize(vmin=-0.5, vmax=0.5)
 			   contours = npy.arange(-0.5,0.5+0.1,0.05)
 			   isoline  = npy.arange(-0.5,0.5+0.1,0.05)
-			   cmap=plt.cm.get_cmap('seismic')
+			   cmap=plt.cm.get_cmap('RdBu_r')
 		else:
 			   vmin=lbox['sallim'][0]    ;	vmax=lbox['sallim'][1]	  ;  vint=lbox['sallim'][2]
 			   norm = mpl.colors.Normalize(vmin=vmin, vmax=vmax)
@@ -62,7 +62,7 @@ def SET_CONT( lbox, lvarname, lano_cmp=0 ) :
 			   norm = mpl.colors.Normalize(vmin=-0.5, vmax=0.5)
 			   contours = npy.arange(-0.5,0.5+0.1,0.05)
 			   isoline  = npy.arange(-0.5,0.5+0.1,0.05)
-			   cmap=plt.cm.get_cmap('seismic')
+			   cmap=plt.cm.get_cmap('RdBu_r')
 		else:
 			   vmin=lbox['Wlim'][0]    ;  vmax=lbox['Wlim'][1]    ;  vint=lbox['Wlim'][2]
 			   norm = mpl.colors.Normalize(vmin=vmin, vmax=vmax)
@@ -75,7 +75,7 @@ def SET_CONT( lbox, lvarname, lano_cmp=0 ) :
 			   norm = mpl.colors.Normalize(vmin=-0.5, vmax=0.5)
 			   contours = npy.arange(-0.5,0.5+0.1,0.05)
 			   isoline  = npy.arange(-0.5,0.5+0.1,0.05)
-			   cmap=plt.cm.get_cmap('seismic')
+			   cmap=plt.cm.get_cmap('RdBu_r')
 		else:
 			   vmin=lbox['Kzlim'][0]    ;  vmax=lbox['Kzlim'][1]	;  vint=lbox['Kzlim'][2]
 			   norm = mpl.colors.Normalize(vmin=vmin, vmax=vmax)
@@ -89,7 +89,7 @@ def SET_CONT( lbox, lvarname, lano_cmp=0 ) :
 			   norm = mpl.colors.Normalize(vmin=vmin, vmax=vmax)
 			   contours = npy.arange(vmin,vmax+vint,vint)
 			   isoline  = npy.arange(vmin,vmax+vint,vint)
-			   cmap=plt.cm.get_cmap('seismic')
+			   cmap=plt.cm.get_cmap('RdBu_r')
 		else:
 			   vmin=lbox['Sig0lim'][0]    ;  vmax=lbox['Sig0lim'][1]  ;  vint=lbox['Sig0lim'][2]
 			   norm = mpl.colors.Normalize(vmin=vmin, vmax=vmax)

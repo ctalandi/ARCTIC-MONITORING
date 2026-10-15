@@ -67,7 +67,7 @@ def SET_ARC_CNT( zCASE, zc_year, seas, zMyvar, zslev=0, zplot_obs=0, zdiff=0 ) :
 	######### MIXED LAYER DEPTH #########
 	if zMyvar == 'mldr10_1' :
 	   my_cblab=r'(m)'
-	   my_cmap=plt.get_cmap('Blues')
+	   my_cmap=plt.get_cmap('YlGnBu')
 	   
 	   zfile_ext='_MLD01Clim_'
 	   if seas == 'm03' : 

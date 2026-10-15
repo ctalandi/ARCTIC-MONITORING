@@ -564,9 +564,12 @@ def BFGDOT_OBS( t_year=1959 ) :
 		out_Hmax_lon = Hmax_lon.sel(time=str(t_year))
 
 	else :
-		dotcnt = npy.nan
+		out_CNT_OBS = npy.nan
 		lon2D = npy.nan
 		lat2D = npy.nan
+		out_Hmax_lat = npy.nan
+		out_Hmax_lon = npy.nan
+		out_name = ''
 
 	return out_CNT_OBS, lon2D, lat2D, out_Hmax_lat, out_Hmax_lon, out_name
 
