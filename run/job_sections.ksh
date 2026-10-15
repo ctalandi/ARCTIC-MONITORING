@@ -30,7 +30,7 @@ chkdir ${OUTNCDF}
 cd ${WPDIR}/MONARC/SECTIONS
 
 cp ${INITDIR}/SECTIONS/CREG_sections_func.py .
-cp ${DMONTOOLS}/checkfile.py .
+cp ${DMONTOOLS}/src/checkfile.py .
 
 
 getfiles=XXGETFILEXX

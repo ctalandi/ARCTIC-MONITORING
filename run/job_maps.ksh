@@ -32,7 +32,7 @@ cd ${WPDIR}/MONARC/MAPS
 cp ${INITDIR}/MAPS/CREG_maps_cont.py .
 cp ${INITDIR}/MAPS/CREG_maps_func.py .
 cp ${INITDIR}/MAPS/CREG_maps_obse.py .
-cp ${DMONTOOLS}/checkfile.py .
+cp ${DMONTOOLS}/src/checkfile.py .
 
 getfiles=XXGETFILEXX
 if [ $getfiles -eq 1 ] ; then 

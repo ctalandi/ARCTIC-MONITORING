@@ -30,7 +30,7 @@ chkdir ${OUTNCDF}
 cd ${WPDIR}/MONARC/INTQUANT
 
 cp ${INITDIR}/INTQUANT/CREG_intquant_func.py .
-cp ${DMONTOOLS}/checkfile.py .
+cp ${DMONTOOLS}/src/checkfile.py .
 
 
 getfiles=XXGETFILEXX
