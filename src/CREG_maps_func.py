@@ -1537,21 +1537,16 @@ def AWT_MAPSF( zlon, zlat, zTemp, zSali, zTempIS, zSaliIS, zCONF, zCASE, zc_year
 
 	# Make the plot for the AW Max Temp 
 	#############################################################################################
-	vmin=0. ; vmax=3. ; vint=0.2
-	contours=npy.arange(vmin,vmax+vint,vint)  
-	limits=[vmin,vmax,vint]			 
-	myticks=npy.arange(vmin,vmax+vint,vint) 
-	
-	my_cblab=r'($^\circ$C)'
-	my_cmap= plt.get_cmap('Spectral_r')
+	zMyvar = 'awtmax'	
+	seas = ''
+	contours, limits, myticks, ztitle, zfile_ext, my_cblab, my_cmap, m_alpha = SET_ARC_CNT( zCASE, zc_year, seas, zMyvar )
 
 	plt.clf()
 	fig = plt.figure()
 	projection = ccrs.NorthPolarStereo(central_longitude=-60, true_scale_latitude=65)
-
 	ax1 = fig.add_subplot(221, projection=projection)
-	ztitle=zCASE +' AW Max Temp \n'+str(zc_year)
 	zoutmap = BATHY_MAP( ztype='isol1000', ax=ax1 )
+
 	zMyvar = 'votemper'	
 	PROJ_PLOT( zlon, zlat, zAWTmax1, contours, limits, zmy_ticks=myticks, name=ztitle, zmy_cblab=my_cblab, zmy_cmap=my_cmap, zvar=zMyvar, ax=ax1 )
 
@@ -1563,14 +1558,8 @@ def AWT_MAPSF( zlon, zlat, zTemp, zSali, zTempIS, zSaliIS, zCONF, zCASE, zc_year
 	
 	# Make the plot for the AW Max Temp depth
 	#############################################################################################
-	vmin=0. ; vmax=800. ; vint=50.
-	contours=npy.arange(vmin,vmax+vint,vint)  
-	limits=[vmin,vmax,vint]			 
-	myticks=npy.arange(vmin,vmax+vint,vint) 
-	
-	ztitle=zCASE+' AW Max Temp depth '
-	my_cblab=r'(m)'
-	my_cmap= plt.get_cmap('jet')
+	zMyvar = 'awtmaxD'	
+	contours, limits, myticks, ztitle, zfile_ext, my_cblab, my_cmap, m_alpha = SET_ARC_CNT( zCASE, zc_year, seas, zMyvar )
 
 	ax3 = fig.add_subplot(223, projection=projection)
 	zoutmap = BATHY_MAP( ztype='isol1000', ax=ax3 )
@@ -1582,7 +1571,6 @@ def AWT_MAPSF( zlon, zlat, zTemp, zSali, zTempIS, zSaliIS, zCONF, zCASE, zc_year
 	PROJ_PLOT( zlon, zlat, zAWTmax_depthIS, contours, limits, zmy_ticks=myticks, name=ztitle, zmy_cblab=my_cblab, zmy_cmap=my_cmap, zplot_obs=0, ax=ax4 )
 	plt.tight_layout()
 	
-	zfile_ext='_AWTmaxDepth_'
 	plt.savefig(zCONF+'-'+zCASE+zfile_ext+'y'+str(zc_year)+'.png',dpi=300)
 
 	if zncout:

@@ -262,4 +262,28 @@ def SET_ARC_CNT( zCASE, zc_year, seas, zMyvar, zslev=0, zplot_obs=0, zdiff=0 ) :
 	   limits=[vmin,vmax,vint]			  # limits for eke
 	   myticks=npy.arange(vmin,vmax+vint,vint)	# optional colorbar ticks (None)
 
+	######### AWT max #########
+	if zMyvar == 'awtmax' :
+	   my_cblab=r'($^\circ$C)'
+	   my_cmap= plt.get_cmap('Spectral_r')
+	   zfile_ext='_AWTmaxDepth_'
+	   ztitle=zCASE +' AW Max Temp \n'+str(zc_year)
+
+	   vmin=0. ; vmax=3. ; vint=0.2
+	   contours=npy.arange(vmin,vmax+vint,vint)  
+	   limits=[vmin,vmax,vint]			 
+	   myticks=npy.arange(vmin,vmax+vint,vint) 
+
+	######### AWT max depth #########
+	if zMyvar == 'awtmaxD' :
+	   my_cblab=r'(m)'
+	   my_cmap= plt.get_cmap('jet')
+	   zfile_ext='_AWTmaxDepth_'
+	   ztitle=zCASE+' AW Max Temp depth '
+
+	   vmin=0. ; vmax=800. ; vint=50.
+	   contours=npy.arange(vmin,vmax+vint,vint)  
+	   limits=[vmin,vmax,vint]			 
+	   myticks=npy.arange(vmin,vmax+vint,vint) 
+
 	return contours, limits, myticks, ztitle, zfile_ext, my_cblab, my_cmap, m_alpha
